@@ -228,6 +228,17 @@ function cleanMarkdownForPublish(content: string): string {
     .trim();
 }
 
+/**
+ * Spot papers / image question banks must never pass through the lossy
+ * rich-text round-trip: it flattens image lines and answer blocks.
+ */
+function isQuestionPaperContent(content: string): boolean {
+  const text = String(content || "");
+  const imageLines = (text.match(/^!\[[^\]]*\]\([^\s)]+\)\s*$/gm) || []).length;
+  const questionHeads = (text.match(/^#{2,4}\s*(?:Spot|Plate|Slide|Number|Q(?:uestion)?)\s*\d+/gim) || []).length;
+  return imageLines >= 3 || questionHeads >= 5;
+}
+
 function makeAutoTags(title: string, category: string, content: string, existing: string[] = []): string[] {
   const tags = [...existing];
   const hay = `${title}\n${category}\n${content}`;
@@ -340,6 +351,9 @@ export default function AdminEditor() {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Spot/question papers are edited as exact markdown so images and answer keys survive saving.
+  const [rawMode, setRawMode] = useState(false);
+  const [rawContent, setRawContent] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(1);
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -608,8 +622,10 @@ export default function AdminEditor() {
   // Load article into editor
   useEffect(() => {
     if (!fullArticle || !editor || isAddMode) return;
-    const html = mdToHtml(fullArticle.content || "");
-    editor.commands.setContent(html);
+    const md = fullArticle.content || "";
+    setRawContent(md);
+    setRawMode(isQuestionPaperContent(md));
+    editor.commands.setContent(mdToHtml(md));
     setEditTitle(fullArticle.title || "");
     setEditMetaTitle(fullArticle.meta_title || fullArticle.title || "");
     setEditMetaDesc(fullArticle.meta_description || "");
@@ -734,20 +750,29 @@ export default function AdminEditor() {
   };
 
   const handleSave = async () => {
-    if (!editor) return;
+    if (!editor && !rawMode) return;
     setSaving(true);
     try {
-      const htmlContent = editor.getHTML();
-      const mdContent = htmlToMd(htmlContent);
-      const prepared = await prepareArticleForPublish({
-        title: editTitle,
-        content: mdContent,
-        category: editCategory || `Year ${selectedYear}: General`,
-        extras,
-        metaTitle: editMetaTitle,
-        metaDesc: editMetaDesc,
-        slug: editSlug,
-      });
+      const mdContent = rawMode ? rawContent : htmlToMd(editor!.getHTML());
+      const prepared = rawMode
+        ? {
+            // Exact mode: store the markdown byte-for-byte — no cleanup, no AI reformat.
+            title: editTitle.trim(),
+            content: rawContent,
+            extras: inferPublishExtras(editTitle, editCategory || `Year ${selectedYear}: General`, rawContent, extras || {}),
+            metaTitle: editMetaTitle || editTitle.trim(),
+            metaDesc: editMetaDesc || stripRichText(rawContent, 155),
+            slug: editSlug || slugifyText(editTitle),
+          }
+        : await prepareArticleForPublish({
+            title: editTitle,
+            content: mdContent,
+            category: editCategory || `Year ${selectedYear}: General`,
+            extras,
+            metaTitle: editMetaTitle,
+            metaDesc: editMetaDesc,
+            slug: editSlug,
+          });
       const uniqueSlug = await ensureUniqueSlug("articles", prepared.slug, prepared.title, "article", fullArticle?.id);
       const payload: any = {
         title: prepared.title,
@@ -775,7 +800,7 @@ export default function AdminEditor() {
         setEditMetaDesc(prepared.metaDesc);
         setEditSlug(uniqueSlug);
         setExtras(prepared.extras);
-        if (prepared.content !== mdContent) editor.commands.setContent(mdToHtml(prepared.content));
+        if (!rawMode && editor && prepared.content !== mdContent) editor.commands.setContent(mdToHtml(prepared.content));
         setAllArticles(prev => prev.map(a => a.id === fullArticle.id ? { ...a, title: prepared.title, category: editCategory, meta_title: prepared.metaTitle, meta_description: prepared.metaDesc, slug: uniqueSlug, og_image_url: editOgImage, published: editPublished } : a));
       }
     } catch (err: any) {
@@ -1523,11 +1548,38 @@ export default function AdminEditor() {
               <PublishingSettingsPanel
                 value={extras}
                 onChange={setExtras}
-                content={editor ? htmlToMd(editor.getHTML()) : ""}
+                content={rawMode ? rawContent : (editor ? htmlToMd(editor.getHTML()) : "")}
               />
 
-              {/* WYSIWYG Toolbar + Editor */}
-              {editor && (
+              {/* Question papers / spot banks edit as exact markdown so images and answers survive saving */}
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-2 py-1.5">
+                <span className="text-[10px] leading-4 text-muted-foreground">
+                  {rawMode
+                    ? "Exact mode: images, questions and answers are saved exactly as typed (no AI reformatting)."
+                    : "Rich text mode: best for normal blog posts."}
+                </span>
+                <Button variant="outline" size="sm" className="h-6 shrink-0 px-2 text-[10px]"
+                  onClick={() => {
+                    if (rawMode) {
+                      if (editor) editor.commands.setContent(mdToHtml(rawContent));
+                      setRawMode(false);
+                    } else {
+                      setRawContent(editor ? htmlToMd(editor.getHTML()) : rawContent);
+                      setRawMode(true);
+                    }
+                  }}>
+                  {rawMode ? "Use rich text" : "Use exact mode"}
+                </Button>
+              </div>
+
+              {rawMode ? (
+                <Textarea
+                  value={rawContent}
+                  onChange={(e) => setRawContent(e.target.value)}
+                  spellCheck={false}
+                  className="min-h-[420px] font-mono text-[12px] leading-5"
+                />
+              ) : editor ? (
                 <div className="rounded-xl border border-border bg-background overflow-hidden">
                   <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-muted/30 px-1.5 py-1">
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold"><Bold className={iconSize} /></ToolbarBtn>
@@ -1553,7 +1605,7 @@ export default function AdminEditor() {
                   </div>
                   <EditorContent editor={editor} />
                 </div>
-              )}
+              ) : null}
 
               {/* Bottom save */}
               <div className="flex items-center justify-between pt-1 border-t border-border">
