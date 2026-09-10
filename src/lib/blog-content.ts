@@ -564,8 +564,24 @@ export function preprocessContent(raw: string): string {
   let inKeyPoints = false;
   let inFence = false;
 
-  const decoded = unwrapHardBreaks(decodeEntities(raw));
-  const sourceLines = decoded.replace(/\r\n?/g, "\n").split("\n");
+  // Imports sometimes glue an image directly to the question heading and the
+  // following answer marker (`...question![alt](url)**Answer:**`). Split the
+  // complete Markdown image token out before hard-break unwrapping or prose
+  // punctuation cleanup can turn its URL into visible text. The alt text can
+  // itself contain an imported line break, so normalise that while preserving
+  // the image URL byte-for-byte.
+  const decodedSource = decodeEntities(raw);
+  const decoded = decodedSource.replace(
+    /!\[([\s\S]*?)\]\((https?:\/\/[^\s)]+)\)/g,
+    (match, alt: string, url: string, offset: number, source: string) => {
+      const before = offset > 0 && source[offset - 1] !== "\n" ? "\n" : "";
+      const end = offset + match.length;
+      const after = end < source.length && source[end] !== "\n" ? "\n" : "";
+      return `${before}![${alt.replace(/\s+/g, " ").trim()}](${url})${after}`;
+    },
+  );
+  const unwrapped = unwrapHardBreaks(decoded);
+  const sourceLines = unwrapped.replace(/\r\n?/g, "\n").split("\n");
 
   for (let idx = 0; idx < sourceLines.length; idx++) {
     const rawLine = sourceLines[idx];
@@ -591,6 +607,14 @@ export function preprocessContent(raw: string): string {
     // Otherwise `https://...` is rewritten as `https: //...` and the image URL
     // no longer renders. Keep this exemption ahead of every prose transform.
     if (/^!\[.*?\]\(\S+\)$/.test(trimmedRaw)) {
+      out.push(trimmedRaw);
+      continue;
+    }
+
+    // Answer boundaries are structural, not prose subheadings. Preserve them
+    // before punctuation spacing can rewrite `**Answer:**` as `**Answer: **`.
+    // Both renderers then keep the following points inside the Reveal panel.
+    if (/^\*{0,2}\s*(?:✅\s*)?(?:Answer|Answers|Answer key|Model answer|Correct answer|Explanation|Rationale)\s*[:：]/i.test(trimmedRaw)) {
       out.push(trimmedRaw);
       continue;
     }
@@ -918,4 +942,3 @@ export function looksLikeUpcomingMcqOptions(lines: string[], idx: number): boole
   }
   return false;
 }
-

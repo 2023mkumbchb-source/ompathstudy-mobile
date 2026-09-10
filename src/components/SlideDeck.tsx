@@ -8,6 +8,7 @@ import { redactNames } from "@/lib/redact";
 import { SubscribeModal } from "@/components/SubscribeModal";
 import { openSubscribePrompt, useScrollSubscribePrompt } from "@/lib/subscribe-prompt";
 import { DeckDownloadButton } from "@/components/DeckPdfExport";
+import { preprocessContent } from "@/lib/blog-content";
 
 /**
  * Slide / spot-exam deck renderer.
@@ -92,7 +93,10 @@ function splitSideTable(rows: SlideAnswerRow[]): { letters: SideTableRow[]; left
 /** Parse `## Number N: prompt` + image + `**Answer:**` bullet blocks. */
 export function parseSlideDeck(content: string): SlideDeck | null {
   if (!content) return null;
-  const lines = content.replace(/\r\n?/g, "\n").split("\n");
+  // Use the same shared cleanup as the article renderer. In particular, old
+  // question-bank imports often store `heading + image + Answer:` on one line;
+  // preprocessing restores those structural boundaries before deck parsing.
+  const lines = preprocessContent(content).replace(/\r\n?/g, "\n").split("\n");
   const slides: Slide[] = [];
   const introLines: string[] = [];
   const footerLines: string[] = [];
