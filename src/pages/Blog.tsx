@@ -212,6 +212,7 @@ export default function Blog() {
   const selectedUnit = searchParams.get("unit");
   const selectedSemester = selectedYear === "Year 3" ? searchParams.get("sem") : null;
   const selectedTrack = selectedYear === "Year 3" ? searchParams.get("track") : null;
+  const selectedResource = selectedYear === "Year 3" ? searchParams.get("resource") : null;
 
   const resultsAnchorRef = useRef<HTMLDivElement>(null);
   const isFirstFilterRender = useRef(true);
@@ -315,14 +316,21 @@ export default function Blog() {
           if (a.category === "Stories") return false;
           const matchesYear = belongsToSelectedYear(a, selectedYear);
           const matchesUnit = selectedUnitMatches(a, selectedUnit);
+          const articleSemester = [1, 2, 3].includes(Number(a.semester_number))
+            ? String(a.semester_number)
+            : getYear3Semester(getCategoryDisplayName(a.category || ""))?.toString() || "other";
           const matchesSemester =
             !selectedSemester ||
-            unitMatchesSemester(getCategoryDisplayName(a.category || ""), selectedSemester);
+            articleSemester === selectedSemester;
           const unitName = getCategoryDisplayName(a.category || "");
           const matchesTrack = !selectedTrack ||
             (selectedTrack === "paper-1" && /bacteriology|parasitology/i.test(unitName)) ||
             (selectedTrack === "paper-2" && /mycology|virology/i.test(unitName));
-          return matchesYear && matchesUnit && matchesSemester && matchesTrack;
+          const resourceText = `${a.content_type || ""} ${a.title}`;
+          const isCat = /\bCAT\b|continuous assessment/i.test(resourceText);
+          const isExam = /past paper|supplementary|end[- ]of[- ]year|\bexam(?:ination)?\b/i.test(resourceText);
+          const matchesResource = !selectedResource || (selectedResource === "cat" && isCat) || (selectedResource === "exam" && isExam) || (selectedResource === "notes" && !isCat && !isExam);
+          return matchesYear && matchesUnit && matchesSemester && matchesTrack && matchesResource;
         });
 
     const kindOf = (a: any) => {
@@ -359,7 +367,7 @@ export default function Blog() {
       seen.add(a.id);
       return true;
     });
-  }, [articles, search, searchMatches, selectedYear, selectedUnit, selectedSemester, selectedTrack, sortBy, kindFilter, recentArticles]);
+  }, [articles, search, searchMatches, selectedYear, selectedUnit, selectedSemester, selectedTrack, selectedResource, sortBy, kindFilter, recentArticles]);
 
   const yearTotals = useMemo(() => {
     const totals: Record<string, number> = {};
