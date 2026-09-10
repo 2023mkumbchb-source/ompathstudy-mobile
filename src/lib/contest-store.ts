@@ -156,13 +156,39 @@ export async function configureContestRound(input: { roundId: string; status: Co
 
 export async function loadContestIntegritySummary(roundId: string) {
   const [{ data: attempts, error: attemptError }, { data: events, error: eventError }] = await Promise.all([
-    (supabase as any).from("contest_attempts").select("id,user_id,status,score,started_at").eq("round_id", roundId).order("started_at", { ascending: false }),
+    (supabase as any).from("contest_attempts").select("id,round_id,user_id,registration_id,status,score,started_at").eq("round_id", roundId).order("started_at", { ascending: false }),
     (supabase as any).from("contest_integrity_events").select("attempt_id,event_type,occurred_at").order("occurred_at", { ascending: false }).limit(500),
   ]);
   if (attemptError) throw attemptError;
   if (eventError) throw eventError;
   const ids = new Set((attempts || []).map((item: any) => item.id));
   return { attempts: attempts || [], events: (events || []).filter((event: any) => ids.has(event.attempt_id)) };
+}
+
+export interface RehearsalResult { score: number; correct: number; total: number; details: { questionId: string; correct: boolean; explanation: string | null }[] }
+export async function scoreContestRehearsal(roundId: string, answers: Record<string, number>): Promise<RehearsalResult> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "rehearsal_score", roundId, answers } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return data as RehearsalResult;
+}
+
+export async function overrideContestAttempt(attemptId: string, status: ContestAttempt["status"], reason: string) {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "override_attempt", attemptId, status, reason } });
+  if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function decideContestAdvancement(input: { registrationId: string; sourceRoundId: string; targetRoundId?: string | null; decision: "advanced" | "eliminated" | "wildcard"; reason: string }) {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "advance_registration", ...input } });
+  if (error || data?.error) throw error || new Error(data.error);
+}
+
+export interface ContestAdvancement { id: string; decision: "advanced" | "eliminated" | "wildcard"; reason: string; created_at: string; contest_rounds: { title: string } | null }
+export async function loadMyContestAdvancements(contestId: string, registrationId: string): Promise<ContestAdvancement[]> {
+  const { data, error } = await (supabase as any).from("contest_advancements")
+    .select("id,decision,reason,created_at,contest_rounds!contest_advancements_source_round_id_fkey(title)")
+    .eq("contest_id", contestId).eq("registration_id", registrationId).order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []) as ContestAdvancement[];
 }
 
 export async function publishContestResults(roundId: string): Promise<number> {

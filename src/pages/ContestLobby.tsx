@@ -41,6 +41,7 @@ export default function ContestLobby() {
   return <div className="min-h-dvh bg-[#071315] px-5 py-10 text-white">
     <div className="mx-auto max-w-4xl">
       <Link to="/contests" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white"><ArrowLeft className="h-4 w-4" /> Contest overview</Link>
+      {registration && <Link to={`/contests/${slug}/progress`} className="ml-5 inline-flex text-sm font-bold text-teal-300 hover:text-teal-200">My progression</Link>}
       <header className="mt-7 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_80%_0%,rgba(45,212,191,0.13),transparent_35%),rgba(255,255,255,0.035)] p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-300">Secure participant lobby</p>
         <h1 className="mt-3 font-serif text-3xl font-bold sm:text-4xl">{contest.title}</h1>

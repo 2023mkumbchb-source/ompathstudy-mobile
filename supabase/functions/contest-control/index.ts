@@ -66,6 +66,61 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "rehearsal_score") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const roundId = String(body?.roundId || "");
+      const answers = body?.answers && typeof body.answers === "object" ? body.answers : {};
+      const { data: questions, error: questionError } = await admin.from("contest_questions").select("id,position").eq("round_id", roundId).order("position");
+      if (questionError) throw questionError;
+      const ids = (questions || []).map((item) => item.id);
+      const { data: keys, error: keyError } = ids.length ? await admin.schema("private").from("contest_answer_keys").select("question_id,correct_index,explanation").in("question_id", ids) : { data: [], error: null };
+      if (keyError) throw keyError;
+      const keyByQuestion = new Map((keys || []).map((item) => [item.question_id, item]));
+      let correct = 0;
+      const details = (questions || []).map((question) => {
+        const key = keyByQuestion.get(question.id);
+        const isCorrect = Boolean(key) && Number(answers[question.id]) === Number(key.correct_index);
+        if (isCorrect) correct += 1;
+        return { questionId: question.id, correct: isCorrect, explanation: key?.explanation || null };
+      });
+      const total = details.length;
+      return json({ score: total ? Math.round((correct / total) * 10000) / 100 : 0, correct, total, details });
+    }
+
+    if (action === "override_attempt") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const attemptId = String(body?.attemptId || ""), status = String(body?.status || ""), reason = String(body?.reason || "").trim();
+      if (!["active","submitted","eliminated","expired","void"].includes(status)) return json({ error: "Invalid attempt status" }, 400);
+      if (reason.length < 3 || reason.length > 500) return json({ error: "A 3–500 character reason is required" }, 400);
+      const { data: before } = await admin.from("contest_attempts").select("id,status,score,submitted_at,eliminated_at").eq("id", attemptId).maybeSingle();
+      if (!before) return json({ error: "Attempt not found" }, 404);
+      const changes = { status, submitted_at: status === "submitted" ? (before.submitted_at || new Date().toISOString()) : null, eliminated_at: status === "eliminated" ? (before.eliminated_at || new Date().toISOString()) : null };
+      const { data: after, error } = await admin.from("contest_attempts").update(changes).eq("id", attemptId).select("id,status,score,submitted_at,eliminated_at").single();
+      if (error) throw error;
+      const { error: auditError } = await admin.from("contest_moderator_actions").insert({ actor_id: user.id, action_type: "attempt_override", target_type: "contest_attempt", target_id: attemptId, reason, before_state: before, after_state: after });
+      if (auditError) throw auditError;
+      return json({ success: true, attempt: after });
+    }
+
+    if (action === "advance_registration") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const registrationId = String(body?.registrationId || ""), sourceRoundId = String(body?.sourceRoundId || ""), targetRoundId = body?.targetRoundId ? String(body.targetRoundId) : null;
+      const decision = String(body?.decision || ""), reason = String(body?.reason || "").trim();
+      if (!["advanced","eliminated","wildcard"].includes(decision)) return json({ error: "Invalid advancement decision" }, 400);
+      if (reason.length < 3 || reason.length > 500) return json({ error: "A 3–500 character reason is required" }, 400);
+      const { data: registration } = await admin.from("contest_registrations").select("id,contest_id,status").eq("id", registrationId).maybeSingle();
+      const { data: sourceRound } = await admin.from("contest_rounds").select("id,contest_id,round_number").eq("id", sourceRoundId).maybeSingle();
+      if (!registration || !sourceRound || registration.contest_id !== sourceRound.contest_id) return json({ error: "Registration and source round do not match" }, 400);
+      if (targetRoundId) { const { data: target } = await admin.from("contest_rounds").select("contest_id,round_number").eq("id", targetRoundId).maybeSingle(); if (!target || target.contest_id !== sourceRound.contest_id || target.round_number <= sourceRound.round_number) return json({ error: "Target must be a later round in this contest" }, 400); }
+      const { data: before } = await admin.from("contest_advancements").select("*").eq("registration_id", registrationId).eq("source_round_id", sourceRoundId).maybeSingle();
+      const row = { contest_id: registration.contest_id, registration_id: registrationId, source_round_id: sourceRoundId, target_round_id: targetRoundId, decision, reason, decided_by: user.id, updated_at: new Date().toISOString() };
+      const { data: after, error } = await admin.from("contest_advancements").upsert(row, { onConflict: "registration_id,source_round_id" }).select("*").single();
+      if (error) throw error;
+      const { error: auditError } = await admin.from("contest_moderator_actions").insert({ actor_id: user.id, action_type: "advancement_decision", target_type: "contest_registration", target_id: registrationId, reason, before_state: before || {}, after_state: after });
+      if (auditError) throw auditError;
+      return json({ success: true, advancement: after });
+    }
+
     if (action === "log_integrity_event") {
       const attemptId = String(body?.attemptId || "");
       const eventType = String(body?.eventType || "");
