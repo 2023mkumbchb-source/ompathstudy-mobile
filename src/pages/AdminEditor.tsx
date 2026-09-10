@@ -608,8 +608,10 @@ export default function AdminEditor() {
   // Load article into editor
   useEffect(() => {
     if (!fullArticle || !editor || isAddMode) return;
-    const html = mdToHtml(fullArticle.content || "");
-    editor.commands.setContent(html);
+    const md = fullArticle.content || "";
+    setRawContent(md);
+    setRawMode(isQuestionPaperContent(md));
+    editor.commands.setContent(mdToHtml(md));
     setEditTitle(fullArticle.title || "");
     setEditMetaTitle(fullArticle.meta_title || fullArticle.title || "");
     setEditMetaDesc(fullArticle.meta_description || "");
