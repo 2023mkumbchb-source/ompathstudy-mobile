@@ -51,6 +51,7 @@ export default function Navbar() {
     if (isAdmin) {
       base.push({ to: "/admin", label: "Dashboard", icon: LayoutDashboard });
       base.push({ to: "/admin/study-system", label: "Study System", icon: Database });
+      base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }
     return base;
   }, [isAdmin]);

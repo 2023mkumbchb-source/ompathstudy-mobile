@@ -46,6 +46,8 @@ const CategoryManager = lazy(() => import("./pages/CategoryManager"));
 const About = lazy(() => import("./pages/About"));
 const Contests = lazy(() => import("./pages/Contests"));
 const ContestBriefing = lazy(() => import("./pages/ContestBriefing"));
+const ContestRegistration = lazy(() => import("./pages/ContestRegistration"));
+const ContestAdmin = lazy(() => import("./pages/ContestAdmin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -81,9 +83,11 @@ const AnimatedRoutes = () => {
             <Route path="/exams/:id/start" element={<ExamStart />} />
             <Route path="/contests" element={<Contests />} />
             <Route path="/contests/:slug/briefing" element={<ContestBriefing />} />
+            <Route path="/contests/:slug/register" element={<ContestRegistration />} />
             <Route path="/admin/editor" element={<AdminEditor />} />
             <Route path="/admin/categories" element={<CategoryManager />} />
             <Route path="/admin/study-system" element={<StudySystemAdmin />} />
+            <Route path="/admin/contests" element={<ContestAdmin />} />
             <Route path="/stories" element={<Stories />} />
             <Route path="/stories/:id" element={<StoryRead />} />
             <Route path="/submit-story" element={<SubmitStory />} />
