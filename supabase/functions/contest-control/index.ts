@@ -121,6 +121,39 @@ serve(async (req) => {
       return json({ success: true, advancement: after });
     }
 
+    if (action === "submit_appeal") {
+      const contestId = String(body?.contestId || ""), registrationId = String(body?.registrationId || "");
+      const attemptId = body?.attemptId ? String(body.attemptId) : null, advancementId = body?.advancementId ? String(body.advancementId) : null;
+      const category = String(body?.category || ""), statement = String(body?.statement || "").trim();
+      if (!["integrity","score","advancement","technical"].includes(category)) return json({ error: "Invalid appeal category" }, 400);
+      if (statement.length < 20 || statement.length > 2000) return json({ error: "Appeal statement must contain 20–2000 characters" }, 400);
+      if (!attemptId && !advancementId) return json({ error: "Select a decision or attempt to appeal" }, 400);
+      const { data: registration } = await admin.from("contest_registrations").select("id,contest_id,user_id").eq("id", registrationId).maybeSingle();
+      if (!registration || registration.user_id !== user.id || registration.contest_id !== contestId) return json({ error: "Registration not found" }, 404);
+      if (attemptId) { const { data: attempt } = await admin.from("contest_attempts").select("registration_id").eq("id", attemptId).maybeSingle(); if (!attempt || attempt.registration_id !== registrationId) return json({ error: "Attempt does not belong to this registration" }, 403); }
+      if (advancementId) { const { data: advancement } = await admin.from("contest_advancements").select("registration_id").eq("id", advancementId).maybeSingle(); if (!advancement || advancement.registration_id !== registrationId) return json({ error: "Decision does not belong to this registration" }, 403); }
+      const { error } = await admin.from("contest_appeals").insert({ contest_id: contestId, registration_id: registrationId, attempt_id: attemptId, advancement_id: advancementId, user_id: user.id, category, statement });
+      if (error?.code === "23505") return json({ error: "An open appeal already exists for this item" }, 409);
+      if (error) throw error;
+      return json({ success: true });
+    }
+
+    if (action === "resolve_appeal") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const appealId = String(body?.appealId || ""), status = String(body?.status || ""), resolution = String(body?.resolution || "").trim();
+      if (!["reviewing","upheld","overturned","dismissed"].includes(status)) return json({ error: "Invalid appeal status" }, 400);
+      if (resolution.length < 10 || resolution.length > 2000) return json({ error: "Resolution must contain 10–2000 characters" }, 400);
+      const { data: before } = await admin.from("contest_appeals").select("id,status,resolution").eq("id", appealId).maybeSingle();
+      if (!before) return json({ error: "Appeal not found" }, 404);
+      const final = ["upheld","overturned","dismissed"].includes(status);
+      const { error } = await admin.from("contest_appeals").update({ status, resolution, resolved_by: final ? user.id : null, resolved_at: final ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", appealId);
+      if (error) throw error;
+      const after = { status, resolution, resolved_by: final ? user.id : null };
+      const { error: auditError } = await admin.from("contest_moderator_actions").insert({ actor_id: user.id, action_type: "appeal_resolution", target_type: "contest_appeal", target_id: appealId, reason: resolution, before_state: before, after_state: after });
+      if (auditError) throw auditError;
+      return json({ success: true });
+    }
+
     if (action === "log_integrity_event") {
       const attemptId = String(body?.attemptId || "");
       const eventType = String(body?.eventType || "");

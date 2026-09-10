@@ -55,6 +55,7 @@ const ContestOperations = lazy(() => import("./pages/ContestOperations"));
 const ContestLeaderboard = lazy(() => import("./pages/ContestLeaderboard"));
 const ContestRehearsal = lazy(() => import("./pages/ContestRehearsal"));
 const ContestProgress = lazy(() => import("./pages/ContestProgress"));
+const ContestAppealsAdmin = lazy(() => import("./pages/ContestAppealsAdmin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -102,6 +103,7 @@ const AnimatedRoutes = () => {
             <Route path="/admin/contests/questions" element={<ContestQuestionAdmin />} />
             <Route path="/admin/contests/operations" element={<ContestOperations />} />
             <Route path="/admin/contests/rehearsal" element={<ContestRehearsal />} />
+            <Route path="/admin/contests/appeals" element={<ContestAppealsAdmin />} />
             <Route path="/stories" element={<Stories />} />
             <Route path="/stories/:id" element={<StoryRead />} />
             <Route path="/submit-story" element={<SubmitStory />} />

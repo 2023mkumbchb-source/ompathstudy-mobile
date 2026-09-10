@@ -191,6 +191,13 @@ export async function loadMyContestAdvancements(contestId: string, registrationI
   return (data || []) as ContestAdvancement[];
 }
 
+export interface ContestAppeal { id: string; contest_id: string; registration_id: string; attempt_id: string | null; advancement_id: string | null; user_id: string; category: "integrity" | "score" | "advancement" | "technical"; statement: string; status: "open" | "reviewing" | "upheld" | "overturned" | "dismissed"; resolution: string | null; created_at: string }
+export async function loadMyContestAppeals(contestId: string): Promise<ContestAppeal[]> { const { data, error } = await (supabase as any).from("contest_appeals").select("id,contest_id,registration_id,attempt_id,advancement_id,user_id,category,statement,status,resolution,created_at").eq("contest_id", contestId).order("created_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAppeal[]; }
+export async function loadMyContestAttempts(registrationId: string): Promise<ContestAttempt[]> { const { data, error } = await (supabase as any).from("contest_attempts").select("id,round_id,registration_id,user_id,status,started_at,submitted_at,score").eq("registration_id", registrationId).order("started_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAttempt[]; }
+export async function submitContestAppeal(input: { contestId: string; registrationId: string; attemptId?: string | null; advancementId?: string | null; category: ContestAppeal["category"]; statement: string }) { const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "submit_appeal", ...input } }); if (error || data?.error) throw error || new Error(data.error); }
+export async function loadAdminContestAppeals(): Promise<ContestAppeal[]> { const { data, error } = await (supabase as any).from("contest_appeals").select("id,contest_id,registration_id,attempt_id,advancement_id,user_id,category,statement,status,resolution,created_at").order("created_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAppeal[]; }
+export async function resolveContestAppeal(appealId: string, status: "reviewing" | "upheld" | "overturned" | "dismissed", resolution: string) { const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "resolve_appeal", appealId, status, resolution } }); if (error || data?.error) throw error || new Error(data.error); }
+
 export async function publishContestResults(roundId: string): Promise<number> {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "publish_results", roundId } });
   if (error || data?.error) throw error || new Error(data.error);

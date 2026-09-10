@@ -1,0 +1,15 @@
+import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { ArrowLeft, Gavel, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { loadAdminContestAppeals, resolveContestAppeal, type ContestAppeal } from "@/lib/contest-store";
+
+export default function ContestAppealsAdmin() {
+  const { isAdmin, loading: authLoading } = useAuth();
+  const [appeals, setAppeals] = useState<ContestAppeal[]>([]), [saving, setSaving] = useState(""), [message, setMessage] = useState("");
+  useEffect(() => { if (isAdmin) loadAdminContestAppeals().then(setAppeals); }, [isAdmin]);
+  if (!authLoading && !isAdmin) return <Navigate to="/login" replace />;
+  if (authLoading) return <div className="flex min-h-[70vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+  async function decide(appeal: ContestAppeal, status: "reviewing" | "upheld" | "overturned" | "dismissed") { const resolution = window.prompt(`Resolution for ${status}:`, appeal.resolution || ""); if (!resolution) return; setSaving(appeal.id); try { await resolveContestAppeal(appeal.id, status, resolution); setAppeals((rows) => rows.map((row) => row.id === appeal.id ? { ...row, status, resolution } : row)); setMessage("Appeal decision saved."); } catch (cause: any) { setMessage(cause?.message || "Decision could not be saved."); } finally { setSaving(""); } }
+  return <div className="mx-auto max-w-5xl px-5 py-10"><Link to="/admin/contests" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" /> Contest administration</Link><header className="mt-7"><Gavel className="h-7 w-7 text-primary" /><h1 className="mt-3 font-serif text-3xl font-bold">Contest appeals</h1><p className="mt-2 text-sm text-muted-foreground">Review participant challenges and publish a reasoned outcome.</p></header>{message && <p className="mt-5 rounded-lg border bg-muted p-3 text-sm">{message}</p>}<div className="mt-7 space-y-4">{appeals.length ? appeals.map((appeal) => <article key={appeal.id} className="rounded-xl border bg-card p-5"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-bold uppercase tracking-wider text-primary">{appeal.category} appeal</p><span className="rounded-full border px-3 py-1 text-xs font-bold capitalize">{appeal.status}</span></div><p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed">{appeal.statement}</p>{appeal.resolution && <p className="mt-4 rounded-lg bg-muted p-3 text-sm"><strong>Resolution:</strong> {appeal.resolution}</p>}<div className="mt-4 flex flex-wrap gap-2">{(["reviewing","upheld","overturned","dismissed"] as const).map((status) => <button key={status} disabled={saving === appeal.id} onClick={() => void decide(appeal, status)} className="rounded-md border px-3 py-2 text-xs font-bold capitalize disabled:opacity-50">{status}</button>)}</div></article>) : <p className="rounded-xl border border-dashed p-8 text-center text-muted-foreground">No contest appeals have been submitted.</p>}</div></div>;
+}
