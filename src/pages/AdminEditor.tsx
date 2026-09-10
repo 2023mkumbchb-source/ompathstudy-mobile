@@ -340,6 +340,9 @@ export default function AdminEditor() {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Spot/question papers are edited as exact markdown so images and answer keys survive saving.
+  const [rawMode, setRawMode] = useState(false);
+  const [rawContent, setRawContent] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(1);
   const [selectedUnit, setSelectedUnit] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
