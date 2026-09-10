@@ -62,7 +62,7 @@ export default function ContestLobby() {
           <div className="mt-5 space-y-3">
             {rounds.length ? rounds.map((round) => <div key={round.id} className="flex flex-wrap items-center gap-4 rounded-xl border border-white/10 bg-black/10 p-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-sm font-bold text-white/50">{round.round_number}</span>
-              <div className="min-w-0 flex-1"><p className="font-bold">{round.title}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-white/45"><Clock3 className="h-3.5 w-3.5" /> {formatDuration(round.duration_seconds)} · {round.question_count || "Questions pending"}</p></div>
+              <div className="min-w-0 flex-1"><p className="font-bold">{round.title}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-white/45"><Clock3 className="h-3.5 w-3.5" /> {formatDuration(round.duration_seconds)} · {round.question_count || "Questions pending"}</p>{round.auto_eliminate && <p className="mt-1 text-xs text-amber-200/70">Automatic threshold: {round.tab_switch_limit} hidden tabs or {round.focus_loss_limit} focus losses.</p>}</div>
               <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold capitalize text-white/55">{round.status}</span>
             </div>) : <p className="text-sm text-white/45">Rounds have not been published yet.</p>}
           </div>

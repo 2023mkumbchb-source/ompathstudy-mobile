@@ -55,11 +55,15 @@ export interface ContestRound {
   ends_at: string | null;
   duration_seconds: number;
   question_count: number;
+  tab_switch_limit: number;
+  focus_loss_limit: number;
+  auto_eliminate: boolean;
+  integrity_policy: string;
 }
 
 export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
   const { data, error } = await (supabase as any).from("contest_rounds")
-    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy")
     .eq("contest_id", contestId).order("round_number");
   if (error) throw error;
   return (data || []) as ContestRound[];
@@ -108,9 +112,10 @@ export async function submitContestAnswer(attemptId: string, questionId: string,
   if (error && error.code !== "23505") throw error;
 }
 
-export async function logContestIntegrityEvent(attemptId: string, userId: string, eventType: string) {
-  const { error } = await (supabase as any).from("contest_integrity_events").insert({ attempt_id: attemptId, user_id: userId, event_type: eventType });
-  if (error) throw error;
+export async function logContestIntegrityEvent(attemptId: string, _userId: string, eventType: string): Promise<boolean> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "log_integrity_event", attemptId, eventType } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return Boolean(data.eliminated);
 }
 
 export async function finishContestAttempt(attemptId: string): Promise<number> {
@@ -123,6 +128,61 @@ export async function importContestQuestions(roundId: string, questions: unknown
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "import_questions", roundId, questions } });
   if (error || data?.error) throw error || new Error(data.error);
   return Number(data.count || 0);
+}
+
+export interface AdminContestRegistration extends ContestRegistration {
+  user_id: string;
+  created_at: string;
+  contest_universities: { name: string; abbreviation: string | null } | null;
+}
+
+export async function loadAdminContestRegistrations(contestId: string): Promise<AdminContestRegistration[]> {
+  const { data, error } = await (supabase as any).from("contest_registrations")
+    .select("id,contest_id,user_id,university_id,study_year,representation,status,created_at,contest_universities(name,abbreviation)")
+    .eq("contest_id", contestId).order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []) as AdminContestRegistration[];
+}
+
+export async function setContestRegistrationStatus(registrationId: string, status: ContestRegistration["status"]) {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "registration_status", registrationId, status } });
+  if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean }) {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "configure_round", ...input } });
+  if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function loadContestIntegritySummary(roundId: string) {
+  const [{ data: attempts, error: attemptError }, { data: events, error: eventError }] = await Promise.all([
+    (supabase as any).from("contest_attempts").select("id,user_id,status,score,started_at").eq("round_id", roundId).order("started_at", { ascending: false }),
+    (supabase as any).from("contest_integrity_events").select("attempt_id,event_type,occurred_at").order("occurred_at", { ascending: false }).limit(500),
+  ]);
+  if (attemptError) throw attemptError;
+  if (eventError) throw eventError;
+  const ids = new Set((attempts || []).map((item: any) => item.id));
+  return { attempts: attempts || [], events: (events || []).filter((event: any) => ids.has(event.attempt_id)) };
+}
+
+export async function publishContestResults(roundId: string): Promise<number> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "publish_results", roundId } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return Number(data.count || 0);
+}
+
+export interface ContestUniversityResult {
+  id: string; rank: number; participant_count: number; average_score: number; total_points: number; published_at: string;
+  contest_universities: { name: string; abbreviation: string | null } | null;
+  contest_rounds: { title: string } | null;
+}
+
+export async function loadContestLeaderboard(contestId: string): Promise<ContestUniversityResult[]> {
+  const { data, error } = await (supabase as any).from("contest_university_results")
+    .select("id,rank,participant_count,average_score,total_points,published_at,contest_universities(name,abbreviation),contest_rounds(title)")
+    .eq("contest_id", contestId).order("rank");
+  if (error) throw error;
+  return (data || []) as ContestUniversityResult[];
 }
 
 export async function getContestBySlug(slug: string): Promise<ContestRecord | null> {

@@ -88,7 +88,7 @@ export default function Contests() {
             </dl>
             <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 p-6 sm:px-8">
               <p className="flex items-center gap-2 text-sm text-white/50"><CalendarClock className="h-4 w-4" /> Launch date will be announced after institutional onboarding.</p>
-              <div className="flex gap-4"><Link to={`/contests/${contest.slug}/register`} className="text-sm font-bold text-white/70 hover:text-white">Registration</Link><Link to={`/contests/${contest.slug}/lobby`} className="text-sm font-bold text-white/70 hover:text-white">Lobby</Link><Link to={`/contests/${contest.slug}/briefing`} className="text-sm font-bold text-teal-300 hover:text-teal-200">Open preview →</Link></div>
+              <div className="flex flex-wrap gap-4"><Link to={`/contests/${contest.slug}/register`} className="text-sm font-bold text-white/70 hover:text-white">Registration</Link><Link to={`/contests/${contest.slug}/lobby`} className="text-sm font-bold text-white/70 hover:text-white">Lobby</Link><Link to={`/contests/${contest.slug}/leaderboard`} className="text-sm font-bold text-white/70 hover:text-white">Leaderboard</Link><Link to={`/contests/${contest.slug}/briefing`} className="text-sm font-bold text-teal-300 hover:text-teal-200">Open preview →</Link></div>
             </div>
           </article>
 

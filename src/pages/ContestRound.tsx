@@ -14,6 +14,7 @@ export default function ContestRoundPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [seconds, setSeconds] = useState(0);
   const [score, setScore] = useState<number | null>(null);
+  const [eliminated, setEliminated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -35,20 +36,20 @@ export default function ContestRoundPage() {
   }, [authLoading, roundId, slug, user]);
 
   useEffect(() => {
-    if (!attempt || score !== null) return;
+    if (!attempt || score !== null || eliminated) return;
     const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value - 1)), 1000);
     return () => window.clearInterval(timer);
-  }, [attempt, score]);
+  }, [attempt, eliminated, score]);
 
   useEffect(() => {
-    if (!attempt || !user || score !== null) return;
-    const log = (eventType: string) => { void logContestIntegrityEvent(attempt.id, user.id, eventType).catch(() => undefined); };
+    if (!attempt || !user || score !== null || eliminated) return;
+    const log = (eventType: string) => { void logContestIntegrityEvent(attempt.id, user.id, eventType).then((removed) => { if (removed) setEliminated(true); }).catch(() => undefined); };
     const visibility = () => { if (document.hidden) log("tab_hidden"); };
     const blur = () => log("focus_lost");
     const fullscreen = () => { if (!document.fullscreenElement) log("fullscreen_exit"); };
     document.addEventListener("visibilitychange", visibility); window.addEventListener("blur", blur); document.addEventListener("fullscreenchange", fullscreen);
     return () => { document.removeEventListener("visibilitychange", visibility); window.removeEventListener("blur", blur); document.removeEventListener("fullscreenchange", fullscreen); };
-  }, [attempt, score, user]);
+  }, [attempt, eliminated, score, user]);
 
   const time = useMemo(() => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`, [seconds]);
   async function next() {
@@ -61,11 +62,12 @@ export default function ContestRoundPage() {
     } catch (cause: any) { setError(cause?.message || "Answer could not be submitted."); }
     finally { setSaving(false); }
   }
-  useEffect(() => { if (seconds === 0 && attempt && questions.length && score === null && !saving) void finishContestAttempt(attempt.id).then(setScore).catch(() => setError("Time ended; submission is being reviewed.")); }, [attempt, questions.length, saving, score, seconds]);
+  useEffect(() => { if (seconds === 0 && attempt && questions.length && score === null && !saving && !eliminated) void finishContestAttempt(attempt.id).then(setScore).catch(() => setError("Time ended; submission is being reviewed.")); }, [attempt, eliminated, questions.length, saving, score, seconds]);
 
   if (!authLoading && !user) return <Navigate to="/login" replace />;
   if (authLoading || loading) return <div className="flex min-h-dvh items-center justify-center bg-[#071315]"><Loader2 className="h-6 w-6 animate-spin text-teal-300" /></div>;
   if (error && !attempt) return <div className="min-h-dvh bg-[#071315] px-5 py-20 text-center text-white"><AlertTriangle className="mx-auto h-9 w-9 text-amber-300" /><p className="mt-4">{error}</p></div>;
+  if (eliminated) return <div className="flex min-h-dvh items-center justify-center bg-[#071315] px-5 text-white"><div className="w-full max-w-md rounded-2xl border border-red-300/20 bg-red-300/10 p-8 text-center"><ShieldAlert className="mx-auto h-10 w-10 text-red-300" /><h1 className="mt-5 font-serif text-3xl font-bold">Attempt ended</h1><p className="mt-3 text-sm leading-relaxed text-white/60">The published integrity threshold was reached. This event remains available for moderator review and appeal.</p></div></div>;
   if (score !== null) return <div className="flex min-h-dvh items-center justify-center bg-[#071315] px-5 text-white"><div className="w-full max-w-md rounded-2xl border border-teal-300/20 bg-teal-300/10 p-8 text-center"><CheckCircle2 className="mx-auto h-10 w-10 text-teal-300" /><h1 className="mt-5 font-serif text-3xl font-bold">Attempt submitted</h1><p className="mt-3 text-white/60">Provisional score</p><p className="mt-2 text-5xl font-bold text-teal-200">{score}%</p></div></div>;
   const question = questions[index];
   if (!question) return <div className="min-h-dvh bg-[#071315] px-5 py-20 text-center text-white">No questions have been admitted to this round.</div>;
