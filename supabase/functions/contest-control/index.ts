@@ -57,6 +57,22 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "update_contest_stage") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const contestId = String(body?.contestId || "");
+      const stage = String(body?.stage || "");
+      if (!["concept", "registration", "live", "completed"].includes(stage)) return json({ error: "Invalid contest stage" }, 400);
+      const { data: contest } = await admin.from("contests").select("id,status").eq("id", contestId).maybeSingle();
+      if (!contest) return json({ error: "Contest not found" }, 404);
+      if (stage === "live") {
+        const { count } = await admin.from("contest_rounds").select("id", { count: "exact", head: true }).eq("contest_id", contestId).in("status", ["lobby", "live"]).gt("question_count", 0);
+        if (!count) return json({ error: "Open a question-bearing round before making the contest live" }, 409);
+      }
+      const { error } = await admin.from("contests").update({ status: stage, updated_at: new Date().toISOString() }).eq("id", contestId);
+      if (error) throw error;
+      return json({ success: true, previousStage: contest.status, stage });
+    }
+
     if (action === "registration_status") {
       if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
       const status = String(body?.status || "");

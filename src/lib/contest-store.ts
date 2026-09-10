@@ -255,6 +255,6 @@ export async function loadAdminContests(): Promise<ContestRecord[]> {
 }
 
 export async function updateContestStage(id: string, stage: ContestStage) {
-  const { error } = await (supabase as any).from("contests").update({ status: stage, updated_at: new Date().toISOString() }).eq("id", id);
-  if (error) throw error;
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "update_contest_stage", contestId: id, stage } });
+  if (error || data?.error) throw error || new Error(data.error);
 }
