@@ -27,6 +27,24 @@ describe("mcq preprocessing", () => {
     expect(preprocessContent("Entner pathway is NOT found in: A. Aerobic prokaryotesB. Anaerobic prokaryotesC. Both (a) and (b)D. Eukaryotes E. Atypical").split("\n"))
       .toEqual(["Entner pathway is NOT found in", "A) Aerobic prokaryotes", "B) Anaerobic prokaryotes", "C) Both (a) and (b)", "D) Eukaryotes", "E) Atypical"]);
   });
+
+  it("splits lowercase choices glued directly to the previous choice", () => {
+    const input = "a) They directly activate T cellsb) They recognize mediatorsc) They release cytokinesd) They form antibodiese) They suppress inflammation";
+    expect(preprocessContent(input).split("\n")).toEqual([
+      "A) They directly activate T cells",
+      "B) They recognize mediators",
+      "C) They release cytokines",
+      "D) They form antibodies",
+      "E) They suppress inflammation",
+    ]);
+  });
+
+  it("normalizes imported Unicode bullets", () => {
+    expect(preprocessContent("• Inspect the conjunctiva\n◦ Check hydration").split("\n")).toEqual([
+      "- Inspect the conjunctiva",
+      "- Check hydration",
+    ]);
+  });
   it("leaves medical prose alone", () => {
     const prose = "Spores of B. subtilis and C. tetani were compared in the assay.";
     expect(preprocessContent(prose).trim()).toBe(prose);

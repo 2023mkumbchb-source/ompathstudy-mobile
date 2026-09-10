@@ -699,7 +699,7 @@ function ExamPreviewBall({ onOpen }: { onOpen: () => void }) {
 /* ─── Article content renderer ─── */
 let _sec = 0;
 
-const ArticleContent = memo(function ArticleContent({ content, inlineRelated = [], articleId, category, title = "", contentKind = "" }: { content: string; inlineRelated?: any[]; articleId: string; category: string; title?: string; contentKind?: string }) {
+const ArticleContent = memo(function ArticleContent({ content, articleId, category, title = "", contentKind = "" }: { content: string; articleId: string; category: string; title?: string; contentKind?: string }) {
   _sec = 0;
   const lines = preprocessContent(content).split("\n");
   // Explicit "Answer:" lines and bold-marked options win; a consolidated
@@ -718,7 +718,6 @@ const ArticleContent = memo(function ArticleContent({ content, inlineRelated = [
   let examMode: "mcq" | "essay" | null =
     layoutKind === "essay" ? "essay" : layoutKind === "mcq" ? "mcq" : null;
   const pqs: { number: string; question: string; answer: string }[] = [];
-  let insertedRelated = false;
   let currentQuestionKey = "";
   let currentQuestionText = "";
   let currentTopic = "";
@@ -1079,10 +1078,6 @@ const ArticleContent = memo(function ArticleContent({ content, inlineRelated = [
       if (/\b(section\s+b|section\s+c|essay|short\s+answer|long\s+answer|answer\s+any)\b/i.test(heading)) examMode = "essay";
       if (heading.toLowerCase().includes("practice")) { inPractice = true; continue; }
       flushPractice(); inPractice = false;
-      if (!insertedRelated && inlineRelated.length > 0 && els.length >= 4) {
-        els.push(<InArticleRelated key="in-article-related" articles={inlineRelated} />);
-        insertedRelated = true;
-      }
       _sec++;
       els.push(
         <h2 key={`h2-${i}`} id={slugify(heading) || `section-${_sec}`} data-section={`section-${_sec}`} className="mt-9 mb-4 scroll-mt-20 border-b border-border pb-3 font-serif text-2xl font-bold leading-tight text-foreground sm:text-3xl">
@@ -1187,9 +1182,6 @@ const ArticleContent = memo(function ArticleContent({ content, inlineRelated = [
   }
 
   flushList(); flushTable(); flushFlow(); flushPractice();
-  if (!insertedRelated && inlineRelated.length > 0 && els.length > 8) {
-    els.splice(Math.max(4, Math.floor(els.length / 2)), 0, <InArticleRelated key="in-article-related" articles={inlineRelated} />);
-  }
   return <div>{els}</div>;
 });
 
@@ -1826,7 +1818,7 @@ export default function BlogPost() {
                       university="Ompath Study"
                       onPreview={() => setPreviewOpen(true)}
                     />
-                  : <ArticleContent content={article.content} inlineRelated={related.articles || []} articleId={article.id} category={article.category || ""} title={article.title || ""} contentKind={article.content_kind || ""} />}
+                  : <ArticleContent content={article.content} articleId={article.id} category={article.category || ""} title={article.title || ""} contentKind={article.content_kind || ""} />}
               </KeywordLinkProvider>
             </div>
 

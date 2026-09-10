@@ -162,10 +162,22 @@ const OPTION_CAPTURE_RE = new RegExp(String.raw`(?:^|\s)(${OPTION_MARKER_SOURCE}
 const OPTION_MARKER_STRICT = String.raw`(?:\([A-E]\)|[A-Ea-e][\.)])`;
 
 export function spaceOptionMarkers(text: string): string {
-  return (text || "").replace(
+  let spaced = (text || "").replace(
     /([^\s])((?:\([A-E]\)|[A-E][.)])\s+)/g,
     (m, before: string, marker: string) => (/[A-Za-z0-9)\].,;:'"]/.test(before) ? `${before} ${marker}` : m),
   );
+
+  // Some legacy imports use one lowercase run with no delimiter at all:
+  // "a) First choiceb) Second choicec) Third choice". Restrict this repair
+  // to lines that already start with a choice and contain at least two later
+  // markers, avoiding accidental splits in ordinary prose.
+  if (/^\(?[A-Ea-e]\)?[.)]\s+/.test(spaced)) {
+    const glued = spaced.match(/[b-e][.)]\s+(?=[A-Z])/g) || [];
+    if (glued.length >= 2) {
+      spaced = spaced.replace(/([^\s])([b-e][.)]\s+(?=[A-Z]))/g, "$1 $2");
+    }
+  }
+  return spaced;
 }
 
 /** Count option markers in a line ("A) …", "B. …"). */
@@ -643,6 +655,7 @@ export function preprocessContent(raw: string): string {
       .trim()
       .replace(/&nbsp;/gi, " ")
       .replace(/\u00A0/g, " ")
+      .replace(/^[•◦▪]\s*/, "- ")
       .replace(/^HOW\s+TO\s+OPEN>\s*"?/i, "")
       .replace(/^say\s*:?>\s*"?/i, "")
       .replace(/([:.;!?])(?=\S)/g, "$1 ")
