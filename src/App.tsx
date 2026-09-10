@@ -44,6 +44,8 @@ const GlobalSearch = lazy(() => import("./pages/GlobalSearch"));
 const StudySystemAdmin = lazy(() => import("./pages/StudySystemAdmin"));
 const CategoryManager = lazy(() => import("./pages/CategoryManager"));
 const About = lazy(() => import("./pages/About"));
+const Contests = lazy(() => import("./pages/Contests"));
+const ContestBriefing = lazy(() => import("./pages/ContestBriefing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -77,6 +79,8 @@ const AnimatedRoutes = () => {
             <Route path="/mcqs/:id" element={<Navigate to="/blog" replace />} />
             <Route path="/exams" element={<Exams />} />
             <Route path="/exams/:id/start" element={<ExamStart />} />
+            <Route path="/contests" element={<Contests />} />
+            <Route path="/contests/:slug/briefing" element={<ContestBriefing />} />
             <Route path="/admin/editor" element={<AdminEditor />} />
             <Route path="/admin/categories" element={<CategoryManager />} />
             <Route path="/admin/study-system" element={<StudySystemAdmin />} />
@@ -129,4 +133,3 @@ const App = () => (
 );
 
 export default App;
-

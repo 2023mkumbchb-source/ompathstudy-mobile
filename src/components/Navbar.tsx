@@ -45,6 +45,7 @@ export default function Navbar() {
       { to: "/", label: "Home", icon: Home },
       { to: "/my-revision", label: "My Revision", icon: Target },
       { to: "/revision-index", label: "Exam Revision", icon: ListChecks },
+      { to: "/contests", label: "Mega Contest", icon: Trophy },
       { to: "/account", label: "Account", icon: UserRound },
     ];
     if (isAdmin) {
