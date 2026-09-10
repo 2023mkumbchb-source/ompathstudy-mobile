@@ -228,6 +228,17 @@ function cleanMarkdownForPublish(content: string): string {
     .trim();
 }
 
+/**
+ * Spot papers / image question banks must never pass through the lossy
+ * rich-text round-trip: it flattens image lines and answer blocks.
+ */
+function isQuestionPaperContent(content: string): boolean {
+  const text = String(content || "");
+  const imageLines = (text.match(/^!\[[^\]]*\]\([^\s)]+\)\s*$/gm) || []).length;
+  const questionHeads = (text.match(/^#{2,4}\s*(?:Spot|Plate|Slide|Number|Q(?:uestion)?)\s*\d+/gim) || []).length;
+  return imageLines >= 3 || questionHeads >= 5;
+}
+
 function makeAutoTags(title: string, category: string, content: string, existing: string[] = []): string[] {
   const tags = [...existing];
   const hay = `${title}\n${category}\n${content}`;
