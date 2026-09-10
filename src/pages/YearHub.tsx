@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { ArrowRight, BookMarked, BookOpen, Clock, GraduationCap, Images, Trophy } from "lucide-react";
+import { ArrowRight, BookMarked, BookOpen, ClipboardCheck, Clock, FileQuestion, GraduationCap, Images, Trophy } from "lucide-react";
 import {
   YEAR_CATEGORIES,
   getPublishedArticleSummaries,
@@ -11,6 +11,26 @@ import {
 import { Helmet } from "react-helmet-async";
 import { getUnitsForYear, unitPath, type Unit } from "@/lib/academic";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getYear3Semester } from "@/lib/year3Semesters";
+
+function year3SemesterFor(article: Article): 1 | 2 | 3 | null {
+  if ([1, 2, 3].includes(Number(article.semester_number))) return Number(article.semester_number) as 1 | 2 | 3;
+  const unit = getCategoryDisplayName(article.category);
+  const mapped = getYear3Semester(unit);
+  if (mapped) return mapped;
+  if (/virology|mycology/i.test(article.title)) return 3;
+  if (/bacteriology|parasitology|entomology/i.test(article.title)) return 1;
+  if (/hematopathology|haematology/i.test(article.title)) return 2;
+  if (/practical/i.test(article.title)) return 3;
+  return null;
+}
+
+function year3ResourceKind(article: Article): "cat" | "exam" | "notes" {
+  const text = `${article.content_type || ""} ${article.title}`;
+  if (/\bCAT\b|continuous assessment/i.test(text)) return "cat";
+  if (/past paper|supplementary|end[- ]of[- ]year|\bexam(?:ination)?\b/i.test(text)) return "exam";
+  return "notes";
+}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -43,6 +63,7 @@ export default function YearHub() {
   // and each effect guards itself with isValidYear instead.
   const location2 = location;
   const [recent, setRecent] = useState<Article[]>([]);
+  const [yearArticles, setYearArticles] = useState<Article[]>([]);
   const [recentLoading, setRecentLoading] = useState(true);
   const [canonicalUnits, setCanonicalUnits] = useState<Unit[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(true);
@@ -62,6 +83,7 @@ export default function YearHub() {
         new Date(a.updated_at || a.created_at).getTime()
       );
       setRecent(sorted.slice(0, 6));
+      setYearArticles(sorted);
       setRecentLoading(false);
     });
     return () => { alive = false; };
@@ -119,6 +141,11 @@ export default function YearHub() {
       icon: Trophy,
     },
   ];
+  const year3Groups = [1, 2, 3].map((semester) => {
+    const articles = yearArticles.filter((article) => year3SemesterFor(article) === semester);
+    const units = [...new Set(articles.map((article) => getCategoryDisplayName(article.category)).filter((unit) => unit !== "Reference"))].sort();
+    return { semester, articles, units, cats: articles.filter((article) => year3ResourceKind(article) === "cat"), exams: articles.filter((article) => year3ResourceKind(article) === "exam"), notes: articles.filter((article) => year3ResourceKind(article) === "notes") };
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-10 sm:py-12">
@@ -179,6 +206,19 @@ export default function YearHub() {
         </section>
       )}
 
+      {parsedYear === 3 && !recentLoading && (
+        <section className="mt-6 space-y-5">
+          <div><p className="text-xs font-bold uppercase tracking-widest text-primary">Simple Year 3 catalogue</p><h2 className="mt-1 font-serif text-2xl font-bold">Choose your semester</h2><p className="mt-1 text-sm text-muted-foreground">Each semester is separated into study notes, CATs and past papers. Nothing is mixed together.</p></div>
+          {year3Groups.map((group) => <article key={group.semester} className="rounded-2xl border bg-card p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wider text-primary">Semester {group.semester}</p><h3 className="mt-1 font-serif text-xl font-bold">{group.units.length} units · {group.articles.length} resources</h3></div><Link to={`/blog?year=Year%203&sem=${group.semester}`} className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">Open semester</Link></div>
+            <div className="mt-4 flex flex-wrap gap-2">{group.units.map((unit) => <Link key={unit} to={`/blog?year=Year%203&sem=${group.semester}&unit=${encodeURIComponent(`Year 3: ${unit}`)}`} className="rounded-lg border bg-background px-2.5 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:text-primary">{unit}</Link>)}</div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3"><Link to={`/blog?year=Year%203&sem=${group.semester}&resource=notes`} className="rounded-xl border bg-background p-4"><BookOpen className="h-4 w-4 text-primary" /><p className="mt-2 font-bold">Study notes</p><p className="text-xs text-muted-foreground">{group.notes.length} available</p></Link><Link to={`/blog?year=Year%203&sem=${group.semester}&resource=cat`} className="rounded-xl border bg-background p-4"><ClipboardCheck className="h-4 w-4 text-primary" /><p className="mt-2 font-bold">CATs</p><p className="text-xs text-muted-foreground">{group.cats.length} available</p></Link><Link to={`/blog?year=Year%203&sem=${group.semester}&resource=exam`} className="rounded-xl border bg-background p-4"><FileQuestion className="h-4 w-4 text-primary" /><p className="mt-2 font-bold">Past papers</p><p className="text-xs text-muted-foreground">{group.exams.length} available</p></Link></div>
+            {group.cats.length > 0 && <div className="mt-5 border-t pt-4"><p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CATs already available</p><div className="mt-2 grid gap-1 sm:grid-cols-2">{group.cats.map((article) => <Link key={article.id} to={buildBlogPath(article)} className="truncate rounded-lg px-2 py-1.5 text-sm hover:bg-muted hover:text-primary">• {article.title.replace(/\s+—\s+CAT$/i, "")}</Link>)}</div></div>}
+          </article>)}
+          <Link to="/exams?year=Year%203" className="flex items-center justify-between gap-4 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5"><div><p className="text-xs font-bold uppercase tracking-wider text-primary">After the semesters</p><h3 className="mt-1 font-serif text-xl font-bold">Year 3 Exam Centre</h3><p className="mt-1 text-sm text-muted-foreground">Timed MCQs and complete examination practice.</p></div><Trophy className="h-7 w-7 text-primary" /></Link>
+        </section>
+      )}
+
       {hasAponeurosis && (
         <Link
           to={`/blog?year=${encodeURIComponent(yearLabel)}&unit=${encodeURIComponent(`${yearLabel}: Aponeurosis - Anatomy`)}`}
@@ -196,7 +236,7 @@ export default function YearHub() {
         </Link>
       )}
 
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+      {parsedYear !== 3 && <div className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="mb-3 flex items-center gap-2">
           <BookMarked className="h-4 w-4 text-primary" />
           <h2 className="font-serif text-lg font-bold text-foreground">Units in {yearLabel}</h2>
@@ -214,7 +254,7 @@ export default function YearHub() {
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
       {recentLoading && (
         <div className="mt-6 rounded-2xl border border-border bg-card p-5" aria-hidden="true">
