@@ -784,7 +784,7 @@ export default function AdminEditor() {
         setEditMetaDesc(prepared.metaDesc);
         setEditSlug(uniqueSlug);
         setExtras(prepared.extras);
-        if (prepared.content !== mdContent) editor.commands.setContent(mdToHtml(prepared.content));
+        if (!rawMode && editor && prepared.content !== mdContent) editor.commands.setContent(mdToHtml(prepared.content));
         setAllArticles(prev => prev.map(a => a.id === fullArticle.id ? { ...a, title: prepared.title, category: editCategory, meta_title: prepared.metaTitle, meta_description: prepared.metaDesc, slug: uniqueSlug, og_image_url: editOgImage, published: editPublished } : a));
       }
     } catch (err: any) {
