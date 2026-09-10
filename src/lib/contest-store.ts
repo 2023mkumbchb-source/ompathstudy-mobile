@@ -45,6 +45,26 @@ export interface ContestRegistration {
   status: "pending" | "verified" | "rejected" | "withdrawn";
 }
 
+export interface ContestRound {
+  id: string;
+  contest_id: string;
+  title: string;
+  round_number: number;
+  status: "scheduled" | "lobby" | "live" | "closed" | "cancelled";
+  starts_at: string | null;
+  ends_at: string | null;
+  duration_seconds: number;
+  question_count: number;
+}
+
+export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
+  const { data, error } = await (supabase as any).from("contest_rounds")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count")
+    .eq("contest_id", contestId).order("round_number");
+  if (error) throw error;
+  return (data || []) as ContestRound[];
+}
+
 export async function getContestBySlug(slug: string): Promise<ContestRecord | null> {
   const { contests } = await loadContestPlatform();
   return contests.find((contest) => contest.slug === slug) || null;
