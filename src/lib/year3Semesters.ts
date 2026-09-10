@@ -7,6 +7,17 @@
 // deliberately left unmapped — they get a separate "Reference" link instead
 // of a fake semester.
 export const YEAR3_SEMESTER: Record<string, 1 | 2 | 3> = {
+  // Canonical course-level catalogue (September 2026 consolidation).
+  "Medical Microbiology I — Bacteriology & Parasitology": 1,
+  "Systemic Pathology I": 2,
+  "Hematology II": 2,
+  "Systemic Pathology II": 3,
+  "Hematology & Blood Transfusion III": 3,
+  "Medical Microbiology II — Virology & Mycology": 3,
+  "Clinical Techniques": 3,
+  "Pathology Practical": 3,
+
+  // Legacy aliases remain readable for old links and unpublished drafts.
   "General Pathology": 1,
   "Oncopathology": 1,
   "Genetic Disorders": 1,
