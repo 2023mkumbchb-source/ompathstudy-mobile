@@ -67,7 +67,7 @@ export default function ContestLobby() {
             </div>) : <p className="text-sm text-white/45">Rounds have not been published yet.</p>}
           </div>
           {!liveRound && <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.07] p-4"><p className="text-sm font-bold text-amber-200">Schedule not announced</p><p className="mt-1 text-xs leading-relaxed text-white/45">No attempt can start until a verified moderator opens a scheduled round.</p></div>}
-          {liveRound && verified && <div className="mt-5 rounded-xl border border-teal-300/20 bg-teal-300/10 p-4"><p className="font-bold text-teal-200">{liveRound.title} is live</p><p className="mt-1 text-xs text-white/50">The timed question runner will be enabled after moderator and question-bank testing is complete.</p></div>}
+          {liveRound && verified && <div className="mt-5 rounded-xl border border-teal-300/20 bg-teal-300/10 p-4"><p className="font-bold text-teal-200">{liveRound.title} is live</p><p className="mt-1 text-xs text-white/50">Your timer begins when the secure attempt is created.</p><Link to={`/contests/${slug}/round/${liveRound.id}`} className="mt-4 inline-flex rounded-lg bg-teal-300 px-4 py-2.5 text-sm font-bold text-[#071315]">Enter live round</Link></div>}
         </article>
       </section>
     </div>

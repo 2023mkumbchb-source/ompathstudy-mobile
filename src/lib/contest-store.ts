@@ -65,6 +65,66 @@ export async function loadContestRounds(contestId: string): Promise<ContestRound
   return (data || []) as ContestRound[];
 }
 
+export interface ContestQuestion {
+  id: string;
+  round_id: string;
+  position: number;
+  stem: string;
+  options: string[];
+}
+
+export interface ContestAttempt {
+  id: string;
+  round_id: string;
+  registration_id: string;
+  user_id: string;
+  status: "active" | "submitted" | "eliminated" | "expired" | "void";
+  started_at: string;
+  submitted_at: string | null;
+  score: number | null;
+}
+
+export async function getOrStartContestAttempt(roundId: string, registration: ContestRegistration, userId: string): Promise<ContestAttempt> {
+  const existing = await (supabase as any).from("contest_attempts")
+    .select("id,round_id,registration_id,user_id,status,started_at,submitted_at,score")
+    .eq("round_id", roundId).eq("user_id", userId).maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data) return existing.data as ContestAttempt;
+  const { data, error } = await (supabase as any).from("contest_attempts").insert({ round_id: roundId, registration_id: registration.id, user_id: userId })
+    .select("id,round_id,registration_id,user_id,status,started_at,submitted_at,score").single();
+  if (error) throw error;
+  return data as ContestAttempt;
+}
+
+export async function loadContestQuestions(roundId: string): Promise<ContestQuestion[]> {
+  const { data, error } = await (supabase as any).from("contest_questions")
+    .select("id,round_id,position,stem,options").eq("round_id", roundId).order("position");
+  if (error) throw error;
+  return (data || []) as ContestQuestion[];
+}
+
+export async function submitContestAnswer(attemptId: string, questionId: string, userId: string, selectedIndex: number, responseMs: number) {
+  const { error } = await (supabase as any).from("contest_answers").insert({ attempt_id: attemptId, question_id: questionId, user_id: userId, selected_index: selectedIndex, response_ms: responseMs });
+  if (error && error.code !== "23505") throw error;
+}
+
+export async function logContestIntegrityEvent(attemptId: string, userId: string, eventType: string) {
+  const { error } = await (supabase as any).from("contest_integrity_events").insert({ attempt_id: attemptId, user_id: userId, event_type: eventType });
+  if (error) throw error;
+}
+
+export async function finishContestAttempt(attemptId: string): Promise<number> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "submit_attempt", attemptId } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return Number(data.score || 0);
+}
+
+export async function importContestQuestions(roundId: string, questions: unknown[]): Promise<number> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "import_questions", roundId, questions } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return Number(data.count || 0);
+}
+
 export async function getContestBySlug(slug: string): Promise<ContestRecord | null> {
   const { contests } = await loadContestPlatform();
   return contests.find((contest) => contest.slug === slug) || null;

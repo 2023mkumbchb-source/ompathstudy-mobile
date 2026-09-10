@@ -48,7 +48,9 @@ const Contests = lazy(() => import("./pages/Contests"));
 const ContestBriefing = lazy(() => import("./pages/ContestBriefing"));
 const ContestRegistration = lazy(() => import("./pages/ContestRegistration"));
 const ContestLobby = lazy(() => import("./pages/ContestLobby"));
+const ContestRound = lazy(() => import("./pages/ContestRound"));
 const ContestAdmin = lazy(() => import("./pages/ContestAdmin"));
+const ContestQuestionAdmin = lazy(() => import("./pages/ContestQuestionAdmin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -86,10 +88,12 @@ const AnimatedRoutes = () => {
             <Route path="/contests/:slug/briefing" element={<ContestBriefing />} />
             <Route path="/contests/:slug/register" element={<ContestRegistration />} />
             <Route path="/contests/:slug/lobby" element={<ContestLobby />} />
+            <Route path="/contests/:slug/round/:roundId" element={<ContestRound />} />
             <Route path="/admin/editor" element={<AdminEditor />} />
             <Route path="/admin/categories" element={<CategoryManager />} />
             <Route path="/admin/study-system" element={<StudySystemAdmin />} />
             <Route path="/admin/contests" element={<ContestAdmin />} />
+            <Route path="/admin/contests/questions" element={<ContestQuestionAdmin />} />
             <Route path="/stories" element={<Stories />} />
             <Route path="/stories/:id" element={<StoryRead />} />
             <Route path="/submit-story" element={<SubmitStory />} />
