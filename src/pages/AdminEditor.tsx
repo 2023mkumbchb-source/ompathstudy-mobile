@@ -734,20 +734,29 @@ export default function AdminEditor() {
   };
 
   const handleSave = async () => {
-    if (!editor) return;
+    if (!editor && !rawMode) return;
     setSaving(true);
     try {
-      const htmlContent = editor.getHTML();
-      const mdContent = htmlToMd(htmlContent);
-      const prepared = await prepareArticleForPublish({
-        title: editTitle,
-        content: mdContent,
-        category: editCategory || `Year ${selectedYear}: General`,
-        extras,
-        metaTitle: editMetaTitle,
-        metaDesc: editMetaDesc,
-        slug: editSlug,
-      });
+      const mdContent = rawMode ? rawContent : htmlToMd(editor!.getHTML());
+      const prepared = rawMode
+        ? {
+            // Exact mode: store the markdown byte-for-byte — no cleanup, no AI reformat.
+            title: editTitle.trim(),
+            content: rawContent,
+            extras: inferPublishExtras(editTitle, editCategory || `Year ${selectedYear}: General`, rawContent, extras || {}),
+            metaTitle: editMetaTitle || editTitle.trim(),
+            metaDesc: editMetaDesc || stripRichText(rawContent, 155),
+            slug: editSlug || slugifyText(editTitle),
+          }
+        : await prepareArticleForPublish({
+            title: editTitle,
+            content: mdContent,
+            category: editCategory || `Year ${selectedYear}: General`,
+            extras,
+            metaTitle: editMetaTitle,
+            metaDesc: editMetaDesc,
+            slug: editSlug,
+          });
       const uniqueSlug = await ensureUniqueSlug("articles", prepared.slug, prepared.title, "article", fullArticle?.id);
       const payload: any = {
         title: prepared.title,
