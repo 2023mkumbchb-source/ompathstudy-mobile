@@ -146,7 +146,13 @@ function parseAndNormalizeMcqs(raw: string, expectedCount: number) {
       const explanation = item.explanation ? compactWhitespace(String(item.explanation)) : "";
       if (!question) return null;
       const balanced = options.map((opt: string) => opt.replace(/\s+—\s+related\s+(?:option|finding)$/i, "").slice(0, 140));
-      return { question, options: balanced, correct_answer, explanation };
+      return {
+        question,
+        options: balanced,
+        correct_answer,
+        correct_answer_text: balanced[correct_answer],
+        explanation,
+      };
     })
     .filter(Boolean);
 
@@ -174,7 +180,12 @@ function parseAndNormalizeMcqs(raw: string, expectedCount: number) {
       const temp = opts[q.correct_answer];
       opts[q.correct_answer] = opts[newCorrect];
       opts[newCorrect] = temp;
-      result[i] = { ...q, options: opts, correct_answer: newCorrect };
+      result[i] = {
+        ...q,
+        options: opts,
+        correct_answer: newCorrect,
+        correct_answer_text: opts[newCorrect],
+      };
     }
   }
 

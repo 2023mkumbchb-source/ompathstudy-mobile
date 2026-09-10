@@ -33,6 +33,18 @@ describe("MCQ answer-position balancing", () => {
     });
   });
 
+  it("uses answer text as the authority when the stored index is stale", () => {
+    const [balanced] = rebalanceMcqAnswerLetters([{
+      question: "Which organism causes diphtheria?",
+      options: ["Streptococcus pyogenes", "Corynebacterium diphtheriae", "Neisseria meningitidis"],
+      correct_answer: 0,
+      correct_answer_text: "Corynebacterium diphtheriae",
+    }]);
+
+    expect(balanced.options[balanced.correct_answer]).toBe("Corynebacterium diphtheriae");
+    expect(balanced.correct_answer_text).toBe("Corynebacterium diphtheriae");
+  });
+
   it("leaves essay and malformed items untouched", () => {
     const items = [{ question: "Essay", type: "essay" }, { question: "Broken", options: ["A"], correct_answer: 0 }];
     expect(rebalanceMcqAnswerLetters(items)).toEqual(items);

@@ -138,7 +138,17 @@ export function rebalanceMcqAnswerLetters<T extends { question?: string; options
     if (!isMcq) continue;
 
     const optCount = q.options.length;
-    const currentCorrectText = q.options[q.correct_answer];
+    // The text is the durable answer identity; the numeric index is only its
+    // current presentation position. Prefer a persisted identity when one is
+    // available so a stale index cannot turn a distractor into the answer.
+    const savedCorrectText = typeof q.correct_answer_text === "string"
+      ? cleanMcqOptionText(q.correct_answer_text)
+      : "";
+    const savedCorrectIndex = savedCorrectText
+      ? q.options.findIndex((option: string) => cleanMcqOptionText(option).toLocaleLowerCase() === savedCorrectText.toLocaleLowerCase())
+      : -1;
+    const sourceCorrectIndex = savedCorrectIndex >= 0 ? savedCorrectIndex : q.correct_answer;
+    const currentCorrectText = q.options[sourceCorrectIndex];
     if (currentCorrectText === undefined) continue;
 
     const candidates = Array.from({ length: optCount }, (_, index) => index)
@@ -149,14 +159,14 @@ export function rebalanceMcqAnswerLetters<T extends { question?: string; options
       .reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, i + 1);
     const target = leastUsed[stableSeed % leastUsed.length];
 
-    if (target !== q.correct_answer) {
+    if (target !== sourceCorrectIndex) {
       const opts = [...q.options];
       const temp = opts[target];
-      opts[target] = opts[q.correct_answer];
-      opts[q.correct_answer] = temp;
+      opts[target] = opts[sourceCorrectIndex];
+      opts[sourceCorrectIndex] = temp;
       q.options = opts;
-      q.correct_answer = target;
     }
+    q.correct_answer = target;
 
     // Persist the answer identity as text as well as an array position. This
     // lets later cleanup/removal of malformed options recover the right index.
