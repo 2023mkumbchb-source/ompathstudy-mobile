@@ -579,7 +579,7 @@ export function preprocessContent(raw: string): string {
       const after = end < source.length && source[end] !== "\n" ? "\n" : "";
       return `${before}![${alt.replace(/\s+/g, " ").trim()}](${url})${after}`;
     },
-  );
+  ).replace(/^(#{1,6}\s+SECTION\s+[A-Z])(?=Q(?:uestion)?\s*\d+)/gim, "$1\n\n");
   const unwrapped = unwrapHardBreaks(decoded);
   const sourceLines = unwrapped.replace(/\r\n?/g, "\n").split("\n");
 
@@ -614,8 +614,21 @@ export function preprocessContent(raw: string): string {
     // Answer boundaries are structural, not prose subheadings. Preserve them
     // before punctuation spacing can rewrite `**Answer:**` as `**Answer: **`.
     // Both renderers then keep the following points inside the Reveal panel.
-    if (/^\*{0,2}\s*(?:✅\s*)?(?:Answer|Answers|Answer key|Model answer|Correct answer|Explanation|Rationale)\s*[:：]/i.test(trimmedRaw)) {
-      out.push(trimmedRaw);
+    const boundary = trimmedRaw.match(/^\*{0,2}\s*(?:✅\s*)?(Answer|Answers|Answer key|Model answer|Correct answer|Explanation|Rationale)\s*[:：]\s*(.*?)\s*\*{0,2}$/i);
+    if (boundary) {
+      const label = /explanation|rationale/i.test(boundary[1]) ? "Explanation" : "Answer";
+      let value = boundary[2].trim();
+      // A frequent import defect stores `**Answer:` on one line and the
+      // actual choice on the next. Joining them here prevents literal stars
+      // and keeps the complete answer inside the Reveal panel.
+      if (!value && sourceLines[idx + 1]) {
+        const next = sourceLines[idx + 1].trim();
+        if (next && !/^(?:[-*+]\s|#{1,6}\s|Question\s+\d+|Q\d+|---)/i.test(next)) {
+          value = next.replace(/^\*+|\*+$/g, "").trim();
+          idx++;
+        }
+      }
+      out.push(`**${label}:**${value ? ` ${value}` : ""}`);
       continue;
     }
 
