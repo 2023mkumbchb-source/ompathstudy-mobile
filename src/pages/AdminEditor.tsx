@@ -1523,11 +1523,38 @@ export default function AdminEditor() {
               <PublishingSettingsPanel
                 value={extras}
                 onChange={setExtras}
-                content={editor ? htmlToMd(editor.getHTML()) : ""}
+                content={rawMode ? rawContent : (editor ? htmlToMd(editor.getHTML()) : "")}
               />
 
-              {/* WYSIWYG Toolbar + Editor */}
-              {editor && (
+              {/* Question papers / spot banks edit as exact markdown so images and answers survive saving */}
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-2 py-1.5">
+                <span className="text-[10px] leading-4 text-muted-foreground">
+                  {rawMode
+                    ? "Exact mode: images, questions and answers are saved exactly as typed (no AI reformatting)."
+                    : "Rich text mode: best for normal blog posts."}
+                </span>
+                <Button variant="outline" size="sm" className="h-6 shrink-0 px-2 text-[10px]"
+                  onClick={() => {
+                    if (rawMode) {
+                      if (editor) editor.commands.setContent(mdToHtml(rawContent));
+                      setRawMode(false);
+                    } else {
+                      setRawContent(editor ? htmlToMd(editor.getHTML()) : rawContent);
+                      setRawMode(true);
+                    }
+                  }}>
+                  {rawMode ? "Use rich text" : "Use exact mode"}
+                </Button>
+              </div>
+
+              {rawMode ? (
+                <Textarea
+                  value={rawContent}
+                  onChange={(e) => setRawContent(e.target.value)}
+                  spellCheck={false}
+                  className="min-h-[420px] font-mono text-[12px] leading-5"
+                />
+              ) : editor ? (
                 <div className="rounded-xl border border-border bg-background overflow-hidden">
                   <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-muted/30 px-1.5 py-1">
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold"><Bold className={iconSize} /></ToolbarBtn>
@@ -1553,7 +1580,7 @@ export default function AdminEditor() {
                   </div>
                   <EditorContent editor={editor} />
                 </div>
-              )}
+              ) : null}
 
               {/* Bottom save */}
               <div className="flex items-center justify-between pt-1 border-t border-border">
