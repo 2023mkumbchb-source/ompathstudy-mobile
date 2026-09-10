@@ -36,6 +36,8 @@ export interface Article {
   exam_year?: string;
   unit?: string;
   content_kind?: string;
+  content_type?: string;
+  semester_number?: number;
 }
 
 export interface ArticleCategory {
@@ -561,6 +563,8 @@ function toArticlePreview(row: any): Article {
     tags: row.tags ?? [],
     featured_image: row.featured_image ?? undefined,
     content_kind: row.content_kind ?? undefined,
+    content_type: row.content_type ?? undefined,
+    semester_number: row.semester_number ?? undefined,
   };
 }
 
@@ -645,7 +649,7 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
 
   let query = supabase
     .from("articles")
-    .select("id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind")
+    .select("id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind, content_type, semester_number")
     .eq("published", true)
     .eq("is_raw", false)
     .is("deleted_at", null)
