@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, BookOpenCheck, Building2, CalendarClock, ShieldCheck, Sparkles, Trophy, Users } from "lucide-react";
 import { CONTEST_RULES, FLAGSHIP_CONTEST, UNIVERSITY_LEADERS } from "@/lib/contest";
 import { updateMetaTags } from "@/lib/seo";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { loadContestPlatform, type ContestUniversity } from "@/lib/contest-store";
 
 const features = [
   { icon: Building2, title: "University representation", copy: "Verified institutional teams competing across medical-school years." },
@@ -12,10 +13,20 @@ const features = [
 ];
 
 export default function Contests() {
+  const [contest, setContest] = useState(FLAGSHIP_CONTEST);
+  const [universities, setUniversities] = useState<ContestUniversity[]>([]);
+
   useEffect(() => {
     updateMetaTags({
       title: "Mega Contest | OmpathStudy",
       description: "OmpathStudy's inter-university medical knowledge competition for students across Kenya.",
+    });
+    loadContestPlatform().then(({ contests, universities: rows }) => {
+      const flagship = contests.find((item) => item.slug === FLAGSHIP_CONTEST.slug);
+      if (flagship) setContest(flagship);
+      setUniversities(rows);
+    }).catch(() => {
+      // Keep the static preview available during a temporary API interruption.
     });
   }, []);
 
@@ -33,7 +44,7 @@ export default function Contests() {
               The OmpathStudy Mega Contest will bring medical students together for verified, fair and clinically meaningful inter-university competition.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={`/contests/${FLAGSHIP_CONTEST.slug}/briefing`} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-5 py-3 text-sm font-bold text-[#071315] transition hover:bg-teal-200">
+              <Link to={`/contests/${contest.slug}/briefing`} className="inline-flex items-center gap-2 rounded-lg bg-teal-300 px-5 py-3 text-sm font-bold text-[#071315] transition hover:bg-teal-200">
                 Preview contest briefing <ArrowRight className="h-4 w-4" />
               </Link>
               <a href="#format" className="rounded-lg border border-white/15 px-5 py-3 text-sm font-bold text-white/80 transition hover:bg-white/5">Explore the format</a>
@@ -59,15 +70,15 @@ export default function Contests() {
               <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-teal-300">
                 <Trophy className="h-4 w-4" /> Flagship competition
               </div>
-              <h2 className="mt-4 font-serif text-3xl font-bold">{FLAGSHIP_CONTEST.title}</h2>
-              <p className="mt-3 max-w-2xl text-white/60">{FLAGSHIP_CONTEST.subtitle}</p>
+              <h2 className="mt-4 font-serif text-3xl font-bold">{contest.title}</h2>
+              <p className="mt-3 max-w-2xl text-white/60">{contest.subtitle}</p>
             </div>
             <dl className="grid gap-px bg-white/10 sm:grid-cols-2">
               {[
-                ["Subjects", FLAGSHIP_CONTEST.subjects.join(" · ")],
-                ["Eligible years", FLAGSHIP_CONTEST.years.map((year) => `Year ${year}`).join(" · ")],
-                ["Competition path", FLAGSHIP_CONTEST.format],
-                ["Representation", FLAGSHIP_CONTEST.teams],
+                ["Subjects", contest.subjects.join(" · ")],
+                ["Eligible years", contest.years.map((year) => `Year ${year}`).join(" · ")],
+                ["Competition path", contest.format],
+                ["Representation", contest.teams],
               ].map(([label, value]) => (
                 <div key={label} className="bg-[#0b1d20] p-6">
                   <dt className="text-xs font-bold uppercase tracking-wider text-white/40">{label}</dt>
@@ -77,13 +88,13 @@ export default function Contests() {
             </dl>
             <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 p-6 sm:px-8">
               <p className="flex items-center gap-2 text-sm text-white/50"><CalendarClock className="h-4 w-4" /> Launch date will be announced after institutional onboarding.</p>
-              <Link to={`/contests/${FLAGSHIP_CONTEST.slug}/briefing`} className="text-sm font-bold text-teal-300 hover:text-teal-200">Open preview →</Link>
+              <Link to={`/contests/${contest.slug}/briefing`} className="text-sm font-bold text-teal-300 hover:text-teal-200">Open preview →</Link>
             </div>
           </article>
 
           <aside className="rounded-2xl border border-white/10 bg-white/[0.035] p-6">
             <div className="flex items-center gap-2"><Users className="h-5 w-5 text-amber-300" /><h2 className="font-bold">University table</h2></div>
-            <p className="mt-2 text-sm text-white/45">The inaugural season starts with a clean record.</p>
+            <p className="mt-2 text-sm text-white/45">{universities.length ? `${universities.length} institutions are listed for future onboarding.` : "The inaugural season starts with a clean record."}</p>
             <ol className="mt-6 space-y-3">
               {UNIVERSITY_LEADERS.map((team) => (
                 <li key={team.position} className="flex items-center gap-3 rounded-xl border border-white/10 p-3">
