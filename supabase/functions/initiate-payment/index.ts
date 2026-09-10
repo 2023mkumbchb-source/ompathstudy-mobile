@@ -73,8 +73,9 @@ serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // API key is the Basic Auth username, password empty
-        'Authorization': 'Basic ' + btoa(`${PALPLUSS_API_KEY}:`),
+        // PalPlus expects its pk_live_/pk_test_ key directly after "Basic".
+        // This is intentionally not RFC 7617 username/password Base64.
+        'Authorization': `Basic ${PALPLUSS_API_KEY}`,
       },
       body: JSON.stringify(payload),
     });
@@ -83,10 +84,18 @@ serve(async (req) => {
     console.log('Palpluss response status:', res.status, JSON.stringify(result?.error ?? result?.data?.status ?? ''));
 
     if (!res.ok || result?.success === false) {
-      const message = result?.error?.message || 'Payment initiation failed';
+      const message = typeof result?.error === 'string'
+        ? result.error
+        : result?.error?.message || 'Payment initiation failed';
       return new Response(
-        JSON.stringify({ success: false, error: message, code: result?.error?.code }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: false,
+          error: message,
+          code: result?.error?.code,
+          details: result?.error?.details,
+          request_id: result?.requestId,
+        }),
+        { status: res.status >= 400 && res.status < 500 ? res.status : 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

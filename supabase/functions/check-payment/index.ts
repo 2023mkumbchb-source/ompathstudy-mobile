@@ -38,6 +38,15 @@ serve(async (req) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) throw new Error("Supabase credentials not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const bearer = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") || "";
+    const { data: authData } = bearer ? await supabase.auth.getUser(bearer) : { data: { user: null } };
+    const authUser = authData.user;
+    if (!authUser?.id) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Sign in to check this payment" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     const url = new URL(req.url);
 
     let rawInput = url.searchParams.get("transaction_id") || url.searchParams.get("mpesa_code") || "";
@@ -68,6 +77,7 @@ serve(async (req) => {
       .from("payments")
       .select("*")
       .eq("transaction_id", normalized)
+      .eq("user_id", authUser.id)
       .maybeSingle();
 
     // 2) Fallback to M-Pesa receipt code lookup
@@ -76,6 +86,7 @@ serve(async (req) => {
         .from("payments")
         .select("*")
         .eq("mpesa_code", normalized)
+        .eq("user_id", authUser.id)
         .maybeSingle();
       payment = result.data;
       error = result.error;
@@ -93,7 +104,8 @@ serve(async (req) => {
     if (payment.payment_status === "pending" && payment.provider_txn_id && PALPLUSS_API_KEY) {
       try {
         const res = await fetch(`https://api.palpluss.com/v1/transactions/${payment.provider_txn_id}`, {
-          headers: { Authorization: "Basic " + btoa(`${PALPLUSS_API_KEY}:`) },
+          // PalPlus uses the API key itself as the Basic credential value.
+          headers: { Authorization: `Basic ${PALPLUSS_API_KEY}` },
         });
         const json = await res.json().catch(() => ({}));
         const remote = String(json?.data?.status || "").toUpperCase();

@@ -12,7 +12,6 @@ import StudyControls from "@/components/StudyControls";
 import HelpfulVote from "@/components/HelpfulVote";
 import { sanitizeMcqQuestions } from "@/lib/mcq-normalization";
 import { isPublicMcqSet } from "@/lib/content-policy";
-import { SUPABASE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config";
 
 interface ExamSet {
   id: string;
@@ -173,12 +172,10 @@ export default function ExamStart() {
       attempts++;
       if (attempts > 60) { clearInterval(pollId); setPaymentStatus("failed"); return; }
       try {
-        const resp = await fetch(
-          `${SUPABASE_FUNCTIONS_URL}/check-payment?transaction_id=${encodeURIComponent(txnId)}`,
-          { headers: { apikey: SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" } },
-        );
-        const result = await resp.json();
-        if (!resp.ok) return;
+        const { data: result, error } = await supabase.functions.invoke("check-payment", {
+          body: { transaction_id: txnId },
+        });
+        if (error) return;
         if (result.status === "completed") {
           clearInterval(pollId);
           setPaymentStatus("completed");

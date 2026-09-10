@@ -6,7 +6,6 @@ import { AccessPass, AccessPlan, PaymentSettings, issuePassForPayment, normalize
 import { useAuth } from "@/hooks/useAuth";
 import { signInWithGoogle } from "@/lib/social-auth";
 import { savePurchaseIntent } from "@/lib/purchase-intent";
-import { SUPABASE_FUNCTIONS_URL } from "@/lib/supabase-config";
 
 /**
  * Paywall shown where the free portion of a page ends. Two ways in:
@@ -66,10 +65,10 @@ export function Paywall({
     for (let i = 0; i < 40; i++) {
       await new Promise((r) => setTimeout(r, 3000));
       try {
-        const res = await fetch(
-          `${SUPABASE_FUNCTIONS_URL}/check-payment?transaction_id=${encodeURIComponent(transactionId)}`,
-        );
-        const json = await res.json().catch(() => ({}));
+        const { data: json, error } = await supabase.functions.invoke("check-payment", {
+          body: { transaction_id: transactionId },
+        });
+        if (error) continue;
         if (json?.status === "completed") {
           const pass = await issuePassForPayment(transactionId, plan.id);
           if (pass) {
@@ -111,7 +110,19 @@ export function Paywall({
     });
     if (error || !data?.success) {
       setState("error");
-      setMessage(data?.error || "Could not start the payment. Please try again.");
+      const code = String(data?.code || "").toUpperCase();
+      const retryAfter = Number(data?.details?.retryAfterSeconds || 0);
+      const actionableMessage =
+        code === "NO_PAYMENT_CHANNELS"
+          ? "Payments are not fully configured yet. The administrator needs to add a PalPlus payment channel."
+          : code === "NO_DEFAULT_CHANNEL"
+            ? "Payments are not fully configured yet. The administrator needs to select a default PalPlus payment channel."
+            : code === "INSUFFICIENT_SERVICE_BALANCE"
+              ? "The payment service wallet needs to be topped up. Please try again shortly."
+              : code === "STK_TEMP_BANNED" && retryAfter > 0
+                ? `M-Pesa requests are temporarily paused. Please retry in about ${Math.ceil(retryAfter / 60)} minute(s).`
+                : data?.error || error?.message || "Could not start the payment. Please try again.";
+      setMessage(actionableMessage);
       return;
     }
     setState("waiting");

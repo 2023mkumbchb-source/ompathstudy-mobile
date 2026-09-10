@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSetting, getCategoryDisplayName, getYearFromCategory, buildExamPath, normalizeMcqQuestions } from "@/lib/store";
 import { updateMetaTags } from "@/lib/seo";
 import { dedupeResourceSummaries, isPublicMcqSet } from "@/lib/content-policy";
-import { SUPABASE_FUNCTIONS_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config";
 
 interface ExamSet {
   id: string;
@@ -98,18 +97,10 @@ export default function Exams() {
       }
 
       try {
-        const resp = await fetch(
-          `${SUPABASE_FUNCTIONS_URL}/check-payment?transaction_id=${encodeURIComponent(txnId)}`,
-          {
-            headers: {
-              apikey: SUPABASE_PUBLISHABLE_KEY,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const result = await resp.json();
-        if (!resp.ok) return;
+        const { data: result, error } = await supabase.functions.invoke("check-payment", {
+          body: { transaction_id: txnId },
+        });
+        if (error) return;
 
         if (result.status === "completed") {
           clearInterval(pollId);
