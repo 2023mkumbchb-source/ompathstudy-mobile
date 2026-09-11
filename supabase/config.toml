@@ -22,3 +22,8 @@ secure_password_change = false
 max_frequency = "1m"
 otp_length = 8
 otp_expiry = 3600
+
+# Sitemaps are public documents fetched by search-engine crawlers. The function
+# uses its server-side service role for database reads and exposes no mutations.
+[functions.generate-sitemap]
+verify_jwt = false
