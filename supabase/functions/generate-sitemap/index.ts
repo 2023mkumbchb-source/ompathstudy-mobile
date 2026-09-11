@@ -69,8 +69,7 @@ function extractFirstImage(content: string | null): string | null {
  * Spot/slide-review notes are almost entirely images, so indexing each plate
  * is what makes them discoverable in Google Images.
  */
-function extractContentImages(content: string | null): { loc: string; caption: string }[] {
-  if (!content) return [];
+function extractContentImages(...sources: (string | null | undefined)[]): { loc: string; caption: string }[] {
   const out: { loc: string; caption: string }[] = [];
   const seen = new Set<string>();
   const add = (loc: string, caption: string) => {
@@ -79,27 +78,19 @@ function extractContentImages(content: string | null): { loc: string; caption: s
     seen.add(url);
     out.push({ loc: url, caption: (caption || "").replace(/\s+/g, " ").trim() });
   };
-  for (const m of content.matchAll(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/gi)) add(m[2], m[1]);
-  for (const m of content.matchAll(/<img[^>]+src=["'](https?:\/\/[^"']+)["'][^>]*>/gi)) {
-    const alt = m[0].match(/alt=["']([^"']*)["']/i)?.[1] || "";
-    add(m[1], alt);
+  for (const content of sources) {
+    if (!content) continue;
+    for (const m of content.matchAll(/!\[([^\]]*)\]\(\s*<?(https?:\/\/[^\s)>]+)>?(?:\s+["'][^"']*["'])?\s*\)/gi)) add(m[2], m[1]);
+    for (const m of content.matchAll(/<img\b[^>]*>/gi)) {
+      const tag = m[0];
+      const src = tag.match(/(?:src|data-src|data-lazy-src)=["'](https?:\/\/[^"']+)["']/i)?.[1] || "";
+      const alt = tag.match(/alt=["']([^"']*)["']/i)?.[1] || "";
+      add(src, alt);
+      const srcset = tag.match(/(?:srcset|data-srcset)=["']([^"']+)["']/i)?.[1] || "";
+      for (const candidate of srcset.split(",")) add(candidate.trim().split(/\s+/)[0], alt);
+    }
   }
   return out.slice(0, 900); // Google caps at 1000 images per <url>
-}
-
-/**
- * Thin pages are what Google reports as "Crawled - currently not indexed".
- * Never submit near-empty sets/notes in the sitemap.
- */
-function textLength(content: string | null | undefined): number {
-  return String(content || "")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/<[^>]+>/g, "")
-    .trim().length;
-}
-
-function hasImages(content: string | null | undefined): boolean {
-  return /!\[[^\]]*\]\(|<img/i.test(String(content || ""));
 }
 
 const EXCLUDED_PATHS = new Set<string>([
@@ -160,7 +151,7 @@ serve(async (req) => {
     const baseUrl = normalizeBaseUrl((siteUrlSetting as any)?.value);
 
     const [articles, mcqs, flashcards, stories] = await Promise.all([
-      fetchAllPublished(supabase, "articles", "id, title, slug, created_at, updated_at, category, og_image_url, content, original_notes"),
+      fetchAllPublished(supabase, "articles", "id, title, slug, created_at, updated_at, category, og_image_url, featured_image, content, original_notes"),
       fetchAllPublished(supabase, "mcq_sets", "id, title, slug, og_image_url, created_at, updated_at, category, questions"),
       fetchAllPublished(supabase, "flashcard_sets", "id, title, slug, created_at, updated_at, category, cards"),
       fetchAllPublished(supabase, "stories", "id, title, slug, created_at, category, cover_image_url", "created_at"),
@@ -207,15 +198,13 @@ serve(async (req) => {
     // Articles
     for (const a of (articles || []) as any[]) {
       if (!includeBlog || !matchesYear(a.category, filter.year)) continue;
-      // Skip thin notes: too little text and no scanned pages to index.
-      if (textLength(a.content) < 400 && !hasImages(a.content)) continue;
       const articleSlug = cleanPublicSlug(a.slug, a.title, "article");
       const path = `/blog/${articleSlug}`;
       if (emittedPaths.has(path) || EXCLUDED_PATHS.has(path)) continue;
       emittedPaths.add(path);
       const lastmod = (a.updated_at || a.created_at) ? new Date(a.updated_at || a.created_at).toISOString().split("T")[0] : "";
-      const imageUrl = a.og_image_url || extractFirstImage(a.content) || null;
-      const contentImages = extractContentImages(a.content);
+      const imageUrl = a.og_image_url || a.featured_image || extractFirstImage(a.content) || extractFirstImage(a.original_notes) || null;
+      const contentImages = extractContentImages(a.content, a.original_notes);
       xml += `  <url>\n    <loc>${baseUrl}${path}</loc>\n`;
       if (lastmod) xml += `    <lastmod>${lastmod}</lastmod>\n`;
       xml += `    <priority>0.7</priority>\n    <changefreq>weekly</changefreq>\n`;
