@@ -13,15 +13,15 @@ import { getUnitsForYear, unitPath, type Unit } from "@/lib/academic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getYear3Semester } from "@/lib/year3Semesters";
 
-function year3SemesterFor(article: Article): 1 | 2 | null {
-  if ([1, 2].includes(Number(article.semester_number))) return Number(article.semester_number) as 1 | 2;
+function year3SemesterFor(article: Article): 1 | 2 | 3 | null {
+  if ([1, 2, 3].includes(Number(article.semester_number))) return Number(article.semester_number) as 1 | 2 | 3;
   const unit = getCategoryDisplayName(article.category);
   const mapped = getYear3Semester(unit);
   if (mapped) return mapped;
-  if (/virology|mycology/i.test(article.title)) return 2;
+  if (/virology|mycology/i.test(article.title)) return 3;
   if (/bacteriology|parasitology|entomology/i.test(article.title)) return 1;
   if (/hematopathology|haematology/i.test(article.title)) return 2;
-  if (/practical/i.test(article.title)) return 1;
+  if (/practical/i.test(article.title)) return 3;
   return null;
 }
 

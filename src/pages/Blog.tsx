@@ -93,6 +93,7 @@ function getGroupLabel(year: string, category: string): string {
 const YEAR3_SEMESTER_OPTIONS = [
   { value: "1", label: "Semester 1" },
   { value: "2", label: "Semester 2" },
+  { value: "3", label: "Semester 3" },
 ];
 
 function unitMatchesSemester(unitName: string, semester: string | null): boolean {
@@ -315,7 +316,7 @@ export default function Blog() {
           if (a.category === "Stories") return false;
           const matchesYear = belongsToSelectedYear(a, selectedYear);
           const matchesUnit = selectedUnitMatches(a, selectedUnit);
-          const articleSemester = [1, 2].includes(Number(a.semester_number))
+          const articleSemester = [1, 2, 3].includes(Number(a.semester_number))
             ? String(a.semester_number)
             : getYear3Semester(getCategoryDisplayName(a.category || ""))?.toString() || "other";
           const matchesSemester =
