@@ -36,6 +36,7 @@ import {
   splitInlineTable, decodeEntities, dropEmptySections, cleanHeadingText,
   splitMalformedHeading, isTableRow, unwrapHardBreaks, preprocessContent,
   isLikelyStandaloneSectionHeading,
+  isDuplicateArticleHeading,
   type TocItem, extractToc, answerKeyByQuestion, parseConsolidatedAnswerKey,
   mergeAnswerKeys, looksLikeUpcomingMcqOptions,
 } from "@/lib/blog-content";
@@ -1075,6 +1076,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
     if (/^#{1,2}\s/.test(t)) {
       flushList(); underSubheading = false;
       const heading = t.replace(/^#+\s+/, "").replace(/\*+/g, "").replace(/⭐+/g, "").replace(/^\d+\.\s*/, "").replace(/^[IVXLC]+\.\s+/, "").trim();
+      if (i < 12 && isDuplicateArticleHeading(heading, title)) continue;
       if (/\b(section\s+a|multiple\s+choice|mcqs?)\b/i.test(heading)) examMode = "mcq";
       if (/\b(section\s+b|section\s+c|essay|short\s+answer|long\s+answer|answer\s+any)\b/i.test(heading)) examMode = "essay";
       if (heading.toLowerCase().includes("practice")) { inPractice = true; continue; }
@@ -1118,6 +1120,8 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
     if (inPractice && t.startsWith("→")) continue;
 
     if (t.startsWith("- ")) { pushBullet(t.slice(2), `li-${i}`); continue; }
+
+    if (/^\d+(?:\.\d+)?$/.test(t)) continue;
 
     if (/^\d+\.\s/.test(t) && !t.includes("→") && !inPractice) {
       if (!listBuf || listBuf.type !== "ol") { flushList(); listBuf = { type: "ol", items: [] }; }

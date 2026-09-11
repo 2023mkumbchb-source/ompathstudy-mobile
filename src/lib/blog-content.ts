@@ -452,6 +452,22 @@ export function isLikelyStandaloneSectionHeading(current: string, previous = "",
   return allCaps || titleLike || singleLabel;
 }
 
+/** True when an imported body heading merely repeats the page's hero title. */
+export function isDuplicateArticleHeading(heading: string, title: string): boolean {
+  const tokens = (value: string) => new Set(cleanDisplayText(value)
+    .toLowerCase()
+    .replace(/\b(?:complete|study|guide|notes?|revised|past|paper)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 2));
+  const a = tokens(heading);
+  const b = tokens(title);
+  if (a.size < 2 || b.size < 2) return false;
+  const overlap = [...a].filter((word) => b.has(word)).length;
+  return overlap / Math.min(a.size, b.size) >= 0.8;
+}
+
 export function splitMalformedHeading(raw: string): { heading: string; extras: string[] } {
   let text = cleanHeadingText(raw.replace(/^HOW\s+TO\s+OPEN>\s*"?/i, "").replace(/^say\s*:?>\s*"?/i, ""));
   const extras: string[] = [];
@@ -511,7 +527,7 @@ export function splitMalformedHeading(raw: string): { heading: string; extras: s
       text = "";
     }
   }
-  return { heading: text.replace(/^\d+\.\s*/, "").trim(), extras };
+  return { heading: text.replace(/^\d+\.(?!\d)\s*/, "").trim(), extras };
 }
 
 /* ─── Helper: is this line a markdown table row? ─── */
@@ -676,7 +692,9 @@ export function preprocessContent(raw: string): string {
       .replace(/^[•◦▪]\s*/, "- ")
       .replace(/^HOW\s+TO\s+OPEN>\s*"?/i, "")
       .replace(/^say\s*:?>\s*"?/i, "")
-      .replace(/([:.;!?])(?=\S)/g, "$1 ")
+      // Add missing sentence spacing without corrupting decimal section numbers
+      // such as "1.0 Introduction" into "1. 0 Introduction".
+      .replace(/([:;!?])(?=\S)|\.(?=[A-Za-z])/g, "$1 ")
       .replace(/([a-z)])(?=[A-Z][a-z])/g, "$1 ")
       .replace(/([A-Z]{2,})(?=[A-Z][a-z])/g, "$1 ")
       .replace(/([A-Z]{3,})(?=[a-z]{3,})/g, "$1 ")
@@ -688,6 +706,8 @@ export function preprocessContent(raw: string): string {
       out.push("");
       continue;
     }
+    if (/^\*?This complete .+ is split into \d+ parts? for easier reading\.?\*?$/i.test(t)) continue;
+    if (/^All \d+ source pages were processed\./i.test(t)) continue;
     if (isOcrNoiseLine(t)) { out.push(""); continue; }
     if (!t) { out.push(""); continue; }
 
