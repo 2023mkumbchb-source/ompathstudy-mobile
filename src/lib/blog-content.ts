@@ -434,6 +434,24 @@ export function cleanHeadingText(value: string): string {
     .trim();
 }
 
+/** Detect section labels left as plain text by PDF/OCR imports. */
+export function isLikelyStandaloneSectionHeading(current: string, previous = "", next = ""): boolean {
+  const text = cleanDisplayText(current).replace(/^\*+|\*+$/g, "").trim();
+  if (!text || previous.trim() || text.length < 3 || text.length > 64) return false;
+  if (/^(?:figure|diagram|table|page)\b/i.test(text)) return false;
+  if (/^(?:https?:\/\/|!\[|#{1,6}\s|[-*+•]\s|\d+[.)]\s)/i.test(text)) return false;
+  if (/[.!?;:]$/.test(text) || /[=<>]/.test(text)) return false;
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length > 9 || !/[A-Za-z]{3}/.test(text)) return false;
+  const letters = text.replace(/[^A-Za-z]/g, "");
+  const allCaps = letters.length >= 4 && letters === letters.toUpperCase();
+  const titleLike = words.filter((word) => /[A-Za-z]/.test(word)).every((word) =>
+    /^(?:and|or|of|the|in|for|to|a|an)$/i.test(word) || /^[A-Z]/.test(word),
+  );
+  const singleLabel = words.length <= 2 && /^[A-Z]/.test(text) && !next.trim().startsWith("-");
+  return allCaps || titleLike || singleLabel;
+}
+
 export function splitMalformedHeading(raw: string): { heading: string; extras: string[] } {
   let text = cleanHeadingText(raw.replace(/^HOW\s+TO\s+OPEN>\s*"?/i, "").replace(/^say\s*:?>\s*"?/i, ""));
   const extras: string[] = [];

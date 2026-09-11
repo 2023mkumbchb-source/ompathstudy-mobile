@@ -191,9 +191,10 @@
   /* Use :where() so specificity stays 0 — utility classes inside cards win,
      and anything inside .not-prose (related cards, asides) is fully excluded. */
   .article-reader :where(p):not(:where(.not-prose, .not-prose *)) {
-    @apply text-[1.03rem] leading-relaxed text-foreground/90;
-    max-width: 72ch; /* more readable line length */
-    margin: 0.85rem 0;
+    @apply text-[1.0625rem] text-foreground/90;
+    line-height: 1.78;
+    max-width: 66ch;
+    margin: 0.9rem 0;
   }
   .article-reader :where(h2):not(:where(.not-prose, .not-prose *)) {
     @apply font-serif text-2xl font-bold leading-tight text-foreground sm:text-3xl;
@@ -217,6 +218,25 @@
   .article-reader :where(li):not(:where(.not-prose, .not-prose *)) {
     margin: 0.35rem 0;
     line-height: 1.65;
+  }
+
+  .article-reader :where(h2, h3):not(:where(.not-prose, .not-prose *)) + p {
+    margin-top: 0;
+  }
+
+  @media (max-width: 640px) {
+    .article-reader :where(p):not(:where(.not-prose, .not-prose *)) {
+      font-size: 1rem;
+      line-height: 1.72;
+    }
+    .article-reader :where(h2):not(:where(.not-prose, .not-prose *)) {
+      font-size: 1.55rem;
+      margin-top: 2.15rem;
+    }
+    .article-reader :where(h3):not(:where(.not-prose, .not-prose *)) {
+      font-size: 1.22rem;
+      margin-top: 1.65rem;
+    }
   }
 
   .article-reader table {

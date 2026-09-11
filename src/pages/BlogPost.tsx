@@ -35,6 +35,7 @@ import {
   splitOptionRun, splitStemAndOptions, isQuestionLike, extractExamQuestions,
   splitInlineTable, decodeEntities, dropEmptySections, cleanHeadingText,
   splitMalformedHeading, isTableRow, unwrapHardBreaks, preprocessContent,
+  isLikelyStandaloneSectionHeading,
   type TocItem, extractToc, answerKeyByQuestion, parseConsolidatedAnswerKey,
   mergeAnswerKeys, looksLikeUpcomingMcqOptions,
 } from "@/lib/blog-content";
@@ -1089,8 +1090,10 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
 
     if (/^#{3,6}\s/.test(t)) {
       flushList(); underSubheading = true;
-      const txt = t.replace(/^#+\s+/, "").replace(/\*+/g, "").replace(/⭐+/g, "").trim();
-      els.push(<h3 key={`h3-${i}`} id={slugify(txt)} className="mt-6 mb-2 scroll-mt-20 font-serif text-xl font-bold leading-snug text-foreground">{txt}</h3>);
+      const split = splitMalformedHeading(t.replace(/^#+\s+/, ""));
+      const txt = split.heading;
+      if (txt) els.push(<h3 key={`h3-${i}`} id={slugify(txt)} className="mt-8 mb-3 scroll-mt-20 font-serif text-xl font-bold leading-snug text-foreground">{txt}</h3>);
+      split.extras.forEach((extra, extraIndex) => els.push(...renderProse(extra, `h3-extra-${i}-${extraIndex}`)));
       continue;
     }
 
@@ -1134,6 +1137,13 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
       const blText = boldLabelMatch[1].replace(/:$/, "").trim();
       els.push(<h3 key={`bl-${i}`} id={slugify(blText)} className="mt-6 mb-2 scroll-mt-20 font-semibold text-base text-foreground">{blText}</h3>);
       underSubheading = false;
+      continue;
+    }
+
+    if (isLikelyStandaloneSectionHeading(t, i > 0 ? lines[i - 1] : "", i + 1 < lines.length ? lines[i + 1] : "")) {
+      flushList(); underSubheading = false;
+      const sectionTitle = cleanDisplayText(t).replace(/^\*+|\*+$/g, "").trim();
+      els.push(<h3 key={`plain-heading-${i}`} id={slugify(sectionTitle)} className="mt-9 mb-3 scroll-mt-20 font-serif text-xl font-bold leading-snug text-foreground">{sectionTitle}</h3>);
       continue;
     }
 
@@ -1771,7 +1781,7 @@ export default function BlogPost() {
       )}
 
       {/* Main layout */}
-      <div className="mx-auto max-w-6xl px-5 py-8">
+      <div className="mx-auto max-w-6xl px-3 py-5 sm:px-5 sm:py-8">
         <div className={slideDeck ? "" : toc.length > 0 ? "lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10" : "max-w-3xl mx-auto"}>
           {!slideDeck && toc.length > 0 && (
             <aside className="hidden lg:block">
@@ -1779,7 +1789,7 @@ export default function BlogPost() {
             </aside>
           )}
 
-          <article id="section-top" className={slideDeck ? "min-w-0" : "min-w-0 lg:max-w-[76ch]"}>
+          <article id="section-top" className={slideDeck ? "min-w-0" : "min-w-0 rounded-2xl border border-border/70 bg-card px-4 py-5 shadow-sm sm:px-8 sm:py-8 lg:max-w-[72ch] lg:px-10"}>
             <Countdown data={(article as any).countdown} />
             <PasswordGate
               enabled={(article as any).password_protected}
