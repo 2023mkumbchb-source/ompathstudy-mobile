@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, LockKeyhole, Maximize, MonitorUp, ShieldCheck, Wifi } from "lucide-react";
-import { CONTEST_RULES, FLAGSHIP_CONTEST } from "@/lib/contest";
+import { ArrowLeft, CheckCircle2, Loader2, LockKeyhole, Maximize, MonitorUp, ShieldCheck, Wifi } from "lucide-react";
+import { CONTEST_RULES } from "@/lib/contest";
+import { getContestBySlug, type ContestRecord } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
 
 const checks = [
@@ -29,14 +30,19 @@ function useTypedText(text: string, speed = 22) {
 export default function ContestBriefing() {
   const { slug } = useParams();
   const [accepted, setAccepted] = useState(false);
+  const [contest, setContest] = useState<ContestRecord | null>(null);
+  const [loading, setLoading] = useState(true);
   const sequence = useMemo(() => "SECURE CONTEST ENVIRONMENT // PREVIEW MODE", []);
   const typed = useTypedText(sequence);
 
   useEffect(() => {
     updateMetaTags({ title: `Contest Briefing | OmpathStudy`, description: "Preview the secure OmpathStudy Mega Contest participant briefing." });
-  }, []);
+    if (!slug) { setLoading(false); return; }
+    getContestBySlug(slug).then(setContest).finally(() => setLoading(false));
+  }, [slug]);
 
-  if (slug !== FLAGSHIP_CONTEST.slug) return <Navigate to="/contests" replace />;
+  if (loading) return <div className="flex min-h-dvh items-center justify-center bg-[#03090a]"><Loader2 className="h-6 w-6 animate-spin text-teal-300" /></div>;
+  if (!contest) return <Navigate to="/contests" replace />;
 
   return (
     <div className="min-h-dvh bg-[#03090a] text-white">
@@ -46,14 +52,14 @@ export default function ContestBriefing() {
         <div className="mt-8 overflow-hidden rounded-2xl border border-teal-300/20 bg-[#071315] shadow-2xl shadow-teal-950/30">
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-teal-300/75">
             <span>{typed}<span className="ml-1 animate-pulse">▌</span></span>
-            <span className="hidden sm:inline">Session: demonstration</span>
+            <span className="hidden capitalize sm:inline">Stage: {contest.stage}</span>
           </div>
 
           <div className="p-6 sm:p-10">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-teal-300/20 bg-teal-300/10"><ShieldCheck className="h-7 w-7 text-teal-300" /></div>
             <p className="mt-7 text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Participant briefing</p>
-            <h1 className="mt-3 max-w-3xl font-serif text-3xl font-bold sm:text-5xl">Before you enter the arena.</h1>
-            <p className="mt-4 max-w-2xl leading-relaxed text-white/55">This preview demonstrates the environment every participant will see before a protected OmpathStudy competition begins.</p>
+            <h1 className="mt-3 max-w-3xl font-serif text-3xl font-bold sm:text-5xl">{contest.title}</h1>
+            <p className="mt-4 max-w-2xl leading-relaxed text-white/55">{contest.subtitle || "Review the contest requirements before registration and entry."}</p>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2">
               {checks.map(({ icon: Icon, label, detail }) => (
@@ -78,10 +84,12 @@ export default function ContestBriefing() {
               <span className="text-sm leading-relaxed text-white/65">I understand how integrity events will be recorded and reviewed during an official contest.</span>
             </label>
 
-            <button disabled={!accepted} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] transition enabled:hover:bg-teal-200 disabled:cursor-not-allowed disabled:opacity-30">
-              <CheckCircle2 className="h-4 w-4" /> Official lobby coming soon
-            </button>
-            <p className="mt-3 text-center text-xs text-white/30">Preview only — no registration or monitoring is active.</p>
+            {accepted ? <Link to={contest.stage === "registration" ? `/contests/${contest.slug}/register` : `/contests/${contest.slug}/lobby`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] transition hover:bg-teal-200">
+              <CheckCircle2 className="h-4 w-4" /> {contest.stage === "registration" ? "Continue to registration" : "Enter official lobby"}
+            </Link> : <button disabled className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] opacity-30">
+              <CheckCircle2 className="h-4 w-4" /> Accept the instructions to continue
+            </button>}
+            <p className="mt-3 text-center text-xs text-white/30">Monitoring begins only after you enter an active protected round.</p>
           </div>
         </div>
       </div>
