@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Loader2, LockKeyhole, Maximize, MonitorUp, ShieldCheck, Wifi } from "lucide-react";
 import { CONTEST_RULES } from "@/lib/contest";
-import { getContestBySlug, type ContestRecord } from "@/lib/contest-store";
+import { getContestBySlug, loadContestRounds, type ContestRecord, type ContestRound } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
 import ShareButtons from "@/components/ShareButtons";
+import ContestCountdown from "@/components/ContestCountdown";
 
 const checks = [
   { icon: LockKeyhole, label: "Verified account", detail: "Required for live contests" },
@@ -33,13 +34,14 @@ export default function ContestBriefing() {
   const [accepted, setAccepted] = useState(false);
   const [contest, setContest] = useState<ContestRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rounds, setRounds] = useState<ContestRound[]>([]);
   const sequence = useMemo(() => "SECURE CONTEST ENVIRONMENT // PREVIEW MODE", []);
   const typed = useTypedText(sequence);
 
   useEffect(() => {
     updateMetaTags({ title: `Contest Briefing | OmpathStudy`, description: "Preview the secure OmpathStudy Mega Contest participant briefing." });
     if (!slug) { setLoading(false); return; }
-    getContestBySlug(slug).then(setContest).finally(() => setLoading(false));
+    getContestBySlug(slug).then(async (record) => { setContest(record); if (record) setRounds(await loadContestRounds(record.id)); }).finally(() => setLoading(false));
   }, [slug]);
 
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function ContestBriefing() {
 
   if (loading) return <div className="flex min-h-dvh items-center justify-center bg-[#03090a]"><Loader2 className="h-6 w-6 animate-spin text-teal-300" /></div>;
   if (!contest) return <Navigate to="/contests" replace />;
+  const nextRound = rounds.find((round) => ["scheduled", "lobby", "live"].includes(round.status));
 
   return (
     <div className="min-h-dvh bg-[#03090a] text-white">
@@ -68,6 +71,8 @@ export default function ContestBriefing() {
             <p className="mt-4 max-w-2xl leading-relaxed text-white/55">{contest.subtitle || "Review the contest requirements before registration and entry."}</p>
             {contest.shareImageUrl && <img src={contest.shareImageUrl} alt={`${contest.title} poster`} className="mt-6 max-h-80 w-full rounded-xl border border-white/10 object-cover" />}
             <ShareButtons url={`https://www.ompathstudy.com/contests/${contest.slug}/briefing`} title={contest.title} description={contest.subtitle} className="mt-5" />
+            {nextRound?.starts_at && nextRound.status !== "live" && <ContestCountdown startsAt={nextRound.starts_at} className="mt-6 rounded-xl border border-teal-300/20 bg-teal-300/[0.07] p-4" />}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Questions</p><p className="mt-1 font-bold">{nextRound?.question_count || "Pending"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Duration</p><p className="mt-1 font-bold">{nextRound ? `${Math.round(nextRound.duration_seconds / 60)} min` : "Pending"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Eligible years</p><p className="mt-1 font-bold">{contest.years.join(", ") || "All"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Subject</p><p className="mt-1 truncate font-bold">{contest.subjects.join(", ") || "Medical"}</p></div></div>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2">
               {checks.map(({ icon: Icon, label, detail }) => (

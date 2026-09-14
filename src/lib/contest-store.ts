@@ -62,11 +62,15 @@ export interface ContestRound {
   integrity_policy: string;
   source_mcq_set_id: string | null;
   source_exam_title: string | null;
+  auto_open: boolean;
+  auto_close: boolean;
+  entry_grace_minutes: number;
+  results_visible: boolean;
 }
 
 export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
   const { data, error } = await (supabase as any).from("contest_rounds")
-    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title,auto_open,auto_close,entry_grace_minutes,results_visible")
     .eq("contest_id", contestId).order("round_number");
   if (error) throw error;
   return (data || []) as ContestRound[];
@@ -182,9 +186,25 @@ export async function setContestRegistrationStatus(registrationId: string, statu
   if (error || data?.error) throw error || new Error(data.error);
 }
 
-export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean }) {
+export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean }) {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "configure_round", ...input } });
   if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function uploadContestPoster(contestId: string, file: File): Promise<string> {
+  if (!file.type.match(/^image\/(jpeg|png|webp)$/)) throw new Error("Use a JPG, PNG or WebP image.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("The poster must be smaller than 5 MB.");
+  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${contestId}/poster-${Date.now()}.${extension}`;
+  const { error } = await supabase.storage.from("contest-posters").upload(path, file, { cacheControl: "3600", upsert: false });
+  if (error) throw error;
+  return supabase.storage.from("contest-posters").getPublicUrl(path).data.publicUrl;
+}
+
+export async function loadMyContestAnswers(attemptId: string): Promise<{ question_id: string; selected_index: number }[]> {
+  const { data, error } = await (supabase as any).from("contest_answers").select("question_id,selected_index").eq("attempt_id", attemptId);
+  if (error) throw error;
+  return data || [];
 }
 
 export async function loadContestIntegritySummary(roundId: string) {

@@ -238,6 +238,10 @@ serve(async (req) => {
         tab_switch_limit: Math.max(1, Math.min(20, Number(body?.tabSwitchLimit) || 2)),
         focus_loss_limit: Math.max(1, Math.min(30, Number(body?.focusLossLimit) || 3)),
         auto_eliminate: Boolean(body?.autoEliminate),
+        auto_open: body?.autoOpen !== false,
+        auto_close: body?.autoClose !== false,
+        entry_grace_minutes: Math.max(0, Math.min(60, Number(body?.entryGraceMinutes) || 10)),
+        results_visible: Boolean(body?.resultsVisible),
         locked_at: status === "scheduled" ? current.locked_at : (current.locked_at || new Date().toISOString()),
         updated_at: new Date().toISOString(),
       }).eq("id", roundId);
@@ -394,6 +398,7 @@ serve(async (req) => {
       const rows = [...grouped.entries()].map(([university_id, scores]) => ({ university_id, participant_count: scores.length, average_score: scores.reduce((a,b) => a+b,0)/scores.length, total_points: scores.reduce((a,b) => a+b,0) })).sort((a,b) => b.total_points-a.total_points).map((item,index) => ({ ...item, rank:index+1, contest_id:round.contest_id, round_id:roundId, published:true, published_at:new Date().toISOString() }));
       await admin.from("contest_university_results").delete().eq("round_id", roundId);
       if (rows.length) { const { error } = await admin.from("contest_university_results").insert(rows); if (error) throw error; }
+      await admin.from("contest_rounds").update({ results_visible: true, updated_at: new Date().toISOString() }).eq("id", roundId);
       return json({ success: true, count: rows.length });
     }
 
