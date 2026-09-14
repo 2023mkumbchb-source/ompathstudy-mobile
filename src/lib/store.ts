@@ -4,6 +4,18 @@ import { getYear3Semester } from "@/lib/year3Semesters";
 import { sanitizeMcqQuestions } from "@/lib/mcq-normalization";
 import { mergeVisualSourceImages } from "@/lib/legacy-content";
 import { dedupeResourceSummaries, hasEssayContent, isPublicMcqSet, isPublicStudyTitle } from "@/lib/content-policy";
+import {
+  saveArticleOffline,
+  saveArticlesOffline,
+  getArticleOfflineBySlugOrId,
+  saveSummariesOffline,
+  getSummariesOffline,
+  saveFlashcardSetsOffline,
+  getFlashcardSetsOffline,
+  getFlashcardSetOfflineById,
+  saveMcqSetsOffline,
+  getMcqSetsOffline,
+} from "./offlineStore";
 
 export interface Article {
   id: string;
@@ -647,26 +659,41 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
     if (cached) return cached;
   }
 
-  let query = supabase
-    .from("articles")
-    .select("id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind, content_type, semester_number")
-    .eq("published", true)
-    .eq("is_raw", false)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
-
-  if (year && /^Year [1-6]$/.test(year)) {
-    query = year === "Year 2"
-      ? query.or("category.like.Year 2:%,category.like.Year 1: Aponeurosis%")
-      : query.like("category", `${year}:%`);
+  // If offline, retrieve directly from IndexedDB
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offlineList = await getSummariesOffline(year);
+    if (offlineList.length > 0) return offlineList;
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
-  const result = (data || []).map((row) => toArticlePreview(row)).filter(isPublicStudyArticle);
+  try {
+    let query = supabase
+      .from("articles")
+      .select("id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind, content_type, semester_number")
+      .eq("published", true)
+      .eq("is_raw", false)
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false });
 
-  if (!year) setCachedSummaries(result);
-  return result;
+    if (year && /^Year [1-6]$/.test(year)) {
+      query = year === "Year 2"
+        ? query.or("category.like.Year 2:%,category.like.Year 1: Aponeurosis%")
+        : query.like("category", `${year}:%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    const result = (data || []).map((row) => toArticlePreview(row)).filter(isPublicStudyArticle);
+
+    if (!year) {
+      setCachedSummaries(result);
+      void saveSummariesOffline(result);
+    }
+    return result;
+  } catch (err) {
+    const offlineList = await getSummariesOffline(year);
+    if (offlineList.length > 0) return offlineList;
+    throw err;
+  }
 }
 
 export async function searchPublishedArticles(queryText: string, year?: string, unit?: string): Promise<Article[]> {
@@ -720,46 +747,70 @@ async function fetchArticleBySlugOrId(slugOrId: string): Promise<Article | null>
   const normalizedParam = decodeURIComponent(String(slugOrId || "")).trim().toLowerCase();
   if (!normalizedParam) return null;
 
-  const explicitId = extractArticleIdFromParam(normalizedParam);
-  if (explicitId) {
-    const { data, error } = await supabase
-      .from("articles")
-      .select(ARTICLE_DETAIL_COLUMNS)
-      .eq("id", explicitId)
-      .eq("published", true)
-      .is("deleted_at", null)
-      .maybeSingle();
-    if (error) throw error;
-    return hydrateLegacySource(data as Article | null);
+  // If currently offline, immediately check IndexedDB
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offlineArticle = await getArticleOfflineBySlugOrId(normalizedParam);
+    if (offlineArticle) return hydrateLegacySource(offlineArticle);
   }
 
-  const { data: slugMatches, error: slugError } = await supabase
-    .from("articles")
-    .select(ARTICLE_DETAIL_COLUMNS)
-    .or(`slug.eq.${normalizedParam},slug.ilike.%-${normalizedParam}`)
-    .eq("published", true)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false })
-    .limit(1);
-  if (slugError) throw slugError;
+  try {
+    const explicitId = extractArticleIdFromParam(normalizedParam);
+    if (explicitId) {
+      const { data, error } = await supabase
+        .from("articles")
+        .select(ARTICLE_DETAIL_COLUMNS)
+        .eq("id", explicitId)
+        .eq("published", true)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (error) throw error;
+      const hydrated = hydrateLegacySource(data as Article | null);
+      if (hydrated) void saveArticleOffline(hydrated);
+      return hydrated;
+    }
 
-  const slugMatch = slugMatches?.[0];
-  if (slugMatch) return hydrateLegacySource(slugMatch as unknown as Article);
+    const { data: slugMatches, error: slugError } = await supabase
+      .from("articles")
+      .select(ARTICLE_DETAIL_COLUMNS)
+      .or(`slug.eq.${normalizedParam},slug.ilike.%-${normalizedParam}`)
+      .eq("published", true)
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    if (slugError) throw slugError;
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("id, title")
-    .eq("published", true)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    const slugMatch = slugMatches?.[0];
+    if (slugMatch) {
+      const hydrated = hydrateLegacySource(slugMatch as unknown as Article);
+      if (hydrated) void saveArticleOffline(hydrated);
+      return hydrated;
+    }
 
-  if (error) throw error;
+    const { data, error } = await supabase
+      .from("articles")
+      .select("id, title")
+      .eq("published", true)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
 
-  const exactMatch = (data || []).find((row: any) => slugifyTitle(row.title) === normalizedParam);
-  const startsWithMatch = exactMatch || (data || []).find((row: any) => slugifyTitle(row.title).startsWith(normalizedParam));
-  if (!startsWithMatch) return null;
+    if (error) throw error;
 
-  return getArticleById(startsWithMatch.id);
+    const exactMatch = (data || []).find((row: any) => slugifyTitle(row.title) === normalizedParam);
+    const startsWithMatch = exactMatch || (data || []).find((row: any) => slugifyTitle(row.title).startsWith(normalizedParam));
+    if (!startsWithMatch) {
+      const offlineArticle = await getArticleOfflineBySlugOrId(normalizedParam);
+      return offlineArticle ? hydrateLegacySource(offlineArticle) : null;
+    }
+
+    const article = await getArticleById(startsWithMatch.id);
+    if (article) void saveArticleOffline(article);
+    return article;
+  } catch (err) {
+    // Network failed: look up in IndexedDB
+    const offlineArticle = await getArticleOfflineBySlugOrId(normalizedParam);
+    if (offlineArticle) return hydrateLegacySource(offlineArticle);
+    throw err;
+  }
 }
 
 const articleDetailCache = new Map<string, Article | null>();
@@ -902,26 +953,48 @@ export async function getFlashcardSets(): Promise<FlashcardSet[]> {
 }
 
 export async function getPublishedFlashcardSets(): Promise<FlashcardSet[]> {
-  const { data, error } = await supabase
-    .from("flashcard_sets")
-    .select("*")
-    .eq("published", true)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return (data || []) as unknown as FlashcardSet[];
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offlineSets = await getFlashcardSetsOffline();
+    if (offlineSets.length > 0) return offlineSets;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .eq("published", true)
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    const sets = (data || []) as unknown as FlashcardSet[];
+    void saveFlashcardSetsOffline(sets);
+    return sets;
+  } catch (err) {
+    const offlineSets = await getFlashcardSetsOffline();
+    if (offlineSets.length > 0) return offlineSets;
+    throw err;
+  }
 }
 
 export async function getFlashcardSetById(id: string): Promise<FlashcardSet | null> {
-  const { data, error } = await supabase
-    .from("flashcard_sets")
-    .select("*")
-    .eq("id", id)
-    .eq("published", true)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (error) throw error;
-  return data as unknown as FlashcardSet | null;
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offline = await getFlashcardSetOfflineById(id);
+    if (offline) return offline;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .eq("id", id)
+      .eq("published", true)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    const set = data as unknown as FlashcardSet | null;
+    if (set) void saveFlashcardSetsOffline([set]);
+    return set;
+  } catch (err) {
+    return await getFlashcardSetOfflineById(id);
+  }
 }
 
 export async function getFlashcardSetBySlugOrId(param: string): Promise<FlashcardSet | null> {
@@ -929,24 +1002,42 @@ export async function getFlashcardSetBySlugOrId(param: string): Promise<Flashcar
   if (!v) return null;
   const id = extractIdFromParam(v);
   if (id) return getFlashcardSetById(id);
-  const { data } = await supabase
-    .from("flashcard_sets")
-    .select("*")
-    .eq("slug", v)
-    .eq("published", true)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (data) return data as unknown as FlashcardSet;
-  const titlePart = v.replace(/-[0-9a-f]{6}$/, "");
-  const { data: list } = await supabase
-    .from("flashcard_sets")
-    .select("*")
-    .or(`slug.ilike.${titlePart}%,slug.ilike.%${titlePart}%`)
-    .eq("published", true)
-    .is("deleted_at", null)
-    .limit(1);
-  if (list && list[0]) return list[0] as unknown as FlashcardSet;
-  return null;
+
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offline = await getFlashcardSetOfflineById(v);
+    if (offline) return offline;
+  }
+
+  try {
+    const { data } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .eq("slug", v)
+      .eq("published", true)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (data) {
+      const set = data as unknown as FlashcardSet;
+      void saveFlashcardSetsOffline([set]);
+      return set;
+    }
+    const titlePart = v.replace(/-[0-9a-f]{6}$/, "");
+    const { data: list } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .or(`slug.ilike.${titlePart}%,slug.ilike.%${titlePart}%`)
+      .eq("published", true)
+      .is("deleted_at", null)
+      .limit(1);
+    if (list && list[0]) {
+      const set = list[0] as unknown as FlashcardSet;
+      void saveFlashcardSetsOffline([set]);
+      return set;
+    }
+    return null;
+  } catch (err) {
+    return await getFlashcardSetOfflineById(v);
+  }
 }
 
 export async function saveFlashcardSet(set: Omit<FlashcardSet, "id"> & { id?: string }): Promise<FlashcardSet> {
@@ -987,13 +1078,25 @@ export async function deleteFlashcardSet(id: string) {
 
 // MCQ Sets
 export async function getMcqSets(): Promise<McqSet[]> {
-  const { data, error } = await supabase
-    .from("mcq_sets")
-    .select("*")
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
-  return ((data || []) as unknown as McqSet[]).filter(isPublicMcqSet);
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    const offlineSets = await getMcqSetsOffline();
+    if (offlineSets.length > 0) return offlineSets.filter(isPublicMcqSet);
+  }
+  try {
+    const { data, error } = await supabase
+      .from("mcq_sets")
+      .select("*")
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    const sets = ((data || []) as unknown as McqSet[]).filter(isPublicMcqSet);
+    void saveMcqSetsOffline(sets);
+    return sets;
+  } catch (err) {
+    const offlineSets = await getMcqSetsOffline();
+    if (offlineSets.length > 0) return offlineSets.filter(isPublicMcqSet);
+    throw err;
+  }
 }
 
 export async function saveMcqSet(set: Omit<McqSet, "id"> & { id?: string }): Promise<McqSet> {

@@ -17,6 +17,7 @@ import { useMobileApp } from "@/hooks/useMobileApp";
 import { Loader2 } from "lucide-react";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import LearnerProfileGate from "@/components/LearnerProfileGate";
+import OfflineStatusBanner from "@/components/OfflineStatusBanner";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -152,6 +153,7 @@ const App = () => (
             <PurchaseResume />
             <LearnerProfileGate />
             <Navbar />
+            <OfflineStatusBanner />
             <AnimatedRoutes />
             <SiteFooter />
             <MobileBottomNav />
