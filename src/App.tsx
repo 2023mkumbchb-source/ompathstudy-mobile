@@ -18,7 +18,6 @@ import { Loader2 } from "lucide-react";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import LearnerProfileGate from "@/components/LearnerProfileGate";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
-import AppUpdateDialog from "@/components/AppUpdateDialog";
 import NotificationBanner from "@/components/NotificationBanner";
 import { setupNativeNotificationListener } from "@/lib/notifications";
 import { useAutoSync } from "@/hooks/useAutoSync";
@@ -164,7 +163,6 @@ const App = () => (
           <BrowserRouter>
             <MobileAppBridge />
             <NotificationBanner />
-            <AppUpdateDialog />
             <ScrollToTop />
             <ScrollProgressBar />
             <BackToTopButton />

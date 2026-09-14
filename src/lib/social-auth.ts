@@ -25,7 +25,8 @@ export async function signInWithGoogle(): Promise<{ redirected?: boolean; error?
     const isNative = Capacitor.isNativePlatform();
 
     if (isNative) {
-      const redirectTo = "ompathstudy://auth/callback";
+      // Use whitelisted canonical redirect that returns through our web handler back to ompathstudy://
+      const redirectTo = `${canonicalOrigin()}/auth/callback?app_return=1`;
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

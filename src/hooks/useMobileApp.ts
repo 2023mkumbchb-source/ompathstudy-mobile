@@ -6,6 +6,8 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { Browser } from "@capacitor/browser";
 import { supabase } from "@/integrations/supabase/client";
 
+import { initOtaUpdater } from "@/lib/otaUpdater";
+
 export const isNativeApp = (): boolean => {
   return (
     Capacitor.isNativePlatform() ||
@@ -21,6 +23,9 @@ export function useMobileApp() {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+
+    // Initialize silent OTA live updater and notify app ready
+    void initOtaUpdater();
 
     // Set Android Status Bar style
     StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
@@ -43,23 +48,26 @@ export function useMobileApp() {
 
       if (url && (url.includes("auth/callback") || url.startsWith("ompathstudy://"))) {
         try {
-          const hashIndex = url.indexOf("#");
-          const queryIndex = url.indexOf("?");
-          const paramStr =
-            hashIndex !== -1
-              ? url.substring(hashIndex + 1)
-              : queryIndex !== -1
-              ? url.substring(queryIndex + 1)
-              : "";
-          const params = new URLSearchParams(paramStr);
-          const accessToken = params.get("access_token");
-          const refreshToken = params.get("refresh_token");
+          const normalized = url.replace(/^ompathstudy:\/\/auth\/callback/, "https://ompathstudy.com/auth/callback");
+          const parsed = new URL(normalized);
+
+          const searchParams = parsed.searchParams;
+          const hashParams = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+
+          const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token");
+          const code = searchParams.get("code") || hashParams.get("code");
 
           if (accessToken && refreshToken) {
             const { error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
             });
+            if (!error) {
+              navigate("/account");
+            }
+          } else if (code) {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (!error) {
               navigate("/account");
             }
