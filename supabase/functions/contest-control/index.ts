@@ -24,6 +24,160 @@ serve(async (req) => {
       return Boolean(data);
     };
 
+    const slugify = (value: string) =>
+      value.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70) || `contest-${Date.now()}`;
+
+    const uniqueSlug = async (table: string, base: string) => {
+      let slug = slugify(base);
+      for (let attempt = 0; attempt < 25; attempt += 1) {
+        const { data } = await admin.from(table).select("id").eq("slug", slug).maybeSingle();
+        if (!data) return slug;
+        slug = `${slugify(base)}-${attempt + 2}`;
+      }
+      return `${slugify(base)}-${Date.now()}`;
+    };
+
+    if (action === "create_contest" || action === "update_contest") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const title = String(body?.title || "").trim();
+      if (title.length < 4) return json({ error: "Give the contest a title of at least 4 characters" }, 400);
+      const subjects = Array.isArray(body?.subjects) ? body.subjects.map((item: unknown) => String(item).trim()).filter(Boolean).slice(0, 12) : [];
+      const years = Array.isArray(body?.years) ? [...new Set(body.years.map((item: unknown) => Number(item)).filter((year: number) => year >= 1 && year <= 6))] : [];
+      const payload: Record<string, unknown> = {
+        title,
+        subtitle: String(body?.subtitle || "").trim().slice(0, 400),
+        subjects,
+        eligible_years: years,
+        competition_format: String(body?.format || "").trim().slice(0, 200),
+        registration_opens_at: body?.registrationOpensAt || null,
+        registration_closes_at: body?.registrationClosesAt || null,
+        starts_at: body?.startsAt || null,
+        published: Boolean(body?.published),
+        updated_at: new Date().toISOString(),
+      };
+      if (action === "update_contest") {
+        const contestId = String(body?.contestId || "");
+        const { data, error } = await admin.from("contests").update(payload).eq("id", contestId).select("id,slug").single();
+        if (error) throw error;
+        return json({ success: true, contest: data });
+      }
+      payload.slug = await uniqueSlug("contests", body?.slug ? String(body.slug) : title);
+      payload.status = "concept";
+      const { data, error } = await admin.from("contests").insert(payload).select("id,slug").single();
+      if (error) throw error;
+      return json({ success: true, contest: data });
+    }
+
+    if (action === "create_round") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const contestId = String(body?.contestId || "");
+      const title = String(body?.title || "").trim() || "Round";
+      const { data: existing } = await admin.from("contest_rounds").select("round_number").eq("contest_id", contestId).order("round_number", { ascending: false }).limit(1);
+      const roundNumber = Number(body?.roundNumber) > 0 ? Number(body.roundNumber) : (Number(existing?.[0]?.round_number) || 0) + 1;
+      const { data, error } = await admin.from("contest_rounds").insert({
+        contest_id: contestId,
+        title,
+        round_number: roundNumber,
+        duration_seconds: Math.max(60, Math.min(14400, Number(body?.durationSeconds) || 1800)),
+      }).select("id,title,round_number,status,question_count,duration_seconds").single();
+      if (error) throw error;
+      return json({ success: true, round: data });
+    }
+
+    if (action === "delete_round") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const roundId = String(body?.roundId || "");
+      const { data: round } = await admin.from("contest_rounds").select("id,status").eq("id", roundId).maybeSingle();
+      if (!round) return json({ error: "Round not found" }, 404);
+      if (["live", "closed"].includes(round.status)) return json({ error: "A live or closed round cannot be deleted" }, 409);
+      const { error } = await admin.from("contest_rounds").delete().eq("id", roundId);
+      if (error) throw error;
+      return json({ success: true });
+    }
+
+    if (action === "add_university") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const name = String(body?.name || "").trim();
+      if (name.length < 3) return json({ error: "Enter the full university name" }, 400);
+      const { data, error } = await admin.from("contest_universities").insert({
+        name,
+        slug: await uniqueSlug("contest_universities", name),
+        abbreviation: String(body?.abbreviation || "").trim().slice(0, 16) || null,
+        verified: true,
+        active: true,
+      }).select("id,name,slug,abbreviation,verified").single();
+      if (error) throw error;
+      return json({ success: true, university: data });
+    }
+
+    if (action === "set_university_active") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const { error } = await admin.from("contest_universities")
+        .update({ active: Boolean(body?.active), updated_at: new Date().toISOString() })
+        .eq("id", String(body?.universityId || ""));
+      if (error) throw error;
+      return json({ success: true });
+    }
+
+    if (action === "create_sample_contest") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const title = String(body?.title || "").trim() || "Sample Inter-University Medical Challenge";
+      const slug = await uniqueSlug("contests", title);
+      const now = Date.now();
+      const { data: contest, error: contestError } = await admin.from("contests").insert({
+        slug,
+        title,
+        subtitle: "A published demonstration contest showing the complete participant journey.",
+        status: "registration",
+        subjects: ["Anatomy", "Physiology", "Pathology"],
+        eligible_years: [1, 2, 3],
+        competition_format: "Qualifier → Semifinal → Grand final",
+        registration_opens_at: new Date(now - 3600_000).toISOString(),
+        registration_closes_at: new Date(now + 14 * 86_400_000).toISOString(),
+        starts_at: new Date(now + 86_400_000).toISOString(),
+        published: true,
+      }).select("id,slug,title").single();
+      if (contestError) throw contestError;
+
+      const universities = [
+        { name: "Mount Kenya University", abbreviation: "MKU" },
+        { name: "University of Nairobi", abbreviation: "UON" },
+        { name: "Kenyatta University", abbreviation: "KU" },
+        { name: "Moi University", abbreviation: "MU" },
+        { name: "Jomo Kenyatta University of Agriculture and Technology", abbreviation: "JKUAT" },
+      ];
+      for (const item of universities) {
+        const { data: found } = await admin.from("contest_universities").select("id").ilike("name", item.name).maybeSingle();
+        if (found) { await admin.from("contest_universities").update({ active: true, verified: true }).eq("id", found.id); continue; }
+        await admin.from("contest_universities").insert({ name: item.name, slug: await uniqueSlug("contest_universities", item.name), abbreviation: item.abbreviation, verified: true, active: true });
+      }
+
+      const { data: round, error: roundError } = await admin.from("contest_rounds").insert({
+        contest_id: contest.id, title: "Qualifier round", round_number: 1, duration_seconds: 1200,
+      }).select("id").single();
+      if (roundError) throw roundError;
+
+      const sample = [
+        { stem: "Which structure forms the floor of the anatomical snuffbox?", options: ["Scaphoid and trapezium", "Lunate and capitate", "Radius and ulna", "Pisiform and hamate"], correctIndex: 0, explanation: "The scaphoid and trapezium form the floor of the snuffbox." },
+        { stem: "The nerve most at risk in a mid-shaft humeral fracture is the", options: ["Radial nerve", "Median nerve", "Ulnar nerve", "Axillary nerve"], correctIndex: 0, explanation: "The radial nerve runs in the spiral groove of the humeral shaft." },
+        { stem: "Which hormone is secreted by the zona glomerulosa?", options: ["Aldosterone", "Cortisol", "Adrenaline", "Testosterone"], correctIndex: 0, explanation: "The zona glomerulosa produces the mineralocorticoid aldosterone." },
+        { stem: "Caseating granulomas are most characteristic of", options: ["Tuberculosis", "Sarcoidosis", "Crohn disease", "Silicosis"], correctIndex: 0, explanation: "Central caseous necrosis is typical of tuberculous granulomas." },
+        { stem: "The commonest causative organism of acute osteomyelitis in children is", options: ["Staphylococcus aureus", "Escherichia coli", "Salmonella typhi", "Haemophilus influenzae"], correctIndex: 0, explanation: "Staphylococcus aureus is the leading cause in children." },
+      ];
+      const { error: importError } = await admin.rpc("admin_replace_contest_questions", { p_round_id: round.id, p_questions: sample });
+      if (importError) throw importError;
+      const { error: openError } = await admin.from("contest_rounds").update({
+        status: "lobby",
+        starts_at: new Date(now + 86_400_000).toISOString(),
+        ends_at: new Date(now + 86_400_000 + 1200_000).toISOString(),
+        locked_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", round.id);
+      if (openError) throw openError;
+      return json({ success: true, contest, roundId: round.id });
+    }
+
+
     if (action === "import_questions") {
       if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
       const roundId = String(body?.roundId || "");
