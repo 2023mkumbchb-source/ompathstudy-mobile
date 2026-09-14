@@ -59,11 +59,13 @@ export interface ContestRound {
   focus_loss_limit: number;
   auto_eliminate: boolean;
   integrity_policy: string;
+  source_mcq_set_id: string | null;
+  source_exam_title: string | null;
 }
 
 export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
   const { data, error } = await (supabase as any).from("contest_rounds")
-    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title")
     .eq("contest_id", contestId).order("round_number");
   if (error) throw error;
   return (data || []) as ContestRound[];
@@ -128,6 +130,36 @@ export async function importContestQuestions(roundId: string, questions: unknown
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "import_questions", roundId, questions } });
   if (error || data?.error) throw error || new Error(data.error);
   return Number(data.count || 0);
+}
+
+export interface AdminExamPaper {
+  id: string;
+  title: string;
+  category: string;
+  slug: string;
+  question_count: number;
+}
+
+export async function loadAdminExamPapers(): Promise<AdminExamPaper[]> {
+  const { data, error } = await (supabase as any).from("mcq_sets")
+    .select("id,title,category,slug,questions")
+    .eq("published", true)
+    .is("deleted_at", null)
+    .order("category")
+    .order("title");
+  if (error) throw error;
+  return (data || []).map((paper: any) => ({
+    id: paper.id,
+    title: paper.title,
+    category: paper.category || "Uncategorised",
+    slug: paper.slug,
+    question_count: Array.isArray(paper.questions) ? paper.questions.length : 0,
+  })).filter((paper: AdminExamPaper) => paper.question_count > 0);
+}
+
+export async function importExamPaperToContestRound(roundId: string, examId: string): Promise<{ count: number; title: string }> {
+  const data = await contestControl<{ count: number; title: string }>({ action: "import_exam_paper", roundId, examId });
+  return { count: Number(data.count || 0), title: data.title };
 }
 
 export interface AdminContestRegistration extends ContestRegistration {

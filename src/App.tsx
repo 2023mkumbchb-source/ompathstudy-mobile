@@ -50,6 +50,7 @@ const ContestRegistration = lazy(() => import("./pages/ContestRegistration"));
 const ContestLobby = lazy(() => import("./pages/ContestLobby"));
 const ContestRound = lazy(() => import("./pages/ContestRound"));
 const ContestAdmin = lazy(() => import("./pages/ContestAdmin"));
+const ContestSetup = lazy(() => import("./pages/ContestSetup"));
 const ContestQuestionAdmin = lazy(() => import("./pages/ContestQuestionAdmin"));
 const ContestOperations = lazy(() => import("./pages/ContestOperations"));
 const ContestLeaderboard = lazy(() => import("./pages/ContestLeaderboard"));
@@ -100,6 +101,7 @@ const AnimatedRoutes = () => {
             <Route path="/admin/categories" element={<CategoryManager />} />
             <Route path="/admin/study-system" element={<StudySystemAdmin />} />
             <Route path="/admin/contests" element={<ContestAdmin />} />
+            <Route path="/admin/contests/setup" element={<ContestSetup />} />
             <Route path="/admin/contests/questions" element={<ContestQuestionAdmin />} />
             <Route path="/admin/contests/operations" element={<ContestOperations />} />
             <Route path="/admin/contests/rehearsal" element={<ContestRehearsal />} />

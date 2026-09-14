@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Building2, CheckCircle2, ClipboardPaste, Loader2, Plus, Sparkles, Trash2, Trophy } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, ClipboardPaste, FileQuestion, Loader2, Plus, Search, Sparkles, Trash2, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { parseContestQuestions, type ParsedContestQuestion } from "@/lib/contest-parse";
 import {
   addContestUniversity, configureContestRound, createContest, createContestRound, createSampleContest,
-  deleteContestRound, importContestQuestions, loadAdminContests, loadAllContestUniversities, loadContestRounds,
+  deleteContestRound, importContestQuestions, importExamPaperToContestRound, loadAdminContests, loadAdminExamPapers, loadAllContestUniversities, loadContestRounds,
   setContestUniversityActive, updateContestDetails, updateContestStage,
-  type ContestRecord, type ContestRound, type ContestUniversity,
+  type AdminExamPaper, type ContestRecord, type ContestRound, type ContestUniversity,
 } from "@/lib/contest-store";
 import type { ContestStage } from "@/lib/contest";
 
@@ -30,7 +30,6 @@ const emptyDraft = {
   format: "Qualifier → Semifinal → Grand final", registrationOpensAt: "", registrationClosesAt: "", startsAt: "",
 };
 
-const toLocal = (value: string | null) => (value ? new Date(value).toISOString().slice(0, 16) : "");
 const toIso = (value: string) => (value ? new Date(value).toISOString() : null);
 
 export default function ContestSetup() {
@@ -44,6 +43,9 @@ export default function ContestSetup() {
   const [roundTitle, setRoundTitle] = useState("Qualifier round");
   const [roundMinutes, setRoundMinutes] = useState(20);
   const [targetRound, setTargetRound] = useState("");
+  const [examPapers, setExamPapers] = useState<AdminExamPaper[]>([]);
+  const [examSearch, setExamSearch] = useState("hematology");
+  const [selectedExamId, setSelectedExamId] = useState("");
   const [paste, setPaste] = useState(SAMPLE_PASTE);
   const [parsed, setParsed] = useState<ParsedContestQuestion[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -53,12 +55,27 @@ export default function ContestSetup() {
   const [error, setError] = useState("");
 
   const contest = contests.find((item) => item.id === contestId) || null;
+  const filteredExamPapers = useMemo(() => {
+    const query = examSearch.trim().toLowerCase();
+    if (!query) return examPapers;
+    return examPapers.filter((paper) => `${paper.title} ${paper.category}`.toLowerCase().includes(query));
+  }, [examPapers, examSearch]);
+
+  useEffect(() => {
+    if (!filteredExamPapers.length) {
+      if (selectedExamId) setSelectedExamId("");
+    } else if (!filteredExamPapers.some((paper) => paper.id === selectedExamId)) {
+      setSelectedExamId(filteredExamPapers[0].id);
+    }
+  }, [filteredExamPapers, selectedExamId]);
 
   useEffect(() => {
     if (!isAdmin) return;
-    void Promise.all([loadAdminContests(), loadAllContestUniversities()]).then(([contestRows, universityRows]) => {
+    void Promise.all([loadAdminContests(), loadAllContestUniversities(), loadAdminExamPapers()]).then(([contestRows, universityRows, paperRows]) => {
       setContests(contestRows);
       setUniversities(universityRows);
+      setExamPapers(paperRows);
+      setSelectedExamId(paperRows.find((paper) => /ha?ematology exam 2025/i.test(paper.title))?.id || paperRows[0]?.id || "");
       setContestId((current) => current || contestRows[0]?.id || "");
     }).catch((cause) => setError(cause?.message || "The contest workspace could not be loaded."));
   }, [isAdmin]);
@@ -216,6 +233,7 @@ export default function ContestSetup() {
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{round.title}</p>
                 <p className="text-xs text-muted-foreground">{round.question_count} questions · {Math.round(round.duration_seconds / 60)} min · {round.status}</p>
+                {round.source_exam_title && <p className="mt-1 text-xs font-medium text-primary">Source: {round.source_exam_title}</p>}
               </div>
               <button disabled={busy === round.id} onClick={() => void run(round.id, async () => {
                 await deleteContestRound(round.id); await refreshRounds(); return `${round.title} removed.`;
@@ -241,7 +259,40 @@ export default function ContestSetup() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-6">
-        <h2 className="flex items-center gap-2 text-lg font-bold"><ClipboardPaste className="h-5 w-5 text-primary" /> 4. Paste a paper, exam or MCQ set</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold"><FileQuestion className="h-5 w-5 text-primary" /> 4. Select an exam from your library</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          Search all published MCQ papers, choose one, and copy it into the selected contest round. Importing replaces that round's current questions; the answer keys remain private.
+        </p>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <label className="text-sm font-semibold">Round to fill
+            <select value={targetRound} onChange={(e) => setTargetRound(e.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal">
+              {rounds.map((round) => <option key={round.id} value={round.id}>{round.title} · {round.question_count} questions · {round.status}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-semibold">Find an exam
+            <span className="relative mt-2 block"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={examSearch} onChange={(e) => setExamSearch(e.target.value)} placeholder="Search by title or subject" className="w-full rounded-lg border bg-background py-2.5 pl-9 pr-3 text-sm font-normal" /></span>
+          </label>
+        </div>
+        <label className="mt-4 block text-sm font-semibold">Exam paper
+          <select value={selectedExamId} onChange={(e) => setSelectedExamId(e.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-3 text-sm font-normal">
+            {!filteredExamPapers.length && <option value="">No matching exam papers</option>}
+            {filteredExamPapers.map((paper) => <option key={paper.id} value={paper.id}>{paper.title} · {paper.question_count} questions · {paper.category}</option>)}
+          </select>
+        </label>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button disabled={!selectedExamId || !targetRound || busy === "exam-import"} onClick={() => void run("exam-import", async () => {
+            const imported = await importExamPaperToContestRound(targetRound, selectedExamId);
+            await refreshRounds();
+            return `${imported.title} is ready in the contest round with ${imported.count} questions.`;
+          })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
+            {busy === "exam-import" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Use selected exam
+          </button>
+          <span className="text-xs text-muted-foreground">{filteredExamPapers.length} matching paper{filteredExamPapers.length === 1 ? "" : "s"} from {examPapers.length} available</span>
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+        <h2 className="flex items-center gap-2 text-lg font-bold"><ClipboardPaste className="h-5 w-5 text-primary" /> 5. Or paste a new paper</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Paste numbered questions with lettered choices. Mark the correct choice with an asterisk or add an <strong>Answer: B</strong> line. Explanations are optional and stay private.
         </p>
@@ -286,7 +337,7 @@ export default function ContestSetup() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-6">
-        <h2 className="flex items-center gap-2 text-lg font-bold"><Building2 className="h-5 w-5 text-primary" /> 5. Competing universities</h2>
+        <h2 className="flex items-center gap-2 text-lg font-bold"><Building2 className="h-5 w-5 text-primary" /> 6. Competing universities</h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {universities.map((university) => (
             <label key={university.id} className="flex items-center gap-3 rounded-xl border p-3 text-sm">
@@ -319,7 +370,7 @@ export default function ContestSetup() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-bold">6. Open the round</h2>
+        <h2 className="text-lg font-bold">7. Open the round</h2>
         <p className="mt-2 text-sm text-muted-foreground">A lobby round is visible to verified participants; a live round accepts attempts and needs start and end times.</p>
         <div className="mt-4 space-y-3">
           {rounds.map((round) => (

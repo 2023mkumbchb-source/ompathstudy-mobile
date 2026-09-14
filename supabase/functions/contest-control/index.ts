@@ -187,6 +187,39 @@ serve(async (req) => {
       return json({ success: true, count });
     }
 
+    if (action === "import_exam_paper") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const roundId = String(body?.roundId || "");
+      const examId = String(body?.examId || "");
+      const { data: exam, error: examError } = await admin.from("mcq_sets")
+        .select("id,title,questions,published,deleted_at")
+        .eq("id", examId)
+        .eq("published", true)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (examError) throw examError;
+      if (!exam) return json({ error: "Published exam paper not found" }, 404);
+
+      const questions = (Array.isArray(exam.questions) ? exam.questions : []).flatMap((item: any) => {
+        const stem = String(item?.question || item?.stem || "").trim();
+        const options = Array.isArray(item?.options) ? item.options.map((option: unknown) => String(option).trim()).filter(Boolean) : [];
+        const correctIndex = Number(item?.correct_answer ?? item?.correctIndex);
+        if (!stem || options.length < 2 || options.length > 8 || !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) return [];
+        return [{ stem, options, correctIndex, explanation: String(item?.explanation || "").trim() || undefined }];
+      });
+      if (!questions.length) return json({ error: "This exam has no valid multiple-choice questions with answer keys" }, 409);
+
+      const { data: count, error: importError } = await admin.rpc("admin_replace_contest_questions", { p_round_id: roundId, p_questions: questions });
+      if (importError) throw importError;
+      const { error: sourceError } = await admin.from("contest_rounds").update({
+        source_mcq_set_id: exam.id,
+        source_exam_title: exam.title,
+        updated_at: new Date().toISOString(),
+      }).eq("id", roundId);
+      if (sourceError) throw sourceError;
+      return json({ success: true, count, title: exam.title });
+    }
+
     if (action === "configure_round") {
       if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
       const roundId = String(body?.roundId || "");
