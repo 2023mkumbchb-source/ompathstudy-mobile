@@ -111,10 +111,33 @@ serve(async (req) => {
       return json({ success: true, university: data });
     }
 
+    if (action === "propose_university") {
+      const name = String(body?.name || "").trim().replace(/\s+/g, " ");
+      const abbreviation = String(body?.abbreviation || "").trim().slice(0, 16) || null;
+      if (name.length < 3 || name.length > 140) return json({ error: "Enter a university name between 3 and 140 characters" }, 400);
+      const { data: existing, error: existingError } = await admin.from("contest_universities")
+        .select("id,name,slug,abbreviation,verified,active,proposed_by").ilike("name", name).limit(1).maybeSingle();
+      if (existingError) throw existingError;
+      if (existing) {
+        if (existing.active || existing.proposed_by === user.id) return json({ success: true, university: existing });
+        return json({ error: "This university is already awaiting administrator review" }, 409);
+      }
+      const { data, error } = await admin.from("contest_universities").insert({
+        name,
+        slug: await uniqueSlug("contest_universities", name),
+        abbreviation,
+        verified: false,
+        active: false,
+        proposed_by: user.id,
+      }).select("id,name,slug,abbreviation,verified,active").single();
+      if (error) throw error;
+      return json({ success: true, university: data });
+    }
+
     if (action === "set_university_active") {
       if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
       const { error } = await admin.from("contest_universities")
-        .update({ active: Boolean(body?.active), updated_at: new Date().toISOString() })
+        .update({ active: Boolean(body?.active), verified: Boolean(body?.active), updated_at: new Date().toISOString() })
         .eq("id", String(body?.universityId || ""));
       if (error) throw error;
       return json({ success: true });
@@ -382,6 +405,25 @@ serve(async (req) => {
         }
       }
       return json({ success: true, eliminated });
+    }
+
+    if (action === "save_answer") {
+      const attemptId = String(body?.attemptId || "");
+      const questionId = String(body?.questionId || "");
+      const selectedIndex = Number(body?.selectedIndex);
+      const responseMs = Math.max(0, Math.min(14_400_000, Number(body?.responseMs) || 0));
+      const { data: attempt } = await admin.from("contest_attempts").select("id,user_id,status,round_id,started_at").eq("id", attemptId).maybeSingle();
+      if (!attempt || attempt.user_id !== user.id || attempt.status !== "active") return json({ error: "Active attempt not found" }, 404);
+      const { data: round } = await admin.from("contest_rounds").select("status,starts_at,ends_at,duration_seconds").eq("id", attempt.round_id).maybeSingle();
+      const now = Date.now();
+      const attemptDeadline = new Date(attempt.started_at).getTime() + Number(round?.duration_seconds || 0) * 1000;
+      const roundDeadline = round?.ends_at ? new Date(round.ends_at).getTime() : Number.POSITIVE_INFINITY;
+      if (!round || round.status !== "live" || now < new Date(round.starts_at || 0).getTime() || now >= Math.min(attemptDeadline, roundDeadline)) return json({ error: "The answer window has closed" }, 409);
+      const { data: question } = await admin.from("contest_questions").select("id,options").eq("id", questionId).eq("round_id", attempt.round_id).maybeSingle();
+      if (!question || !Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= (Array.isArray(question.options) ? question.options.length : 0)) return json({ error: "Invalid question answer" }, 400);
+      const { error } = await admin.from("contest_answers").upsert({ attempt_id: attemptId, question_id: questionId, user_id: user.id, selected_index: selectedIndex, response_ms: responseMs, submitted_at: new Date().toISOString() }, { onConflict: "attempt_id,question_id" });
+      if (error) throw error;
+      return json({ success: true });
     }
 
     if (action === "publish_results") {

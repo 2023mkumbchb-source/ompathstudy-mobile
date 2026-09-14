@@ -7,6 +7,7 @@ export interface ContestUniversity {
   slug: string;
   abbreviation: string | null;
   verified: boolean;
+  active?: boolean;
 }
 
 export interface ContestRecord extends ContestPreview {
@@ -107,6 +108,14 @@ export async function getOrStartContestAttempt(roundId: string, registration: Co
   return data as ContestAttempt;
 }
 
+export async function getExistingContestAttempt(roundId: string, userId: string): Promise<ContestAttempt | null> {
+  const { data, error } = await (supabase as any).from("contest_attempts")
+    .select("id,round_id,registration_id,user_id,status,started_at,submitted_at,score")
+    .eq("round_id", roundId).eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  return (data as ContestAttempt | null) || null;
+}
+
 export async function loadContestQuestions(roundId: string): Promise<ContestQuestion[]> {
   const { data, error } = await (supabase as any).from("contest_questions")
     .select("id,round_id,position,stem,options").eq("round_id", roundId).order("position");
@@ -115,8 +124,15 @@ export async function loadContestQuestions(roundId: string): Promise<ContestQues
 }
 
 export async function submitContestAnswer(attemptId: string, questionId: string, userId: string, selectedIndex: number, responseMs: number) {
-  const { error } = await (supabase as any).from("contest_answers").insert({ attempt_id: attemptId, question_id: questionId, user_id: userId, selected_index: selectedIndex, response_ms: responseMs });
-  if (error && error.code !== "23505") throw error;
+  void userId;
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "save_answer", attemptId, questionId, selectedIndex, responseMs } });
+  if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function proposeContestUniversity(name: string, abbreviation: string): Promise<ContestUniversity> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "propose_university", name, abbreviation } });
+  if (error || data?.error) throw error || new Error(data.error);
+  return data.university as ContestUniversity;
 }
 
 export async function logContestIntegrityEvent(attemptId: string, _userId: string, eventType: string): Promise<boolean> {
