@@ -3,14 +3,36 @@ import {
   getOfflineStorageStats,
   syncAllContentForOffline,
   clearOfflineCache,
+  isOfflineMode,
+  SIMULATED_OFFLINE_KEY,
   type OfflineStorageStats,
   type SyncProgress,
 } from "@/lib/offlineStore";
 
+export { isOfflineMode };
+
+export function setSimulatedOffline(val: boolean) {
+  if (typeof window === "undefined") return;
+  if (val) {
+    sessionStorage.setItem(SIMULATED_OFFLINE_KEY, "true");
+  } else {
+    sessionStorage.removeItem(SIMULATED_OFFLINE_KEY);
+  }
+  window.dispatchEvent(new Event("ompath_offline_mode_change"));
+}
+
 export function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState<boolean>(() => {
+  const [simulatedOffline, setSimulatedOfflineState] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(SIMULATED_OFFLINE_KEY) === "true";
+  });
+
+  const [realOnline, setRealOnline] = useState<boolean>(() => {
     return typeof navigator !== "undefined" ? navigator.onLine : true;
   });
+
+  const isOnline = !simulatedOffline && realOnline;
+  const isOffline = !isOnline;
 
   const [stats, setStats] = useState<OfflineStorageStats>({
     articleCount: 0,
@@ -32,19 +54,29 @@ export function useNetworkStatus() {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => setRealOnline(true);
+    const handleOffline = () => setRealOnline(false);
+    const handleSimMode = () => {
+      setSimulatedOfflineState(sessionStorage.getItem(SIMULATED_OFFLINE_KEY) === "true");
+    };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    window.addEventListener("ompath_offline_mode_change", handleSimMode);
 
     refreshStats();
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("ompath_offline_mode_change", handleSimMode);
     };
   }, [refreshStats]);
+
+  const toggleSimulatedOffline = useCallback((val: boolean) => {
+    setSimulatedOffline(val);
+    setSimulatedOfflineState(val);
+  }, []);
 
   const startSync = useCallback(async () => {
     if (isSyncing) return;
@@ -67,7 +99,9 @@ export function useNetworkStatus() {
 
   return {
     isOnline,
-    isOffline: !isOnline,
+    isOffline,
+    isSimulatedOffline: simulatedOffline,
+    toggleSimulatedOffline,
     stats,
     isSyncing,
     syncProgress,

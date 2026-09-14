@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 const DB_NAME = "ompath_offline_db";
 const DB_VERSION = 1;
 
+export const SIMULATED_OFFLINE_KEY = "ompath_simulate_offline";
+
+export function isOfflineMode(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    if (sessionStorage.getItem(SIMULATED_OFFLINE_KEY) === "true") return true;
+  } catch {}
+  return typeof navigator !== "undefined" ? !navigator.onLine : false;
+}
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 export function openOfflineDb(): Promise<IDBDatabase> {
@@ -588,7 +598,7 @@ export async function ensureOfflineSeeded(): Promise<boolean> {
  * downloading only modified records so the app is always up-to-date without large downloads.
  */
 export async function autoDeltaSync(): Promise<{ updated: number }> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     return { updated: 0 };
   }
 

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import {
   CloudDownload,
@@ -31,6 +32,8 @@ interface OfflineManagerModalProps {
 export default function OfflineManagerModal({ open, onOpenChange }: OfflineManagerModalProps) {
   const {
     isOnline,
+    isSimulatedOffline,
+    toggleSimulatedOffline,
     stats,
     isSyncing,
     syncProgress,
@@ -140,6 +143,34 @@ export default function OfflineManagerModal({ open, onOpenChange }: OfflineManag
             <Progress value={syncProgress.percent} className="h-2" />
           </div>
         )}
+
+        {/* Simulate Offline Mode Switch */}
+        <div className="flex items-center justify-between rounded-lg border border-border/80 bg-muted/40 px-3 py-2.5">
+          <div className="space-y-0.5 pr-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <span>Simulate Offline Mode</span>
+              {isSimulatedOffline && (
+                <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                  Simulating Offline
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-tight">
+              Test app offline reading without turning off your laptop Wi-Fi.
+            </p>
+          </div>
+          <Switch
+            checked={isSimulatedOffline}
+            onCheckedChange={(checked) => {
+              toggleSimulatedOffline(checked);
+              if (checked) {
+                toast.warning("Simulated Offline Mode: ON (reading 100% from local cache)");
+              } else {
+                toast.success("Simulated Offline Mode: OFF (back online)");
+              }
+            }}
+          />
+        </div>
 
         {/* Main action buttons */}
         <div className="space-y-2 pt-1">

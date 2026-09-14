@@ -16,6 +16,7 @@ import {
   saveMcqSetsOffline,
   getMcqSetsOffline,
 } from "./offlineStore";
+import { isOfflineMode } from "@/hooks/useNetworkStatus";
 
 export interface Article {
   id: string;
@@ -660,7 +661,7 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
   }
 
   // If offline, retrieve directly from IndexedDB
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offlineList = await getSummariesOffline(year);
     if (offlineList.length > 0) return offlineList;
   }
@@ -748,7 +749,7 @@ async function fetchArticleBySlugOrId(slugOrId: string): Promise<Article | null>
   if (!normalizedParam) return null;
 
   // If currently offline, immediately check IndexedDB
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offlineArticle = await getArticleOfflineBySlugOrId(normalizedParam);
     if (offlineArticle) return hydrateLegacySource(offlineArticle);
   }
@@ -953,7 +954,7 @@ export async function getFlashcardSets(): Promise<FlashcardSet[]> {
 }
 
 export async function getPublishedFlashcardSets(): Promise<FlashcardSet[]> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offlineSets = await getFlashcardSetsOffline();
     if (offlineSets.length > 0) return offlineSets;
   }
@@ -976,7 +977,7 @@ export async function getPublishedFlashcardSets(): Promise<FlashcardSet[]> {
 }
 
 export async function getFlashcardSetById(id: string): Promise<FlashcardSet | null> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offline = await getFlashcardSetOfflineById(id);
     if (offline) return offline;
   }
@@ -1003,7 +1004,7 @@ export async function getFlashcardSetBySlugOrId(param: string): Promise<Flashcar
   const id = extractIdFromParam(v);
   if (id) return getFlashcardSetById(id);
 
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offline = await getFlashcardSetOfflineById(v);
     if (offline) return offline;
   }
@@ -1078,7 +1079,7 @@ export async function deleteFlashcardSet(id: string) {
 
 // MCQ Sets
 export async function getMcqSets(): Promise<McqSet[]> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     const offlineSets = await getMcqSetsOffline();
     if (offlineSets.length > 0) return offlineSets.filter(isPublicMcqSet);
   }

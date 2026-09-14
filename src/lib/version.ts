@@ -1,4 +1,5 @@
 import { getSetting } from "./store";
+import { isOfflineMode } from "./offlineStore";
 
 export const CURRENT_APP_VERSION = "1.0.0";
 export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/story-weave-box/releases/latest";
@@ -32,7 +33,7 @@ export function isNewerVersion(current: string, latest: string): boolean {
 }
 
 export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
+  if (isOfflineMode()) {
     return null;
   }
 

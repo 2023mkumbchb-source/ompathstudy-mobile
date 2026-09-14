@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { WifiOff, X, HardDrive } from "lucide-react";
 import OfflineManagerModal from "./OfflineManagerModal";
 
 export default function OfflineStatusBanner() {
-  const { isOffline, stats } = useNetworkStatus();
+  const { isOffline, isSimulatedOffline, stats } = useNetworkStatus();
   const [dismissed, setDismissed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    setDismissed(false);
+  }, [isOffline, isSimulatedOffline]);
 
   if (!isOffline || dismissed) return null;
 
@@ -16,7 +20,7 @@ export default function OfflineStatusBanner() {
         <div className="flex items-center gap-2 max-w-[85%] truncate">
           <WifiOff className="h-3.5 w-3.5 shrink-0 animate-pulse" />
           <span className="truncate">
-            <strong>Offline Mode:</strong> Reading from local cache ({stats.articleCount} notes available)
+            <strong>{isSimulatedOffline ? "Simulated Offline Mode:" : "Offline Mode:"}</strong> Reading from local cache ({stats.articleCount} notes available)
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
