@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ensureOfflineSeeded, autoDeltaSync } from "@/lib/offlineStore";
-import { precacheAponeurosisImages } from "@/lib/offlineImageStore";
+import { ensureOfflineSeeded, autoDeltaSync, getOfflineStorageStats, syncAllContentForOffline } from "@/lib/offlineStore";
 import { checkForNewNotifications, startNotificationRealtime } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { App as CapApp } from "@capacitor/app";
@@ -17,6 +16,10 @@ export function useAutoSync() {
       syncLock.current = true;
 
       try {
+        // Ask Android/WebView not to evict the medical library under storage pressure.
+        if (typeof navigator !== "undefined" && navigator.storage?.persist) {
+          void navigator.storage.persist().catch(() => false);
+        }
         // 1. Ensure empty storage is hydrated from pre-bundled offline seed
         const seeded = await ensureOfflineSeeded();
         if (seeded) {
@@ -25,6 +28,9 @@ export function useAutoSync() {
 
         // 2. If online, run delta sync in background
         if (typeof navigator !== "undefined" && navigator.onLine) {
+          const stats = await getOfflineStorageStats();
+          const lastFullSync = Number(localStorage.getItem("ompath_last_full_offline_sync") || "0");
+          const fullSyncDue = !stats.isFullySynced || Date.now() - lastFullSync > 24 * 60 * 60 * 1000;
           const { updated } = await autoDeltaSync();
           if (updated > 0) {
             toast.success(`Updated ${updated} medical study notes with latest questions!`, {
@@ -32,12 +38,15 @@ export function useAutoSync() {
             });
           }
 
-          // 3. Silently cache all Aponeurosis images for offline spot bank study
-          void precacheAponeurosisImages((done, total) => {
-            if (done === total && total > 0) {
-              console.log(`[OmpathStudy] All ${total} Aponeurosis spot diagrams cached offline.`);
+          // 3. Once daily, reconcile the complete published library. This stores
+          // every full post, MCQ set, flashcard set and every referenced image.
+          if (fullSyncDue) {
+            const result = await syncAllContentForOffline();
+            if (result.success) {
+              localStorage.setItem("ompath_last_full_offline_sync", String(Date.now()));
+              console.log(`[OmpathStudy] Complete offline library synchronized (${result.articleCount} posts).`);
             }
-          });
+          }
 
           // 4. Check for new broadcast notifications and trigger banner/system alert if found
           void checkForNewNotifications();

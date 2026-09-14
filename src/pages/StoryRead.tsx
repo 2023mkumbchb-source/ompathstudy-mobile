@@ -8,6 +8,7 @@ import ShareButtons from "@/components/ShareButtons";
 import { Helmet } from "react-helmet-async";
 import { KeywordLinkProvider, linkifyText, useKeywordLinks } from "@/lib/keyword-link";
 import { slugify, useHashFlash } from "@/lib/deep-link";
+import { getStoryOffline, saveStoryOffline } from "@/lib/offlineStore";
 
 export default function StoryRead() {
   const { id } = useParams<{ id: string }>();
@@ -52,13 +53,19 @@ export default function StoryRead() {
       return;
     }
 
+    void getStoryOffline(storyId).then((cached) => {
+      if (cached) { setStory(cached); setLoading(false); }
+    });
     supabase
       .from("stories")
       .select("*")
       .eq("id", storyId)
       .maybeSingle()
-      .then(({ data }) => {
-        setStory(data);
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setStory(data);
+          void saveStoryOffline(data as import("@/lib/store").Story);
+        }
         setLoading(false);
         if (data) {
           const canonicalPath = buildStoryPath({ id: data.id, title: data.title });

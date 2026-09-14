@@ -134,7 +134,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-40 border-b border-border bg-[hsl(174,62%,22%)] text-white shadow-sm">
+      <nav className="fixed inset-x-0 top-0 z-[80] border-b border-border bg-[hsl(174,62%,22%)] text-white shadow-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
           <Link to="/" className="flex items-center gap-2 text-lg font-bold text-white">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white/10 p-1">
@@ -315,6 +315,7 @@ export default function Navbar() {
             </div>
           )}
       </nav>
+      <div aria-hidden="true" className={activeYear ? "h-[57px] md:h-[101px]" : "h-[57px]"} />
     </>
   );
 }

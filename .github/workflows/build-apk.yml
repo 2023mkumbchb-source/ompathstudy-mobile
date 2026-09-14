@@ -57,23 +57,23 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.4.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.5.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmpathStudy-Android-APK
-          path: OmpathStudy-v1.0.4.apk
+          path: OmpathStudy-v1.0.5.apk
           retention-days: 30
 
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.4-apk
-          name: Ompath Study Mobile v1.0.4
+          tag_name: v1.0.5-apk
+          name: Ompath Study Mobile v1.0.5
           body: |
-            ## Ompath Study Android Native App v1.0.4
+            ## Ompath Study Android Native App v1.0.5
             - Dedicated mobile layout with bottom navigation bar
             - Live unread notification counter badge
             - Dedicated Student Notification Center (`/notifications`)
@@ -81,8 +81,11 @@ jobs:
             - Mobile Push, WhatsApp-style banners, and Chime sound toggles
             - Secure per-user Supabase Realtime notification delivery
             - Silent in-app OTA web bundle updates
+            - Truly fixed header on every non-exam screen
+            - Automatic complete offline post and image synchronization
+            - Reliable authenticated notification publishing from mobile sessions
           files: |
-            OmpathStudy-v1.0.4.apk
+            OmpathStudy-v1.0.5.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

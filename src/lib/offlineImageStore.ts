@@ -162,6 +162,29 @@ export function extractImageUrls(content: string): string[] {
   return Array.from(urls);
 }
 
+/** Collect every remote image referenced by a stored article, including covers. */
+export function extractArticleImageUrls(article: Record<string, unknown>): string[] {
+  const urls = new Set<string>();
+  for (const field of ["featured_image", "og_image_url", "cover_image", "cover_image_url", "thumbnail_url", "image_url"]) {
+    const value = article[field];
+    if (typeof value === "string" && /^https?:\/\//i.test(value.trim())) urls.add(value.trim());
+  }
+  for (const field of ["content", "body", "description"]) {
+    const value = article[field];
+    if (typeof value === "string") extractImageUrls(value).forEach((url) => urls.add(url));
+  }
+  return [...urls];
+}
+
+/** Cache every image referenced by every supplied published article. */
+export async function cacheAllArticleImages(
+  articles: Array<Record<string, unknown>>,
+  onProgress?: (done: number, total: number) => void,
+): Promise<{ cached: number; total: number }> {
+  const urls = articles.flatMap(extractArticleImageUrls);
+  return cacheImageBatch(urls, 4, onProgress);
+}
+
 /**
  * Concurrently caches a batch of image URLs with concurrency limit.
  */

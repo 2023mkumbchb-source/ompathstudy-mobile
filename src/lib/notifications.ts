@@ -187,8 +187,26 @@ export async function fetchBroadcastNotifications(): Promise<AppNotification[]> 
 }
 
 async function invokeAdminNotificationAction(body: Record<string, unknown>) {
-  const { data, error } = await supabase.functions.invoke("send-notification", { body });
-  if (error) throw error;
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Your admin session has expired. Please sign in again.");
+  if ((session.expires_at || 0) * 1000 < Date.now() + 30_000) {
+    const refreshed = await supabase.auth.refreshSession();
+    session = refreshed.data.session;
+  }
+  if (!session?.access_token) throw new Error("Could not refresh your admin session. Please sign in again.");
+  const { data, error } = await supabase.functions.invoke("send-notification", {
+    body,
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (error) {
+    let detail = error.message;
+    try {
+      const response = (error as { context?: Response }).context;
+      const payload = response ? await response.clone().json() : null;
+      if (payload?.error) detail = payload.error;
+    } catch { /* retain the transport error */ }
+    throw new Error(detail || "Notification service could not be reached.");
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 }

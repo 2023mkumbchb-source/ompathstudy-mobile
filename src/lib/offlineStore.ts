@@ -1,8 +1,9 @@
-import type { Article, FlashcardSet, McqSet } from "./store";
+import type { Article, FlashcardSet, McqSet, Story } from "./store";
 import { supabase } from "@/integrations/supabase/client";
+import { cacheAllArticleImages } from "./offlineImageStore";
 
 const DB_NAME = "ompath_offline_db";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const SIMULATED_OFFLINE_KEY = "ompath_simulate_offline";
 
@@ -58,6 +59,10 @@ export function openOfflineDb(): Promise<IDBDatabase> {
       // 5. Metadata / Sync state store
       if (!db.objectStoreNames.contains("sync_state")) {
         db.createObjectStore("sync_state", { keyPath: "key" });
+      }
+
+      if (!db.objectStoreNames.contains("stories")) {
+        db.createObjectStore("stories", { keyPath: "id" });
       }
     };
 
@@ -327,6 +332,52 @@ export async function getMcqSetsOffline(): Promise<McqSet[]> {
   }
 }
 
+export async function saveStoriesOffline(stories: Story[]): Promise<void> {
+  if (!stories?.length) return;
+  const db = await openOfflineDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("stories", "readwrite");
+    const store = tx.objectStore("stories");
+    store.clear();
+    stories.forEach((story) => story?.id && store.put(story));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function saveStoryOffline(story: Story): Promise<void> {
+  if (!story?.id) return;
+  const db = await openOfflineDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("stories", "readwrite");
+    tx.objectStore("stories").put(story);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getStoriesOffline(): Promise<Story[]> {
+  try {
+    const db = await openOfflineDb();
+    return await new Promise<Story[]>((resolve) => {
+      const req = db.transaction("stories", "readonly").objectStore("stories").getAll();
+      req.onsuccess = () => resolve((req.result || []) as Story[]);
+      req.onerror = () => resolve([]);
+    });
+  } catch { return []; }
+}
+
+export async function getStoryOffline(id: string): Promise<Story | null> {
+  try {
+    const db = await openOfflineDb();
+    return await new Promise<Story | null>((resolve) => {
+      const req = db.transaction("stories", "readonly").objectStore("stories").get(id);
+      req.onsuccess = () => resolve((req.result as Story) || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
 // ── Metadata / Storage Stats ──
 
 export interface OfflineStorageStats {
@@ -418,7 +469,7 @@ export async function setSyncMetadata(key: string, value: any): Promise<void> {
 // ── One-Tap Full Offline Sync ──
 
 export interface SyncProgress {
-  phase: "init" | "summaries" | "articles" | "mcqs" | "flashcards" | "complete" | "error";
+  phase: "init" | "summaries" | "articles" | "mcqs" | "flashcards" | "stories" | "complete" | "error";
   message: string;
   current: number;
   total: number;
@@ -471,8 +522,10 @@ export async function syncAllContentForOffline(
         .in("id", batchIds)
         .is("deleted_at", null);
 
-      if (!artErr && fullArticles) {
+      if (artErr) throw artErr;
+      if (fullArticles) {
         await saveArticlesOffline(fullArticles as Article[]);
+        await cacheAllArticleImages(fullArticles as Array<Record<string, unknown>>);
         savedArticles += fullArticles.length;
       }
 
@@ -495,12 +548,13 @@ export async function syncAllContentForOffline(
       percent: 88,
     });
 
-    const { data: mcqSets } = await supabase
+    const { data: mcqSets, error: mcqError } = await supabase
       .from("mcq_sets")
       .select("*")
       .eq("published", true)
       .order("updated_at", { ascending: false });
 
+    if (mcqError) throw mcqError;
     if (mcqSets) {
       await saveMcqSetsOffline(mcqSets as McqSet[]);
     }
@@ -514,14 +568,25 @@ export async function syncAllContentForOffline(
       percent: 94,
     });
 
-    const { data: flashcards } = await supabase
+    const { data: flashcards, error: flashcardError } = await supabase
       .from("flashcard_sets")
       .select("*")
       .eq("published", true)
       .order("updated_at", { ascending: false });
 
+    if (flashcardError) throw flashcardError;
     if (flashcards) {
       await saveFlashcardSetsOffline(flashcards as FlashcardSet[]);
+    }
+
+    onProgress?.({ phase: "stories", message: "Caching all published stories and images...", current: savedArticles, total: totalArticles, percent: 97 });
+    const { data: stories, error: storyError } = await supabase
+      .from("stories").select("*").eq("published", true).is("deleted_at", null)
+      .order("updated_at", { ascending: false });
+    if (storyError) throw storyError;
+    if (stories) {
+      await saveStoriesOffline(stories as unknown as Story[]);
+      await cacheAllArticleImages(stories as Array<Record<string, unknown>>);
     }
 
     // Record completion
@@ -571,6 +636,7 @@ export async function clearOfflineCache(): Promise<void> {
     clearStore("article_summaries"),
     clearStore("mcq_sets"),
     clearStore("flashcard_sets"),
+    clearStore("stories"),
     clearStore("sync_state"),
   ]);
 }
@@ -615,6 +681,10 @@ export async function ensureOfflineSeeded(): Promise<boolean> {
     if (Array.isArray(bundle.flashcard_sets) && bundle.flashcard_sets.length) {
       await saveFlashcardSetsOffline(bundle.flashcard_sets);
     }
+    if (Array.isArray(bundle.stories) && bundle.stories.length) {
+      await saveStoriesOffline(bundle.stories);
+      await cacheAllArticleImages(bundle.stories);
+    }
 
     if (bundle.generated_at) {
       await setSyncMetadata("last_sync", bundle.generated_at);
@@ -658,6 +728,7 @@ export async function autoDeltaSync(): Promise<{ updated: number }> {
 
     if (updatedArticles && updatedArticles.length > 0) {
       await saveArticlesOffline(updatedArticles as Article[]);
+      await cacheAllArticleImages(updatedArticles as Array<Record<string, unknown>>);
       const previews = (updatedArticles as any[]).map((row) => ({
         id: row.id,
         title: row.title,
