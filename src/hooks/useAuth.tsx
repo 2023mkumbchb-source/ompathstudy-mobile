@@ -41,10 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       if (nextSession?.user) {
-        await Promise.allSettled([
-          checkAdmin(nextSession.user.id),
-          syncLocalProgress(nextSession.user.id),
-        ]);
+        // The session is sufficient to render the app. Progress syncing is
+        // background work and must not delay every page navigation/login.
+        await checkAdmin(nextSession.user.id);
+        void syncLocalProgress(nextSession.user.id).catch(() => undefined);
       }
       else setIsAdmin(false);
       if (active) setLoading(false);

@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { MotionConfig } from "framer-motion";
 import { AuthProvider } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
@@ -131,8 +130,7 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => (
-  <MotionConfig reducedMotion="user">
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
@@ -152,8 +150,7 @@ const App = () => (
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>
-    </ThemeProvider>
-  </MotionConfig>
+  </ThemeProvider>
 );
 
 export default App;

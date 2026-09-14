@@ -1,6 +1,6 @@
-// OmpathStudy Service Worker - v7. Supabase reads are network-first so an
+// OmpathStudy Service Worker - v8. Supabase reads are network-first so an
 // empty response captured during a database migration cannot blank the site.
-const CACHE_NAME = "ompath-v7";
+const CACHE_NAME = "ompath-v8";
 const API_CACHE = "ompath-api-v4";
 const STATIC_ASSETS = ["/", "/index.html", "/manifest.json"];
 

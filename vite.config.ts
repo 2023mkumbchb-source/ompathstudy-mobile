@@ -18,18 +18,9 @@ export default defineConfig(() => ({
     },
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-          data: ['@supabase/supabase-js'],
-          icons: ['lucide-react'],
-          motion: ['framer-motion'],
-          ui: ['@radix-ui/react-accordion', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover', '@radix-ui/react-toast'],
-          utils: ['date-fns', 'clsx', 'tailwind-merge'],
-        },
-      },
-    },
-    chunkSizeWarningLimit: 1000,
+    // Let Rollup split shared code according to the lazy route graph. Large
+    // manual groups forced every visitor to download admin UI, motion and
+    // unused Radix modules before the first page could render.
+    chunkSizeWarningLimit: 700,
   },
 }));

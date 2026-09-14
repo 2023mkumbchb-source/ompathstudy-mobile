@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ThemeToggle from "./ThemeToggle";
 import HeaderSearch from "./HeaderSearch";
-import ompathLogo from "@/assets/ompath-logo.png";
+import ompathLogo from "@/assets/ompath-logo.webp";
 import { useAuth } from "@/hooks/useAuth";
 
 const YEAR_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
@@ -141,7 +141,7 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
           <Link to="/" className="flex items-center gap-2 text-lg font-bold text-white">
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white/10 p-1">
-              <img src={ompathLogo} alt="Ompath Study logo" className="h-full w-full object-contain" loading="lazy" />
+              <img src={ompathLogo} alt="Ompath Study logo" width="32" height="32" className="h-full w-full object-contain" decoding="async" fetchPriority="high" />
             </div>
             <span className="font-serif">Ompath Study</span>
           </Link>
@@ -190,7 +190,7 @@ export default function Navbar() {
               <SheetContent side="left" className="w-72 bg-[hsl(174,62%,16%)] border-r-0 p-0 text-white [&>button]:text-white">
                 <div className="flex items-center gap-2 border-b border-white/10 px-4 py-4">
                   <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white/10 p-1">
-                    <img src={ompathLogo} alt="Ompath Study logo" className="h-full w-full object-contain" />
+                    <img src={ompathLogo} alt="Ompath Study logo" width="32" height="32" className="h-full w-full object-contain" decoding="async" />
                   </div>
                   <span className="font-serif text-lg font-bold">Ompath Study</span>
                 </div>

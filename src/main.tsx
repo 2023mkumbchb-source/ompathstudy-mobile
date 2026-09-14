@@ -62,9 +62,9 @@ if ("serviceWorker" in navigator) {
         `${SUPA}/rest/v1/stories?select=id,title,category,created_at&published=eq.true&deleted_at=is.null&order=created_at.desc&limit=50`,
       ];
       // Delay so it doesn't compete with the initial render
-      setTimeout(() => {
-        endpoints.forEach((url) => fetch(url, { headers }).catch(() => {}));
-      }, 2500);
+      const warmCache = () => endpoints.forEach((url) => fetch(url, { headers }).catch(() => {}));
+      if ("requestIdleCallback" in window) window.requestIdleCallback(warmCache, { timeout: 10000 });
+      else setTimeout(warmCache, 8000);
     }).catch(() => {});
   });
 }
