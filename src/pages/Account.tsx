@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import {
   Loader2, ShieldCheck, Pencil, Check, LogOut, KeyRound, GraduationCap, X,
   LayoutDashboard, FileEdit, FolderTree, Database, BookOpen, Target, Sparkles, Bell,
+  Smartphone, Volume2, ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,15 @@ import {
 import { UNIVERSITIES, COURSES } from "@/components/LearnerProfileGate";
 import { celebrate } from "@/lib/celebration";
 import { toast } from "@/hooks/use-toast";
+import {
+  getMobileNotificationPrefs,
+  saveMobileNotificationPrefs,
+  MobileNotificationPrefs,
+  checkNotificationPermission,
+  requestNotificationPermission,
+  playNotificationChime,
+  triggerNativeNotification,
+} from "@/lib/notifications";
 
 interface StudyProfile {
   display_name: string;
@@ -92,6 +102,34 @@ export default function Account() {
     if (error) return toast({ title: "Preference was not saved", description: error.message, variant: "destructive" });
     setEmailNotifications(enabled);
     toast({ title: enabled ? "Email notifications enabled" : "Email notifications disabled" });
+  };
+
+  const [mobilePrefs, setMobilePrefs] = useState<MobileNotificationPrefs>(getMobileNotificationPrefs());
+  const [permStatus, setPermStatus] = useState<"granted" | "denied" | "prompt">("granted");
+
+  useEffect(() => {
+    setMobilePrefs(getMobileNotificationPrefs());
+    checkNotificationPermission().then(setPermStatus);
+  }, []);
+
+  const updateMobilePref = (key: keyof MobileNotificationPrefs, val: boolean) => {
+    const updated = saveMobileNotificationPrefs({ [key]: val });
+    setMobilePrefs(updated);
+    toast({ title: `${key === "pushEnabled" ? "Push alerts" : key === "soundEnabled" ? "Chimes" : "In-app popups"} ${val ? "enabled" : "disabled"}` });
+  };
+
+  const testMobileAlert = async () => {
+    playNotificationChime();
+    await triggerNativeNotification({
+      id: `test_acc_${Date.now()}`,
+      title: "Ompath Study Push Alert",
+      message: "Mobile notifications and sound alerts are working smoothly on your device!",
+      type: "update",
+      priority: "urgent",
+      created_at: new Date().toISOString(),
+      action_url: "/notifications",
+    });
+    toast({ title: "Test notification sent to device! 🔔" });
   };
 
   useEffect(() => {
@@ -288,7 +326,7 @@ export default function Account() {
         <section className="mt-4 rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground"><Bell className="h-3.5 w-3.5 text-primary" /> Notifications</p>
+              <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground"><Bell className="h-3.5 w-3.5 text-primary" /> Email Notifications</p>
               <p className="mt-1 text-sm text-muted-foreground">Receive important study-resource and account updates by email.</p>
             </div>
             <button type="button" role="switch" aria-checked={emailNotifications} disabled={savingNotifications} onClick={() => void updateEmailNotifications(!emailNotifications)} className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${emailNotifications ? "bg-primary" : "bg-muted"}`}>
@@ -297,6 +335,106 @@ export default function Account() {
           </div>
         </section>
       )}
+
+      {/* Mobile App Notifications Card */}
+      <section className="mt-4 rounded-2xl border border-border bg-card p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <Smartphone className="h-3.5 w-3.5 text-primary" /> Mobile App Notifications
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Push alerts, CAT reminders, and sound chimes on this device.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={testMobileAlert}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+          >
+            <Volume2 className="h-3.5 w-3.5 text-primary" /> Test
+          </button>
+        </div>
+
+        {permStatus !== "granted" && (
+          <div className="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+            <span className="text-amber-600 dark:text-amber-400 font-medium">
+              Android permission needed for background exam alerts
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                const granted = await requestNotificationPermission();
+                setPermStatus(granted ? "granted" : "denied");
+                if (granted) toast({ title: "Notification permission granted! 🔔" });
+              }}
+              className="rounded-md bg-amber-600 px-2.5 py-1 text-xs font-bold text-white hover:bg-amber-700"
+            >
+              Grant
+            </button>
+          </div>
+        )}
+
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-foreground">Status Bar Push Alerts</p>
+              <p className="text-[11px] text-muted-foreground">Receive CAT and exam alerts on Android tray</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={mobilePrefs.pushEnabled}
+              onClick={() => updateMobilePref("pushEnabled", !mobilePrefs.pushEnabled)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${mobilePrefs.pushEnabled ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${mobilePrefs.pushEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-foreground">WhatsApp-Style In-App Banners</p>
+              <p className="text-[11px] text-muted-foreground">Pop floating banners when new updates are published</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={mobilePrefs.bannerEnabled}
+              onClick={() => updateMobilePref("bannerEnabled", !mobilePrefs.bannerEnabled)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${mobilePrefs.bannerEnabled ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${mobilePrefs.bannerEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-foreground">Notification Sound & Chimes</p>
+              <p className="text-[11px] text-muted-foreground">Gentle audio chime when announcements arrive</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={mobilePrefs.soundEnabled}
+              onClick={() => updateMobilePref("soundEnabled", !mobilePrefs.soundEnabled)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${mobilePrefs.soundEnabled ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${mobilePrefs.soundEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+            </button>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-border">
+          <Link
+            to="/notifications"
+            className="flex items-center justify-between text-xs font-semibold text-primary hover:underline"
+          >
+            <span>Open Notification Center (view announcements & history)</span>
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
 
       {isAdmin && (
         <section className="mt-4 rounded-2xl border border-border bg-card p-5">
@@ -315,9 +453,12 @@ export default function Account() {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <Link to="/admin" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <LayoutDashboard className="h-3.5 w-3.5 text-primary" /> Dashboard
+            </Link>
+            <Link to="/admin/notifications" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40 bg-primary/5 border-primary/20">
+              <Bell className="h-3.5 w-3.5 text-primary" /> Broadcast Studio
             </Link>
             <Link to="/admin/editor" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <FileEdit className="h-3.5 w-3.5 text-primary" /> Editor

@@ -13,6 +13,7 @@ import {
   ListChecks,
   Clock,
   Info,
+  Bell,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -65,6 +66,7 @@ export default function Navbar() {
     ];
     if (isAdmin) {
       base.push({ to: "/admin", label: "Dashboard", icon: LayoutDashboard });
+      base.push({ to: "/admin/notifications", label: "Broadcast Studio", icon: Bell });
       base.push({ to: "/admin/study-system", label: "Study System", icon: Database });
       base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }
@@ -74,6 +76,7 @@ export default function Navbar() {
   // Mobile drawer links: exclude Home & Account (already in bottom nav!) and focus on study tools
   const mobileDrawerLinks = useMemo(() => {
     const base = [
+      { to: "/notifications", label: "Notifications & Alerts", icon: Bell },
       { to: "/revision-index", label: "Exam Revision Bank", icon: ListChecks },
       { to: "/my-revision", label: "My Revision Planner", icon: Target },
       { to: "/exams", label: "Timed Weekly Exams", icon: Clock },
@@ -83,6 +86,7 @@ export default function Navbar() {
     ];
     if (isAdmin) {
       base.push({ to: "/admin", label: "Admin Dashboard", icon: LayoutDashboard });
+      base.push({ to: "/admin/notifications", label: "Broadcast Studio", icon: Bell });
       base.push({ to: "/admin/study-system", label: "Study System", icon: Database });
       base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }

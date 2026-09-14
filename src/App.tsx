@@ -63,6 +63,8 @@ const ContestRehearsal = lazy(() => import("./pages/ContestRehearsal"));
 const ContestProgress = lazy(() => import("./pages/ContestProgress"));
 const ContestCertificate = lazy(() => import("./pages/ContestCertificate"));
 const ContestAppealsAdmin = lazy(() => import("./pages/ContestAppealsAdmin"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -121,6 +123,8 @@ const AnimatedRoutes = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/admin/notifications" element={<AdminNotifications />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/unedited-uploads" element={<Navigate to="/source-library" replace />} />
             <Route path="/unedited-uploads" element={<Navigate to="/source-library" replace />} />

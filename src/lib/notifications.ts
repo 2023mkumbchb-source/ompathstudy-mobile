@@ -20,6 +20,55 @@ export interface AppNotification {
 const STORAGE_KEY_NOTIFICATIONS = "ompath_cached_notifications_v1";
 const STORAGE_KEY_READ_IDS = "ompath_read_notification_ids_v1";
 const STORAGE_KEY_LAST_BANNER_ID = "ompath_last_banner_notif_id";
+const STORAGE_KEY_PREFS = "ompath_mobile_notification_prefs_v1";
+
+export interface MobileNotificationPrefs {
+  pushEnabled: boolean;
+  soundEnabled: boolean;
+  bannerEnabled: boolean;
+}
+
+export function getMobileNotificationPrefs(): MobileNotificationPrefs {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PREFS);
+    if (!raw) return { pushEnabled: true, soundEnabled: true, bannerEnabled: true };
+    const parsed = JSON.parse(raw);
+    return {
+      pushEnabled: parsed.pushEnabled ?? true,
+      soundEnabled: parsed.soundEnabled ?? true,
+      bannerEnabled: parsed.bannerEnabled ?? true,
+    };
+  } catch {
+    return { pushEnabled: true, soundEnabled: true, bannerEnabled: true };
+  }
+}
+
+export function saveMobileNotificationPrefs(prefs: Partial<MobileNotificationPrefs>): MobileNotificationPrefs {
+  const current = getMobileNotificationPrefs();
+  const next = { ...current, ...prefs };
+  localStorage.setItem(STORAGE_KEY_PREFS, JSON.stringify(next));
+  return next;
+}
+
+export async function checkNotificationPermission(): Promise<"granted" | "denied" | "prompt"> {
+  if (!Capacitor.isNativePlatform()) return "granted";
+  try {
+    const perm = await LocalNotifications.checkPermissions();
+    return perm.display;
+  } catch {
+    return "granted";
+  }
+}
+
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+  try {
+    const req = await LocalNotifications.requestPermissions();
+    return req.display === "granted";
+  } catch {
+    return false;
+  }
+}
 
 type NotificationListener = (notifications: AppNotification[]) => void;
 type BannerListener = (notification: AppNotification) => void;
@@ -48,6 +97,7 @@ function notifyListeners(notifications: AppNotification[]) {
 }
 
 function notifyBanner(notification: AppNotification) {
+  if (!getMobileNotificationPrefs().bannerEnabled) return;
   bannerListeners.forEach((l) => {
     try {
       l(notification);
@@ -183,6 +233,42 @@ export async function deleteBroadcastNotification(id: string): Promise<void> {
 }
 
 /**
+ * Admin helper to update an existing notification broadcast.
+ */
+export async function updateBroadcastNotification(
+  id: string,
+  updates: Partial<Omit<AppNotification, "id" | "created_at">>
+): Promise<AppNotification> {
+  const existing = await fetchBroadcastNotifications();
+  let updatedNotif: AppNotification | null = null;
+  const updated = existing.map((n) => {
+    if (n.id === id) {
+      updatedNotif = { ...n, ...updates };
+      return updatedNotif;
+    }
+    return n;
+  });
+
+  if (!updatedNotif) {
+    throw new Error("Notification not found");
+  }
+
+  const { error } = await supabase.from("app_settings").upsert(
+    {
+      key: "broadcast_notifications",
+      value: JSON.stringify(updated),
+    },
+    { onConflict: "key" }
+  );
+
+  if (error) throw error;
+
+  localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
+  notifyListeners(updated);
+  return updatedNotif;
+}
+
+/**
  * Mark a single notification as read
  */
 export function markNotificationAsRead(id: string) {
@@ -241,6 +327,7 @@ function hashStringToInt(str: string): number {
  */
 export async function triggerNativeNotification(notification: AppNotification): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
+  if (!getMobileNotificationPrefs().pushEnabled) return;
 
   try {
     // Check/request permission
@@ -302,6 +389,7 @@ export function setupNativeNotificationListener(onNavigate: (url: string) => voi
  * Replicates the familiar gentle WhatsApp message chime without external audio assets.
  */
 export function playNotificationChime() {
+  if (!getMobileNotificationPrefs().soundEnabled) return;
   try {
     const AudioContextClass =
       window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;

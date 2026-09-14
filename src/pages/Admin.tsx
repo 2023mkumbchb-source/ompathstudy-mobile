@@ -457,7 +457,17 @@ export default function Admin() {
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
       </Helmet>
-      <h1 className="mb-4 sm:mb-6 font-serif text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+      <div className="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+        <button
+          type="button"
+          onClick={() => navigate("/admin/notifications")}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors shadow-2xs"
+        >
+          <Bell className="h-4 w-4" />
+          <span>Broadcast Studio (Send Alerts)</span>
+        </button>
+      </div>
 
       {/* Mobile: Dropdown + grid */}
       <div className="mb-6 sm:hidden">

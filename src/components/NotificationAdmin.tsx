@@ -13,10 +13,21 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  Pencil,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -31,10 +42,12 @@ import {
   NotificationType,
   NotificationPriority,
   publishBroadcastNotification,
+  updateBroadcastNotification,
   deleteBroadcastNotification,
   fetchBroadcastNotifications,
   subscribeToNotifications,
   playNotificationChime,
+  triggerNativeNotification,
 } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,7 +60,7 @@ const PRESET_LINKS = [
   { label: "Timed Weekly Exams", value: "/exams" },
   { label: "Mega Medical Contests", value: "/contests" },
   { label: "Latest Notes / Library", value: "/blog" },
-  { label: "Latest Mobile App Update", value: "https://github.com/2023mkumbchb-source/story-weave-box/releases/latest" },
+  { label: "Latest Mobile App Update", value: "https://github.com/2023mkumbchb-source/ompathstudy-mobile/releases/latest" },
 ];
 
 export default function NotificationAdmin() {
@@ -63,6 +76,18 @@ export default function NotificationAdmin() {
   const [sending, setSending] = useState(false);
 
   const [broadcasts, setBroadcasts] = useState<AppNotification[]>([]);
+
+  // Edit Modal State
+  const [editingItem, setEditingItem] = useState<AppNotification | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editType, setEditType] = useState<NotificationType>("exam");
+  const [editTitle, setEditTitle] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [editActionUrl, setEditActionUrl] = useState("");
+  const [editAudience, setEditAudience] = useState<"all" | "year">("all");
+  const [editStudyYear, setEditStudyYear] = useState("3");
+  const [editPriority, setEditPriority] = useState<NotificationPriority>("urgent");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     fetchBroadcastNotifications().then(setBroadcasts);
@@ -107,7 +132,7 @@ export default function NotificationAdmin() {
           },
         });
       } catch (edgeErr) {
-        // Non-blocking: edge function might lack resend key, but client broadcast succeeded
+        // Non-blocking
       }
 
       toast({
@@ -129,10 +154,78 @@ export default function NotificationAdmin() {
     }
   };
 
+  const startEdit = (item: AppNotification) => {
+    setEditingItem(item);
+    setEditType(item.type);
+    setEditTitle(item.title);
+    setEditMessage(item.message);
+    setEditActionUrl(item.action_url || "");
+    setEditAudience(item.study_year ? "year" : "all");
+    setEditStudyYear(item.study_year ? String(item.study_year) : "3");
+    setEditPriority(item.priority || "urgent");
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+    if (!editTitle.trim() || !editMessage.trim()) {
+      return toast({
+        title: "Missing fields",
+        description: "Title and message cannot be empty.",
+        variant: "destructive",
+      });
+    }
+
+    setSavingEdit(true);
+    try {
+      await updateBroadcastNotification(editingItem.id, {
+        title: editTitle.trim(),
+        message: editMessage.trim(),
+        type: editType,
+        priority: editPriority,
+        study_year: editAudience === "year" ? Number(editStudyYear) : null,
+        action_url: editActionUrl.trim() || null,
+      });
+
+      toast({
+        title: "Notification updated! ✏️",
+        description: "Updated broadcast has been saved and synchronized.",
+      });
+      setEditOpen(false);
+      setEditingItem(null);
+    } catch (err: any) {
+      toast({
+        title: "Could not update notification",
+        description: err.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleTestOnDevice = async (b: AppNotification) => {
+    try {
+      playNotificationChime();
+      await triggerNativeNotification(b);
+      toast({
+        title: "Test alert triggered! 🔔",
+        description: `Notification sent to device: "${b.title}"`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Test trigger failed",
+        description: err.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to retract and delete this notification?")) return;
     try {
       await deleteBroadcastNotification(id);
-      toast({ title: "Notification retracted" });
+      toast({ title: "Notification retracted and deleted" });
     } catch (err: any) {
       toast({
         title: "Failed to delete",
@@ -502,20 +595,216 @@ export default function NotificationAdmin() {
                   )}
                 </div>
 
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handleDelete(b.id)}
-                  className="shrink-0 text-muted-foreground hover:text-destructive"
-                  title="Retract broadcast"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleTestOnDevice(b)}
+                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                    title="Send test alert to this device"
+                  >
+                    <Smartphone className="h-3.5 w-3.5" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => startEdit(b)}
+                    className="h-8 w-8 text-muted-foreground hover:text-amber-500"
+                    title="Edit broadcast"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleDelete(b.id)}
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    title="Retract broadcast"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Edit Notification Modal */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-primary" />
+              <span>Edit Broadcast Notification</span>
+            </DialogTitle>
+            <DialogDescription>
+              Update notification details. Saved changes sync to all student devices automatically.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Category */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Category
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: "exam", label: "📝 Exam" },
+                  { id: "update", label: "🚀 Update" },
+                  { id: "note", label: "📚 Notes" },
+                  { id: "general", label: "📢 General" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setEditType(c.id as any)}
+                    className={`rounded-lg border p-2 text-xs font-medium transition-all ${
+                      editType === c.id
+                        ? "border-primary bg-primary/10 text-primary font-bold ring-1 ring-primary/20"
+                        : "border-border text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Audience */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Audience Scope
+                </label>
+                <Select value={editAudience} onValueChange={(v: any) => setEditAudience(v)}>
+                  <SelectTrigger className="text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Students</SelectItem>
+                    <SelectItem value="year">Specific Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {editAudience === "year" && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Target Study Year
+                  </label>
+                  <Select value={editStudyYear} onValueChange={setEditStudyYear}>
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6].map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          Year {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Notification Title
+              </label>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                maxLength={120}
+                placeholder="Notification Title"
+                className="font-medium"
+              />
+            </div>
+
+            {/* Message */}
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Message Details
+              </label>
+              <Textarea
+                value={editMessage}
+                onChange={(e) => setEditMessage(e.target.value)}
+                rows={3}
+                placeholder="Notification details..."
+              />
+            </div>
+
+            {/* Action URL */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Action Link / Target URL
+                </label>
+                <Select onValueChange={(val) => { if (val) setEditActionUrl(val); }}>
+                  <SelectTrigger className="h-6 text-[11px] w-36">
+                    <SelectValue placeholder="Quick preset..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRESET_LINKS.map((p) => (
+                      <SelectItem key={p.value || "none"} value={p.value}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input
+                value={editActionUrl}
+                onChange={(e) => setEditActionUrl(e.target.value)}
+                placeholder="e.g. /year/3 or /revision-index"
+              />
+            </div>
+
+            {/* Priority */}
+            <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-3">
+              <div>
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  Urgent WhatsApp Alert
+                </span>
+                <p className="text-[11px] text-muted-foreground">
+                  Triggers immediate popup banner on students' screens
+                </p>
+              </div>
+              <Switch
+                checked={editPriority === "urgent"}
+                onCheckedChange={(c) => setEditPriority(c ? "urgent" : "normal")}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditOpen(false);
+                setEditingItem(null);
+              }}
+              disabled={savingEdit}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={savingEdit || !editTitle.trim() || !editMessage.trim()}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-1.5"
+            >
+              {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              <span>Save Changes</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

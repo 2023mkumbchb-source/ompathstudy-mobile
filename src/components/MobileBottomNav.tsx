@@ -1,9 +1,29 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Award, Layers, User, Sparkles } from "lucide-react";
+import { Home, BookOpen, Award, Bell, User, Sparkles } from "lucide-react";
+import {
+  getCachedNotifications,
+  getReadNotificationIds,
+  subscribeToNotifications,
+} from "@/lib/notifications";
 
 export default function MobileBottomNav() {
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      const all = getCachedNotifications();
+      const read = getReadNotificationIds();
+      setUnreadCount(all.filter((n) => !read.has(n.id)).length);
+    };
+
+    updateCount();
+    const unsub = subscribeToNotifications(updateCount);
+    return unsub;
+  }, []);
 
   // Don't show inside admin routes
   if (currentPath.startsWith("/admin")) {
@@ -14,8 +34,8 @@ export default function MobileBottomNav() {
     { label: "Home", path: "/", icon: Home },
     { label: "Library", path: "/blog", icon: BookOpen },
     { label: "MCQs", path: "/mcqs", icon: Award },
-    { label: "Cards", path: "/flashcards", icon: Layers },
-    { label: "VIP Hub", path: "/account", icon: User },
+    { label: "Alerts", path: "/notifications", icon: Bell },
+    { label: "Account", path: "/account", icon: User },
   ];
 
   return (
@@ -40,11 +60,16 @@ export default function MobileBottomNav() {
             >
               <div className="relative">
                 <Icon size={20} strokeWidth={isActive ? 2.5 : 1.75} />
-                {item.label === "VIP Hub" && (
+                {item.label === "Account" && (
                   <Sparkles
                     size={8}
                     className="absolute -top-1 -right-1 text-emerald-500 fill-emerald-500"
                   />
+                )}
+                {item.label === "Alerts" && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs animate-pulse">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
               </div>
               <span className="mt-0.5 tracking-tight">{item.label}</span>
@@ -55,3 +80,4 @@ export default function MobileBottomNav() {
     </nav>
   );
 }
+

@@ -277,10 +277,23 @@ export default function NotificationBell() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border p-3 text-center bg-muted/20">
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-            <span>Saved on device · Accessible offline anytime</span>
+        <div className="border-t border-border p-3 space-y-2 bg-muted/20">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setOpen(false);
+              navigate("/notifications");
+            }}
+            className="w-full text-xs font-semibold gap-1.5 h-8 border-border hover:bg-background"
+          >
+            <Bell className="h-3.5 w-3.5 text-primary" />
+            <span>Open Notification Center</span>
+          </Button>
+
+          <p className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+            <ShieldCheck className="h-3 w-3 text-emerald-500" />
+            <span>Synced on device · Accessible offline</span>
           </p>
         </div>
       </SheetContent>
