@@ -15,6 +15,17 @@ const memoryBlobUrls = new Map<string, string>();
 
 let idbPromise: Promise<IDBDatabase> | null = null;
 
+export async function getCachedImageCount(): Promise<number> {
+  try {
+    const db = await openImageDb();
+    return await new Promise<number>((resolve) => {
+      const req = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).count();
+      req.onsuccess = () => resolve(req.result || 0);
+      req.onerror = () => resolve(0);
+    });
+  } catch { return 0; }
+}
+
 function openImageDb(): Promise<IDBDatabase> {
   if (idbPromise) return idbPromise;
   idbPromise = new Promise<IDBDatabase>((resolve, reject) => {

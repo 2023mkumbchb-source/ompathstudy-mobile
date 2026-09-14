@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import {
   Loader2, ShieldCheck, Pencil, Check, LogOut, KeyRound, GraduationCap, X,
   LayoutDashboard, FileEdit, FolderTree, Database, BookOpen, Target, Sparkles, Bell,
-  Smartphone, Volume2, ChevronRight,
+  Smartphone, Volume2, ChevronRight, RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -337,6 +337,11 @@ export default function Account() {
       )}
 
       {/* Mobile App Notifications Card */}
+      <Link to="/updates" className="mt-4 flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-5 transition hover:bg-primary/10">
+        <div><p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-primary"><RefreshCw className="h-4 w-4" /> App Update Center</p><p className="mt-1 text-sm text-muted-foreground">Check, install and restart without downloading another APK.</p></div>
+        <ChevronRight className="h-5 w-5 text-primary" />
+      </Link>
+
       <section className="mt-4 rounded-2xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>

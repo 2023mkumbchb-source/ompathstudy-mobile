@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const RELEASE_API = "https://api.github.com/repos/2023mkumbchb-source/ompathstudy-mobile/releases/latest";
 
-async function getLatestBundle(): Promise<{ version: string; url: string } | null> {
+export interface LiveBundleInfo { version: string; url: string }
+
+export async function getLatestBundle(): Promise<LiveBundleInfo | null> {
   const { data } = await supabase
     .from("app_settings")
     .select("value")
@@ -29,6 +31,38 @@ async function getLatestBundle(): Promise<{ version: string; url: string } | nul
   const asset = release.assets?.find((item) => item.name === "OmpathStudy-web-bundle.zip");
   const version = release.tag_name?.replace(/^v/, "").replace(/-apk$/, "");
   return version && asset?.browser_download_url ? { version, url: asset.browser_download_url } : null;
+}
+
+export async function checkForAppUpdate(): Promise<{
+  available: boolean;
+  latest: LiveBundleInfo | null;
+  currentVersion: string;
+}> {
+  if (!Capacitor.isNativePlatform()) return { available: false, latest: null, currentVersion: "web" };
+  const [current, latest] = await Promise.all([CapacitorUpdater.current(), getLatestBundle()]);
+  const currentVersion = current.bundle?.id === "builtin"
+    ? String(current.native || "builtin")
+    : String(current.bundle?.version || current.native || "builtin");
+  return { available: Boolean(latest && latest.version !== currentVersion), latest, currentVersion };
+}
+
+export async function installAppUpdate(
+  latest: LiveBundleInfo,
+  onProgress?: (percent: number) => void,
+): Promise<never> {
+  if (!Capacitor.isNativePlatform()) throw new Error("Updates are installed only inside the Android app.");
+  const listener = await CapacitorUpdater.addListener("download", ({ percent }) => onProgress?.(percent));
+  try {
+    const downloaded = await CapacitorUpdater.download({ url: latest.url, version: latest.version });
+    onProgress?.(100);
+    await CapacitorUpdater.next({ id: downloaded.id });
+    localStorage.setItem("ompath_update_installed", latest.version);
+    await new Promise((resolve) => window.setTimeout(resolve, 700));
+    await CapacitorUpdater.reload();
+    throw new Error("App restart did not begin.");
+  } finally {
+    await listener.remove();
+  }
 }
 
 /**

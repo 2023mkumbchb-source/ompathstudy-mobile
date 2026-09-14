@@ -39,6 +39,7 @@ export function useNetworkStatus() {
     summaryCount: 0,
     mcqCount: 0,
     flashcardCount: 0,
+    storyCount: 0,
     lastSync: null,
     isFullySynced: false,
   });

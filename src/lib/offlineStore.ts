@@ -385,6 +385,7 @@ export interface OfflineStorageStats {
   summaryCount: number;
   mcqCount: number;
   flashcardCount: number;
+  storyCount: number;
   lastSync: string | null;
   isFullySynced: boolean;
 }
@@ -405,11 +406,12 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
         }
       });
 
-    const [articleCount, summaryCount, mcqCount, flashcardCount] = await Promise.all([
+    const [articleCount, summaryCount, mcqCount, flashcardCount, storyCount] = await Promise.all([
       countStore("articles"),
       countStore("article_summaries"),
       countStore("mcq_sets"),
       countStore("flashcard_sets"),
+      countStore("stories"),
     ]);
 
     let lastSync: string | null = null;
@@ -441,6 +443,7 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
       summaryCount,
       mcqCount,
       flashcardCount,
+      storyCount,
       lastSync,
       isFullySynced: isFullySynced || articleCount >= 100,
     };
@@ -450,6 +453,7 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
       summaryCount: 0,
       mcqCount: 0,
       flashcardCount: 0,
+      storyCount: 0,
       lastSync: null,
       isFullySynced: false,
     };
