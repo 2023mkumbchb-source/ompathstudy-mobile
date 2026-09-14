@@ -106,6 +106,46 @@
     --highlight-foreground: 30 60% 10%;
     --surface: 220 16% 14%;
   }
+
+  .amoled {
+    --background: 0 0% 0%;
+    --foreground: 210 15% 92%;
+    --card: 0 0% 4%;
+    --card-foreground: 210 15% 92%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 210 15% 92%;
+    --primary: 174 65% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 8%;
+    --secondary-foreground: 210 15% 85%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 215 10% 60%;
+    --accent: 174 55% 45%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 174 65% 50%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 210 15% 92%;
+    --sidebar-primary: 174 65% 50%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 8%;
+    --sidebar-accent-foreground: 210 15% 92%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 174 65% 50%;
+
+    --shadow-card: none;
+    --shadow-card-hover: 0 4px 12px -2px hsl(0 0% 0% / 0.8);
+    --shadow-elevated: 0 10px 30px -5px hsl(0 0% 0% / 0.9);
+
+    --ink: 0 0% 0%;
+    --ink-soft: 0 0% 6%;
+    --highlight: 33 90% 58%;
+    --highlight-foreground: 30 60% 10%;
+    --surface: 0 0% 2%;
+  }
 }
 
 @layer components {
@@ -403,18 +443,53 @@ body.no-copy img {
   pointer-events: auto;
 }
 
-/* Screenshots of a browser print dialog should not yield a clean copy */
+/* ── Clean Print & PDF Export Styling ─────────────────────────────────────── */
 @media print {
-  body.no-copy .article-reader,
-  body.no-copy .prose-custom,
-  body.no-copy img {
+  nav,
+  footer,
+  button,
+  .no-print,
+  [role="banner"],
+  [role="navigation"],
+  .fixed,
+  .sticky {
     display: none !important;
   }
-  body.no-copy::after {
-    content: "Printing is disabled on ompathstudy.com — download the watermarked handout instead.";
-    display: block;
-    padding: 40px;
-    font-family: Georgia, serif;
-    font-size: 16px;
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    padding: 10mm !important;
+  }
+
+  main,
+  article,
+  .article-reader,
+  .prose-custom {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #000000 !important;
+  }
+
+  h1, h2, h3, h4 {
+    color: #000000 !important;
+    page-break-after: avoid;
+  }
+
+  table, figure, img, blockquote {
+    page-break-inside: avoid;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
   }
 }

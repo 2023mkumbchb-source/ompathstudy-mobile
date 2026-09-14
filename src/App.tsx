@@ -141,7 +141,7 @@ function MobileAppBridge() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} themes={["light", "dark", "amoled"]}>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>

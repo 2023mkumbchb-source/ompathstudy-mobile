@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bookmark, BookmarkCheck, CalendarPlus, Check, Flag, MoreHorizontal, TriangleAlert } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarPlus, Check, Flag, MoreHorizontal, TriangleAlert, Printer } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,18 @@ export default function StudyControls({ resourceType, resourceId, title, compact
         >
           <Check className="mr-1.5 h-4 w-4" />
           {status === "completed" ? "Studied" : "Mark as studied"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => window.print()}
+          aria-label="Export or print as PDF"
+          className="min-h-[40px] text-xs font-semibold gap-1.5"
+        >
+          <Printer className="h-4 w-4 text-muted-foreground" />
+          <span>Save PDF</span>
         </Button>
 
         <DropdownMenu>

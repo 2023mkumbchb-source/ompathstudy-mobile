@@ -1,6 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getAcademicYears, type ResourceType } from "./academic";
 import { dedupeResourceSummaries, hasStoryContent, isPublicMcqSet, isPublicStudyTitle } from "./content-policy";
+import {
+  isOfflineMode,
+  getSummariesOffline,
+  getMcqSetsOffline,
+  getFlashcardSetsOffline,
+} from "./offlineStore";
 
 /** Accepts "Year 2", "2", or 2 and returns the numeric year, or null. */
 export function parseYearNumber(year: string | number | undefined): number | null {
@@ -84,10 +90,135 @@ function orIlike(cols: string[], terms: string[]) {
   return terms.flatMap((t) => cols.map((c) => `${c}.ilike.%${t.replace(/[,%]/g, " ")}%`)).join(",");
 }
 
+export async function globalSearchOffline(
+  query: string,
+  filters: SearchFilters = {}
+): Promise<{ hits: SearchHit[]; related: string[] }> {
+  const q = query.trim().toLowerCase();
+  if (!q) return { hits: [], related: [] };
+
+  const terms = q.split(/\s+/).filter(Boolean);
+  const yearNumber = parseYearNumber(filters.year);
+  const yearLabel = yearNumber ? `Year ${yearNumber}` : null;
+
+  const [articles, mcqs, flashcards] = await Promise.all([
+    getSummariesOffline().catch(() => []),
+    getMcqSetsOffline().catch(() => []),
+    getFlashcardSetsOffline().catch(() => []),
+  ]);
+
+  const hits: SearchHit[] = [];
+
+  // Articles & Notes
+  for (const row of articles) {
+    if (!isPublicStudyTitle(row.title)) continue;
+    const titleLower = (row.title || "").toLowerCase();
+    const catLower = (row.category || "").toLowerCase();
+    const tagsLower = (Array.isArray(row.tags) ? row.tags.join(" ") : "").toLowerCase();
+
+    if (yearLabel && !catLower.startsWith(yearLabel.toLowerCase())) continue;
+    if (filters.examYear && row.exam_year !== filters.examYear) continue;
+
+    const matchesTitle = terms.some((t) => titleLower.includes(t));
+    const matchesCat = terms.some((t) => catLower.includes(t));
+    const matchesTags = terms.some((t) => tagsLower.includes(t));
+    if (!matchesTitle && !matchesCat && !matchesTags) continue;
+
+    let score = 50;
+    let reason = "Found in study notes";
+    if (titleLower.includes(q)) {
+      score = 110;
+      reason = "Matched note title";
+    } else if (matchesTitle) {
+      score = 85;
+      reason = "Matched note title";
+    } else if (matchesCat) {
+      score = 65;
+      reason = "Matched category";
+    } else if (matchesTags) {
+      score = 60;
+      reason = "Matched topic tag";
+    }
+
+    hits.push({
+      id: row.id,
+      title: row.title,
+      slug: row.slug || null,
+      category: row.category || "General",
+      kind: "article",
+      contentType: row.content_type || "Notes",
+      reason,
+      updated_at: row.updated_at,
+      exam_year: row.exam_year,
+      href: `/blog/${row.slug || row.id}`,
+      score,
+    });
+  }
+
+  // MCQs
+  for (const row of dedupeResourceSummaries(mcqs)) {
+    if (!isPublicMcqSet(row)) continue;
+    if (filters.contentType && filters.contentType !== "MCQ Bank") continue;
+    const titleLower = (row.title || "").toLowerCase();
+    const catLower = (row.category || "").toLowerCase();
+
+    if (yearLabel && !catLower.startsWith(yearLabel.toLowerCase())) continue;
+    if (filters.examYear && row.exam_year !== filters.examYear) continue;
+
+    const matchesTitle = terms.some((t) => titleLower.includes(t));
+    const matchesCat = terms.some((t) => catLower.includes(t));
+    if (!matchesTitle && !matchesCat) continue;
+
+    hits.push({
+      id: row.id,
+      title: row.title,
+      slug: row.slug || null,
+      category: row.category || "MCQ Bank",
+      kind: "mcq",
+      contentType: "MCQ Bank",
+      reason: matchesTitle ? "Matched MCQ title" : "Matched unit",
+      updated_at: row.updated_at,
+      href: `/exams/${row.slug || row.id}/start`,
+      score: titleLower.includes(q) ? 95 : 70,
+    });
+  }
+
+  // Flashcards
+  for (const row of flashcards) {
+    if (filters.contentType && filters.contentType !== "Flashcards") continue;
+    const titleLower = (row.title || "").toLowerCase();
+    const catLower = (row.category || "").toLowerCase();
+    const matchesTitle = terms.some((t) => titleLower.includes(t));
+    const matchesCat = terms.some((t) => catLower.includes(t));
+    if (!matchesTitle && !matchesCat) continue;
+
+    hits.push({
+      id: row.id,
+      title: row.title,
+      slug: row.slug || null,
+      category: row.category || "Flashcards",
+      kind: "flashcard",
+      contentType: "Flashcards",
+      reason: matchesTitle ? "Matched deck title" : "Matched unit",
+      updated_at: row.updated_at,
+      href: `/flashcards/${row.slug || row.id}`,
+      score: 65,
+    });
+  }
+
+  hits.sort((a, b) => b.score - a.score);
+  return { hits: hits.slice(0, 50), related: [] };
+}
+
 export async function globalSearch(query: string, filters: SearchFilters = {}): Promise<{ hits: SearchHit[]; related: string[] }> {
-  const { terms, related } = await expandQuery(query);
-  if (!terms.length) return { hits: [], related: [] };
-  const primary = terms[0];
+  if (isOfflineMode()) {
+    return globalSearchOffline(query, filters);
+  }
+
+  try {
+    const { terms, related } = await expandQuery(query);
+    if (!terms.length) return { hits: [], related: [] };
+    const primary = terms[0];
 
   // Year can arrive as "Year 2", "2", or 2 — normalize once so the filter
   // reliably matches the "Year N: ..." category strings used across content.
@@ -239,9 +370,14 @@ export async function globalSearch(query: string, filters: SearchFilters = {}): 
   hits.sort((a, b) => b.score - a.score);
   void logSearch(query, hits.length);
   return { hits, related };
+  } catch (err) {
+    console.warn("Online search failed, using offline fallback:", err);
+    return globalSearchOffline(query, filters);
+  }
 }
 
 export async function logSearch(query: string, results: number, clicked?: { type: string; id: string }) {
+  if (isOfflineMode()) return;
   try {
     await supabase.from("search_queries").insert({
       query,

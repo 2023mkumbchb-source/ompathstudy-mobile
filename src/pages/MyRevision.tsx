@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getActivity, getBookmarks, getProgress, computeStreak, type BookmarkRow, type ResourceProgress } from "@/lib/study";
 import { supabase } from "@/integrations/supabase/client";
 import { buildBlogPath } from "@/lib/store";
+import { isOfflineMode, getSummariesOffline } from "@/lib/offlineStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type ArticleSummary = { id: string; title: string; slug: string | null; category: string; unit_id?: string | null; updated_at: string | null; created_at: string };
@@ -71,19 +72,31 @@ export default function MyRevision() {
         const ids = [...new Set([...articleProgress, ...articleBookmarks].map((x) => x.resource_id))];
         let rows: ArticleSummary[] = [];
         if (ids.length) {
-          const { data } = await supabase
-            .from("articles")
-            .select("id,title,slug,category,unit_id,updated_at,created_at")
-            .in("id", ids)
-            .eq("published", true);
-          rows = (data || []) as ArticleSummary[];
+          if (isOfflineMode()) {
+            const offlineSummaries = await getSummariesOffline().catch(() => []);
+            const idSet = new Set(ids);
+            rows = offlineSummaries.filter((s) => idSet.has(s.id));
+          } else {
+            try {
+              const { data } = await supabase
+                .from("articles")
+                .select("id,title,slug,category,unit_id,updated_at,created_at")
+                .in("id", ids)
+                .eq("published", true);
+              rows = (data || []) as ArticleSummary[];
+            } catch {
+              const offlineSummaries = await getSummariesOffline().catch(() => []);
+              const idSet = new Set(ids);
+              rows = offlineSummaries.filter((s) => idSet.has(s.id));
+            }
+          }
         }
         if (!alive) return;
         setProgress(articleProgress);
         setBookmarks(articleBookmarks);
         setArticles(rows);
         setStreak(computeStreak(a));
-        if (user) {
+        if (user && !isOfflineMode()) {
           const db = supabase as any;
           const [{ data: attempts }, { data: profile }] = await Promise.all([
             db.from("article_answer_attempts").select("category,topic_label,is_correct").eq("user_id", user.id).order("attempted_at", { ascending: false }).limit(500),
@@ -107,7 +120,16 @@ export default function MyRevision() {
         }
         setLoading(false);
       } catch {
-        if (alive) { setError(true); setLoading(false); }
+        if (alive) {
+          // If network failed entirely, still try to populate from offline storage
+          try {
+            const localB = getBookmarks(null);
+            const offlineSummaries = await getSummariesOffline().catch(() => []);
+            const bIds = new Set((await localB).map((x) => x.resource_id));
+            setArticles(offlineSummaries.filter((s) => bIds.has(s.id)));
+          } catch {}
+          setLoading(false);
+        }
       }
     })();
     return () => { alive = false; };
@@ -158,7 +180,12 @@ export default function MyRevision() {
       </nav>
 
       <div className="rounded-3xl bg-[hsl(174,62%,20%)] p-6 text-white sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-widest text-white/60">Personal study space</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/60">Personal study space</p>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium text-white">
+            ⭐ High-Yield Revision Binder (100% Offline)
+          </span>
+        </div>
         <h1 className="mt-2 font-serif text-3xl font-bold">My Revision</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/75">
           Continue where you stopped, revisit difficult material and keep your exam preparation together.

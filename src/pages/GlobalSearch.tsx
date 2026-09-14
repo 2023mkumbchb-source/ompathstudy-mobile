@@ -4,12 +4,14 @@ import { Helmet } from "react-helmet-async";
 import { BookOpen, Search } from "lucide-react";
 import { groupHits, logSearch, SEARCH_GROUPS } from "@/lib/search";
 import { useLiveSearch } from "@/hooks/useLiveSearch";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { CONTENT_TYPES } from "@/lib/academic";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const YEARS = [1, 2, 3, 4, 5, 6];
 
 export default function GlobalSearch() {
+  const { isOffline } = useNetworkStatus();
   const [params, setParams] = useSearchParams();
   const [q, setQ] = useState(params.get("q") || "");
   const [year, setYear] = useState(params.get("year") || "");
@@ -49,7 +51,14 @@ export default function GlobalSearch() {
         <span className="text-foreground">Search</span>
       </nav>
 
-      <h1 className="font-serif text-3xl font-bold text-foreground">Search the study library</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="font-serif text-3xl font-bold text-foreground">Search the study library</h1>
+        {isOffline && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+            ⚡ Instant Offline Search (551 Notes &amp; 197 MCQs)
+          </span>
+        )}
+      </div>
       <p className="mt-2 text-sm text-muted-foreground">
         Search notes, units, course codes, CATs, past papers, MCQs and flashcards.
       </p>

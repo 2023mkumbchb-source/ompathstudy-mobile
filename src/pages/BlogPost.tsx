@@ -24,6 +24,7 @@ import { useAccess } from "@/lib/access";
 import { SubscribeModal } from "@/components/SubscribeModal";
 import { openSubscribePrompt, useScrollSubscribePrompt } from "@/lib/subscribe-prompt";
 import StudyControls from "@/components/StudyControls";
+import NoteAudioPlayer from "@/components/NoteAudioPlayer";
 import HelpfulVote from "@/components/HelpfulVote";
 import ArticleMcqOption from "@/components/ArticleMcqOption";
 import {
@@ -1814,7 +1815,14 @@ export default function BlogPost() {
               <div className="mb-2"><ReadingTimeBadge minutes={(article as any).reading_time_minutes} /></div>
             ) : null}
 
-            <div className="not-prose mb-5"><StudyControls resourceType="article" resourceId={article.id} title={cleanMetaTitle(article)} /></div>
+            <div className="not-prose mb-5 space-y-3">
+              <NoteAudioPlayer
+                title={cleanMetaTitle(article)}
+                content={article.content || ""}
+                category={article.category}
+              />
+              <StudyControls resourceType="article" resourceId={article.id} title={cleanMetaTitle(article)} />
+            </div>
 
             <SourceAttribution article={article} />
 

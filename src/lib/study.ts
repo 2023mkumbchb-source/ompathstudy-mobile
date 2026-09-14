@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ResourceType } from "./academic";
+import type { ArticleSummary } from "./store";
+import { isOfflineMode, getSummariesOffline } from "./offlineStore";
 
 export type ProgressStatus = "not_started" | "in_progress" | "completed" | "difficult" | "revisit";
 
@@ -115,14 +117,22 @@ export async function syncLocalProgress(userId: string) {
 /* ---------------- bookmarks ---------------- */
 
 export async function getBookmarks(userId: string | null): Promise<BookmarkRow[]> {
-  if (!userId) return readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []);
-  const { data } = await db
-    .from("user_bookmarks")
-    .select("resource_type, resource_id, collection_name, created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(200);
-  return (data || []) as BookmarkRow[];
+  if (!userId || isOfflineMode()) return readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []);
+  try {
+    const { data, error } = await db
+      .from("user_bookmarks")
+      .select("resource_type, resource_id, collection_name, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw error;
+    const remote = (data || []) as BookmarkRow[];
+    writeLocal(LOCAL_BOOKMARKS, remote);
+    return remote;
+  } catch (err) {
+    console.warn("Could not fetch remote bookmarks, falling back to local cache:", err);
+    return readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []);
+  }
 }
 
 export async function toggleBookmark(
@@ -131,27 +141,45 @@ export async function toggleBookmark(
   resource_id: string,
   saved: boolean,
 ) {
-  if (!userId) {
-    const list = readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []).filter(
-      (b) => !(b.resource_type === resource_type && b.resource_id === resource_id),
-    );
-    if (saved) list.unshift({ resource_type, resource_id, collection_name: null, created_at: new Date().toISOString() });
-    writeLocal(LOCAL_BOOKMARKS, list);
+  // Always update local cache first for instant UI response and offline support
+  const list = readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []).filter(
+    (b) => !(b.resource_type === resource_type && b.resource_id === resource_id),
+  );
+  if (saved) {
+    list.unshift({ resource_type, resource_id, collection_name: null, created_at: new Date().toISOString() });
+  }
+  writeLocal(LOCAL_BOOKMARKS, list);
+
+  if (!userId || isOfflineMode()) {
     return;
   }
-  if (saved) {
-    await db.from("user_bookmarks").upsert(
-      { user_id: userId, resource_type, resource_id },
-      { onConflict: "user_id,resource_type,resource_id" },
-    );
-  } else {
-    await db
-      .from("user_bookmarks")
-      .delete()
-      .eq("user_id", userId)
-      .eq("resource_type", resource_type)
-      .eq("resource_id", resource_id);
+
+  try {
+    if (saved) {
+      await db.from("user_bookmarks").upsert(
+        { user_id: userId, resource_type, resource_id },
+        { onConflict: "user_id,resource_type,resource_id" },
+      );
+    } else {
+      await db
+        .from("user_bookmarks")
+        .delete()
+        .eq("user_id", userId)
+        .eq("resource_type", resource_type)
+        .eq("resource_id", resource_id);
+    }
+  } catch (err) {
+    console.warn("Could not sync bookmark remotely (cached locally):", err);
   }
+}
+
+/** Fetches full summaries for all bookmarked articles directly from local IndexedDB */
+export async function getOfflineBookmarkedSummaries(): Promise<ArticleSummary[]> {
+  const bookmarks = readLocal<BookmarkRow[]>(LOCAL_BOOKMARKS, []);
+  const articleIds = new Set(bookmarks.filter((b) => b.resource_type === "article").map((b) => b.resource_id));
+  if (articleIds.size === 0) return [];
+  const summaries = await getSummariesOffline().catch(() => []);
+  return summaries.filter((s) => articleIds.has(s.id));
 }
 
 /* ---------------- topics ---------------- */
