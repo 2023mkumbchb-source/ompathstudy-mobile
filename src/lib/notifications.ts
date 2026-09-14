@@ -135,30 +135,48 @@ export function getReadNotificationIds(): Set<string> {
   }
 }
 
-/**
- * Fetch broadcast notifications from Supabase app_settings table.
- * Falls back to local cached notifications if offline or on network error.
- */
+function cacheAndNotify(notifications: AppNotification[]) {
+  const sorted = [...notifications].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(sorted));
+  notifyListeners(sorted);
+  return sorted;
+}
+
+function normalizeNotification(row: Record<string, unknown>): AppNotification {
+  return {
+    id: String(row.id),
+    title: String(row.title || "Ompath Study"),
+    message: String(row.message || ""),
+    type: (["exam", "update", "note", "general"].includes(String(row.type))
+      ? row.type
+      : "general") as NotificationType,
+    priority: row.priority === "urgent" ? "urgent" : "normal",
+    study_year: typeof row.study_year === "number" ? row.study_year : null,
+    action_url: row.action_url ? String(row.action_url) : null,
+    created_at: String(row.created_at || new Date().toISOString()),
+    expires_at: row.expires_at ? String(row.expires_at) : null,
+  };
+}
+
+/** Fetch the signed-in user's notifications, or admin campaigns for administrators. */
 export async function fetchBroadcastNotifications(): Promise<AppNotification[]> {
   try {
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "broadcast_notifications")
-      .maybeSingle();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return cacheAndNotify(getCachedNotifications());
 
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
+    const db = supabase as any;
+    const query = isAdmin
+      ? db.from("notification_campaigns").select("id,title,message,type,priority,study_year,action_url,created_at,expires_at").order("created_at", { ascending: false }).limit(100)
+      : db.from("user_notifications").select("id,title,message,type,priority,study_year,action_url,created_at,expires_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
+    const { data, error } = await query;
     if (error) throw error;
-
-    if (data?.value) {
-      const parsed: AppNotification[] = JSON.parse(data.value);
-      if (Array.isArray(parsed)) {
-        // Sort descending by created_at
-        parsed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(parsed));
-        notifyListeners(parsed);
-        return parsed;
-      }
-    }
+    return cacheAndNotify((data || []).map((row) => normalizeNotification(row as Record<string, unknown>)));
   } catch (err) {
     console.warn("[Notifications] Remote fetch failed, using offline cache:", err);
   }
@@ -168,46 +186,27 @@ export async function fetchBroadcastNotifications(): Promise<AppNotification[]> 
   return cached;
 }
 
-/**
- * Admin helper to publish a new notification broadcast.
- * Saves to Supabase app_settings, alerts clients, and triggers native local notification.
- */
+async function invokeAdminNotificationAction(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke("send-notification", { body });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+/** Admin helper to securely publish through the authenticated Edge Function. */
 export async function publishBroadcastNotification(
   input: Omit<AppNotification, "id" | "created_at">
 ): Promise<AppNotification> {
-  const newNotif: AppNotification = {
+  const data = await invokeAdminNotificationAction({
+    action: "create",
     ...input,
-    id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    created_at: new Date().toISOString(),
-  };
-
-  // 1. Fetch current list
-  const existing = await fetchBroadcastNotifications();
-  const updated = [newNotif, ...existing.filter((n) => n.id !== newNotif.id)].slice(0, 50);
-
-  // 2. Persist to Supabase
-  const { error } = await supabase.from("app_settings").upsert(
-    {
-      key: "broadcast_notifications",
-      value: JSON.stringify(updated),
-    },
-    { onConflict: "key" }
-  );
-
-  if (error) {
-    console.error("[Notifications] Publish error:", error);
-    throw error;
-  }
-
-  // 3. Save locally and alert listeners
-  localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
-  notifyListeners(updated);
+    audience: input.study_year ? "study_year" : "all_users",
+  });
+  const newNotif = normalizeNotification(data.campaign);
+  const updated = cacheAndNotify([newNotif, ...getCachedNotifications().filter((n) => n.id !== newNotif.id)]);
   notifyBanner(newNotif);
   playNotificationChime();
-
-  // 4. Trigger native Android status bar notification if on mobile
   await triggerNativeNotification(newNotif);
-
   return newNotif;
 }
 
@@ -215,21 +214,8 @@ export async function publishBroadcastNotification(
  * Admin helper to delete an existing notification broadcast.
  */
 export async function deleteBroadcastNotification(id: string): Promise<void> {
-  const existing = await fetchBroadcastNotifications();
-  const updated = existing.filter((n) => n.id !== id);
-
-  const { error } = await supabase.from("app_settings").upsert(
-    {
-      key: "broadcast_notifications",
-      value: JSON.stringify(updated),
-    },
-    { onConflict: "key" }
-  );
-
-  if (error) throw error;
-
-  localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
-  notifyListeners(updated);
+  await invokeAdminNotificationAction({ action: "delete", campaign_id: id });
+  cacheAndNotify(getCachedNotifications().filter((n) => n.id !== id));
 }
 
 /**
@@ -239,32 +225,14 @@ export async function updateBroadcastNotification(
   id: string,
   updates: Partial<Omit<AppNotification, "id" | "created_at">>
 ): Promise<AppNotification> {
-  const existing = await fetchBroadcastNotifications();
-  let updatedNotif: AppNotification | null = null;
-  const updated = existing.map((n) => {
-    if (n.id === id) {
-      updatedNotif = { ...n, ...updates };
-      return updatedNotif;
-    }
-    return n;
+  const data = await invokeAdminNotificationAction({
+    action: "update",
+    campaign_id: id,
+    ...updates,
+    audience: updates.study_year ? "study_year" : "all_users",
   });
-
-  if (!updatedNotif) {
-    throw new Error("Notification not found");
-  }
-
-  const { error } = await supabase.from("app_settings").upsert(
-    {
-      key: "broadcast_notifications",
-      value: JSON.stringify(updated),
-    },
-    { onConflict: "key" }
-  );
-
-  if (error) throw error;
-
-  localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(updated));
-  notifyListeners(updated);
+  const updatedNotif = normalizeNotification(data.campaign);
+  cacheAndNotify(getCachedNotifications().map((n) => n.id === id ? updatedNotif : n));
   return updatedNotif;
 }
 
@@ -276,6 +244,39 @@ export function markNotificationAsRead(id: string) {
   read.add(id);
   localStorage.setItem(STORAGE_KEY_READ_IDS, JSON.stringify(Array.from(read)));
   notifyListeners(getCachedNotifications());
+  if (/^[0-9a-f-]{36}$/i.test(id)) {
+    void (supabase as any).from("user_notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
+  }
+}
+
+let realtimeCleanup: (() => void) | null = null;
+
+/** Subscribe the authenticated device to new per-user notifications in real time. */
+export async function startNotificationRealtime(): Promise<() => void> {
+  realtimeCleanup?.();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return () => {};
+
+  const channel = supabase
+    .channel(`mobile-notifications-${user.id}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` },
+      ({ new: row }) => {
+        const notification = normalizeNotification(row as Record<string, unknown>);
+        cacheAndNotify([notification, ...getCachedNotifications().filter((n) => n.id !== notification.id)]);
+        notifyBanner(notification);
+        playNotificationChime();
+        void triggerNativeNotification(notification);
+      },
+    )
+    .subscribe();
+
+  realtimeCleanup = () => {
+    void supabase.removeChannel(channel);
+    realtimeCleanup = null;
+  };
+  return realtimeCleanup;
 }
 
 /**
@@ -287,6 +288,14 @@ export function markAllNotificationsAsRead() {
   all.forEach((n) => read.add(n.id));
   localStorage.setItem(STORAGE_KEY_READ_IDS, JSON.stringify(Array.from(read)));
   notifyListeners(all);
+  void supabase.auth.getUser().then(({ data: { user } }) => {
+    if (user) {
+      return (supabase as any).from("user_notifications")
+        .update({ read_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .is("read_at", null);
+    }
+  });
 }
 
 /**

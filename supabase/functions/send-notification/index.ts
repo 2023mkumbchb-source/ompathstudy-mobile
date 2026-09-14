@@ -29,15 +29,41 @@ serve(async (req) => {
     if (!isAdmin) return json({ error: "Administrator access required" }, 403);
 
     const body = await req.json();
+    const action = ["create", "update", "delete"].includes(body.action) ? body.action : "create";
+    const campaignId = String(body.campaign_id || "");
+    if ((action === "update" || action === "delete") && !/^[0-9a-f-]{36}$/i.test(campaignId)) {
+      return json({ error: "A valid campaign ID is required" }, 400);
+    }
+
+    if (action === "delete") {
+      const { error } = await admin.from("notification_campaigns").delete().eq("id", campaignId);
+      if (error) throw error;
+      return json({ success: true, deleted: campaignId });
+    }
+
     const title = String(body.title || "").trim().slice(0, 120);
     const message = String(body.message || "").trim().slice(0, 4000);
+    const type = ["exam", "update", "note", "general"].includes(body.type) ? body.type : "general";
+    const priority = body.priority === "urgent" ? "urgent" : "normal";
     const audience = ["all_users", "subscribers", "study_year"].includes(body.audience) ? body.audience : "all_users";
     const studyYear = audience === "study_year" ? Number(body.study_year) : null;
     const rawUrl = String(body.action_url || "").trim();
-    const actionUrl = rawUrl && /^https:\/\/(www\.)?ompathstudy\.com(?:\/|$)/i.test(rawUrl) ? rawUrl : null;
+    const actionUrl = rawUrl && (/^\/[a-z0-9/_?=&%#.-]*$/i.test(rawUrl) || /^https:\/\/(www\.)?ompathstudy\.com(?:\/|$)/i.test(rawUrl)) ? rawUrl : null;
     if (!title || !message) return json({ error: "Title and message are required" }, 400);
     if (audience === "study_year" && (!Number.isInteger(studyYear) || studyYear < 1 || studyYear > 6)) {
       return json({ error: "Choose a study year from 1 to 6" }, 400);
+    }
+
+    if (action === "update") {
+      const patch = { title, message, type, priority, action_url: actionUrl, audience, study_year: studyYear };
+      const { data: campaign, error } = await admin.from("notification_campaigns")
+        .update(patch).eq("id", campaignId).select("*").single();
+      if (error) throw error;
+      const { error: recipientError } = await admin.from("user_notifications")
+        .update({ title, message, type, priority, study_year: studyYear, action_url: actionUrl })
+        .eq("campaign_id", campaignId);
+      if (recipientError) throw recipientError;
+      return json({ success: true, campaign });
     }
 
     let page = 1;
@@ -63,14 +89,15 @@ serve(async (req) => {
     const recipients = users.filter((u) => eligibleIds.has(u.id) && u.email);
 
     const { data: campaign, error: campaignError } = await admin.from("notification_campaigns").insert({
-      title, message, action_url: actionUrl, audience, study_year: studyYear,
+      title, message, type, priority, action_url: actionUrl, audience, study_year: studyYear,
       status: "sending", recipient_count: recipients.length, created_by: user.id,
     }).select("id").single();
     if (campaignError) throw campaignError;
 
     if (recipients.length) {
       const rows = recipients.map((recipient) => ({
-        campaign_id: campaign.id, user_id: recipient.id, title, message, action_url: actionUrl,
+        campaign_id: campaign.id, user_id: recipient.id, title, message, type, priority,
+        study_year: studyYear, action_url: actionUrl,
       }));
       for (let i = 0; i < rows.length; i += 500) {
         const { error } = await admin.from("user_notifications").insert(rows.slice(i, i + 500));
@@ -103,7 +130,8 @@ serve(async (req) => {
         const emailStatus = response.ok ? "sent" : "failed";
         const errorText = response.ok ? null : (await response.text()).slice(0, 500);
         await admin.from("user_notifications").update({ email_status: emailStatus, email_error: errorText }).eq("campaign_id", campaign.id).eq("user_id", recipient.id);
-        response.ok ? delivered++ : failed++;
+        if (response.ok) delivered++;
+        else failed++;
       }
     } else {
       await admin.from("user_notifications").update({ email_status: "skipped", email_error: "Email provider is not configured" }).eq("campaign_id", campaign.id);
@@ -111,7 +139,8 @@ serve(async (req) => {
 
     const status = !resendKey ? "partial" : failed ? (delivered ? "partial" : "failed") : "sent";
     await admin.from("notification_campaigns").update({ status, delivered_count: delivered, failed_count: failed, sent_at: new Date().toISOString() }).eq("id", campaign.id);
-    return json({ success: true, campaign_id: campaign.id, recipients: recipients.length, email_configured: Boolean(resendKey), delivered, failed, status });
+    const { data: completedCampaign } = await admin.from("notification_campaigns").select("*").eq("id", campaign.id).single();
+    return json({ success: true, campaign: completedCampaign, campaign_id: campaign.id, recipients: recipients.length, email_configured: Boolean(resendKey), delivered, failed, status });
   } catch (error) {
     console.error("send-notification", error);
     return json({ error: error instanceof Error ? error.message : "Notification failed" }, 500);

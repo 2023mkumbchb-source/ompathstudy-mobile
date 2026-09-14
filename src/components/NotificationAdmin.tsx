@@ -49,7 +49,6 @@ import {
   playNotificationChime,
   triggerNativeNotification,
 } from "@/lib/notifications";
-import { supabase } from "@/integrations/supabase/client";
 
 const PRESET_LINKS = [
   { label: "Select a shortcut...", value: "" },
@@ -110,8 +109,7 @@ export default function NotificationAdmin() {
 
     setSending(true);
     try {
-      // 1. Publish to real-time broadcast system (instant delivery to all APK & Web users)
-      const notif = await publishBroadcastNotification({
+      await publishBroadcastNotification({
         title: title.trim(),
         message: message.trim(),
         type,
@@ -119,21 +117,6 @@ export default function NotificationAdmin() {
         study_year: audience === "year" ? Number(studyYear) : null,
         action_url: actionUrl.trim() || null,
       });
-
-      // 2. Also record in background via edge function if authenticated admin
-      try {
-        await supabase.functions.invoke("send-notification", {
-          body: {
-            title: title.trim(),
-            message: message.trim(),
-            action_url: actionUrl.trim() || null,
-            audience: audience === "year" ? "study_year" : "all_users",
-            study_year: audience === "year" ? Number(studyYear) : null,
-          },
-        });
-      } catch (edgeErr) {
-        // Non-blocking
-      }
 
       toast({
         title: "Broadcast Published Successfully! 🚀",

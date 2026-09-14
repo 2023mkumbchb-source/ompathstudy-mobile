@@ -1,9 +1,17 @@
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
-import { ChevronLeft, LayoutDashboard } from "lucide-react";
+import { Link, Navigate } from "react-router-dom";
+import { ChevronLeft, LayoutDashboard, Loader2 } from "lucide-react";
 import NotificationAdmin from "@/components/NotificationAdmin";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminNotifications() {
+  const { isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+  if (!isAdmin) return <Navigate to="/login" replace />;
+
   return (
     <div className="mx-auto max-w-5xl px-3 sm:px-6 py-4 sm:py-8">
       <Helmet>

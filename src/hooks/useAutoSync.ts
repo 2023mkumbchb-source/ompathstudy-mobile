@@ -1,13 +1,17 @@
 import { useEffect, useRef } from "react";
 import { ensureOfflineSeeded, autoDeltaSync } from "@/lib/offlineStore";
 import { precacheAponeurosisImages } from "@/lib/offlineImageStore";
-import { checkForNewNotifications } from "@/lib/notifications";
+import { checkForNewNotifications, startNotificationRealtime } from "@/lib/notifications";
+import { supabase } from "@/integrations/supabase/client";
+import { App as CapApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
 
 export function useAutoSync() {
   const syncLock = useRef(false);
 
   useEffect(() => {
+    let stopRealtime: (() => void) | undefined;
     const runSync = async () => {
       if (syncLock.current) return;
       syncLock.current = true;
@@ -47,6 +51,13 @@ export function useAutoSync() {
 
     // Run on startup
     void runSync();
+    void startNotificationRealtime().then((cleanup) => { stopRealtime = cleanup; });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      stopRealtime?.();
+      void startNotificationRealtime().then((cleanup) => { stopRealtime = cleanup; });
+      void runSync();
+    });
 
     // Run whenever connection is restored
     const onOnline = () => {
@@ -54,6 +65,16 @@ export function useAutoSync() {
     };
 
     window.addEventListener("online", onOnline);
-    return () => window.removeEventListener("online", onOnline);
+    const interval = window.setInterval(() => { void runSync(); }, 5 * 60 * 1000);
+    const appStateListener = Capacitor.isNativePlatform()
+      ? CapApp.addListener("appStateChange", ({ isActive }) => { if (isActive) void runSync(); })
+      : null;
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.clearInterval(interval);
+      void appStateListener?.then((listener) => listener.remove());
+      subscription.unsubscribe();
+      stopRealtime?.();
+    };
   }, []);
 }

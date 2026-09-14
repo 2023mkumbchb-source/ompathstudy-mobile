@@ -2,6 +2,35 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { supabase } from "@/integrations/supabase/client";
 
+const RELEASE_API = "https://api.github.com/repos/2023mkumbchb-source/ompathstudy-mobile/releases/latest";
+
+async function getLatestBundle(): Promise<{ version: string; url: string } | null> {
+  const { data } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "app_live_bundle")
+    .maybeSingle();
+
+  if (data?.value) {
+    try {
+      const configured = JSON.parse(data.value) as { version?: string; url?: string };
+      if (configured.version && configured.url) return { version: configured.version, url: configured.url };
+    } catch {
+      // Fall through to the public mobile GitHub release.
+    }
+  }
+
+  const response = await fetch(RELEASE_API, { headers: { Accept: "application/vnd.github+json" } });
+  if (!response.ok) return null;
+  const release = await response.json() as {
+    tag_name?: string;
+    assets?: Array<{ name?: string; browser_download_url?: string }>;
+  };
+  const asset = release.assets?.find((item) => item.name === "OmpathStudy-web-bundle.zip");
+  const version = release.tag_name?.replace(/^v/, "").replace(/-apk$/, "");
+  return version && asset?.browser_download_url ? { version, url: asset.browser_download_url } : null;
+}
+
 /**
  * Initialize OTA live updater:
  * 1. Signals native plugin that app rendered successfully
@@ -16,15 +45,9 @@ export async function initOtaUpdater(): Promise<void> {
 
     // 2. If online, check if a remote web bundle is published in app_settings
     if (typeof navigator !== "undefined" && navigator.onLine) {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "app_live_bundle")
-        .maybeSingle();
-
-      if (data?.value) {
+      const bundleInfo = await getLatestBundle();
+      if (bundleInfo) {
         try {
-          const bundleInfo: { version: string; url: string } = JSON.parse(data.value);
           const current = await CapacitorUpdater.current();
 
           if (
@@ -42,8 +65,8 @@ export async function initOtaUpdater(): Promise<void> {
             await CapacitorUpdater.next({ id: downloaded.id });
             console.log(`[OTA] Live update v${bundleInfo.version} ready for next launch!`);
           }
-        } catch (parseErr) {
-          // Ignore invalid JSON in bundle settings
+        } catch {
+          // A failed bundle is left inactive; the updater rolls back safely.
         }
       }
     }

@@ -5,6 +5,7 @@ import { Browser } from "@capacitor/browser";
 /** Canonical public origin used for OAuth redirects (production must be the .com domain). */
 export function canonicalOrigin(): string {
   if (typeof window === "undefined") return "https://www.ompathstudy.com";
+  if (Capacitor.isNativePlatform()) return "https://www.ompathstudy.com";
   const host = window.location.hostname;
   if (host.endsWith("ompathstudy.com")) return "https://www.ompathstudy.com";
   return window.location.origin;
