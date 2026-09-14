@@ -258,3 +258,60 @@ export async function updateContestStage(id: string, stage: ContestStage) {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "update_contest_stage", contestId: id, stage } });
   if (error || data?.error) throw error || new Error(data.error);
 }
+
+async function contestControl<T = any>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("contest-control", { body });
+  if (error || data?.error) throw error || new Error(data.error);
+  return data as T;
+}
+
+export interface ContestDraft {
+  title: string;
+  subtitle: string;
+  subjects: string[];
+  years: number[];
+  format: string;
+  registrationOpensAt: string | null;
+  registrationClosesAt: string | null;
+  startsAt: string | null;
+  published: boolean;
+}
+
+export async function createContest(draft: ContestDraft) {
+  const data = await contestControl({ action: "create_contest", ...draft });
+  return data.contest as { id: string; slug: string };
+}
+
+export async function updateContestDetails(contestId: string, draft: ContestDraft) {
+  await contestControl({ action: "update_contest", contestId, ...draft });
+}
+
+export async function createContestRound(contestId: string, title: string, durationSeconds: number) {
+  const data = await contestControl({ action: "create_round", contestId, title, durationSeconds });
+  return data.round as ContestRound;
+}
+
+export async function deleteContestRound(roundId: string) {
+  await contestControl({ action: "delete_round", roundId });
+}
+
+export async function addContestUniversity(name: string, abbreviation: string) {
+  const data = await contestControl({ action: "add_university", name, abbreviation });
+  return data.university as ContestUniversity;
+}
+
+export async function setContestUniversityActive(universityId: string, active: boolean) {
+  await contestControl({ action: "set_university_active", universityId, active });
+}
+
+export async function createSampleContest(title?: string) {
+  const data = await contestControl({ action: "create_sample_contest", title });
+  return data.contest as { id: string; slug: string; title: string };
+}
+
+export async function loadAllContestUniversities(): Promise<(ContestUniversity & { active: boolean })[]> {
+  const { data, error } = await (supabase as any).from("contest_universities")
+    .select("id,name,slug,abbreviation,verified,active").order("name");
+  if (error) throw error;
+  return data || [];
+}
