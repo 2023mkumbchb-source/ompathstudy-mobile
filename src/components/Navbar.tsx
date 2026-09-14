@@ -77,6 +77,7 @@ export default function Navbar() {
   const mobileDrawerLinks = useMemo(() => {
     const base = [
       { to: "/notifications", label: "Notifications & Alerts", icon: Bell },
+      { to: "/updates", label: "App Updates & Offline Library", icon: Database },
       { to: "/revision-index", label: "Exam Revision Bank", icon: ListChecks },
       { to: "/my-revision", label: "My Revision Planner", icon: Target },
       { to: "/exams", label: "Timed Weekly Exams", icon: Clock },
@@ -186,7 +187,7 @@ export default function Navbar() {
                   <Menu className="h-5 w-5" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 bg-[hsl(174,62%,16%)] border-r-0 p-0 text-white [&>button]:text-white">
+              <SheetContent side="left" className="z-[100] w-72 bg-[hsl(174,62%,16%)] border-r-0 p-0 text-white [&>button]:text-white">
                 <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
                   <div className="flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white/10 p-1">
@@ -199,7 +200,7 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <div className="flex flex-col overflow-y-auto h-[calc(100%-65px)]">
+                <div className="flex h-[calc(100dvh-65px)] flex-col overflow-y-auto overscroll-contain pb-8">
                   <div className="border-b border-white/10 px-3 py-3">
                     <HeaderSearch variant="mobile" onNavigate={() => setSidebarOpen(false)} />
                   </div>

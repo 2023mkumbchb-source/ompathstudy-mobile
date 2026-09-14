@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getSetting } from "@/lib/store";
 
 export interface SiteSettings {
-  /** Founder / About page is hidden by default; can be unhidden in Admin. */
+  /** Legacy website setting. The dedicated mobile About page is always available. */
   founderPageVisible: boolean;
   /** How much of an image-answer paper a guest may browse. */
   guestSlideView: "all" | "half";

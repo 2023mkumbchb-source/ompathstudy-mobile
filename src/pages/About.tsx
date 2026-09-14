@@ -4,7 +4,6 @@ import { Phone, Mail, MessageCircle, ExternalLink, GraduationCap, Code2, Stethos
 import { motion } from "framer-motion";
 import portrait from "@/assets/abongo-davis-portrait.jpg";
 import { updateMetaTags, SITE_URL } from "@/lib/seo";
-import { useSiteSettings } from "@/lib/site-settings";
 
 const PROJECTS = [
   {
@@ -31,7 +30,6 @@ const PROJECTS = [
 ];
 
 export default function About() {
-  const site = useSiteSettings();
   useEffect(() => {
     updateMetaTags({
       title: "Abongo Davis – Founder of Ompath Study | Medical Student & Web Developer",
@@ -65,21 +63,6 @@ export default function About() {
     document.head.appendChild(ld);
     return () => { document.getElementById("about-person-jsonld")?.remove(); };
   }, []);
-
-  // Hidden by default; the admin can unhide it in Payments & access → Site visibility.
-  if (!site.loading && !site.founderPageVisible) {
-    return (
-      <div className="mx-auto flex min-h-[65vh] max-w-xl flex-col items-center justify-center px-6 text-center">
-        <h1 className="font-serif text-2xl font-bold text-foreground">This page is not available</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The founder page is currently hidden. Head back to the notes and question banks.
-        </p>
-        <Link to="/" className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
-          Back to Ompath Study <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-dvh bg-muted/20">
