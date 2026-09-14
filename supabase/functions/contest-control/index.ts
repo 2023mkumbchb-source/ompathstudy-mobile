@@ -52,6 +52,7 @@ serve(async (req) => {
         registration_opens_at: body?.registrationOpensAt || null,
         registration_closes_at: body?.registrationClosesAt || null,
         starts_at: body?.startsAt || null,
+        share_image_url: body?.shareImageUrl || null,
         published: Boolean(body?.published),
         updated_at: new Date().toISOString(),
       };

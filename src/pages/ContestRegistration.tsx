@@ -3,8 +3,9 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Loader2, LockKeyhole, School, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CONTEST_RULES } from "@/lib/contest";
-import { getContestBySlug, getMyContestRegistration, loadContestPlatform, registerForContest, type ContestRecord, type ContestRegistration, type ContestUniversity } from "@/lib/contest-store";
+import { getContestBySlug, getMyContestRegistration, loadContestPlatform, loadContestRounds, registerForContest, type ContestRecord, type ContestRegistration, type ContestRound, type ContestUniversity } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
+import ContestCountdown from "@/components/ContestCountdown";
 
 export default function ContestRegistrationPage() {
   const { slug = "" } = useParams();
@@ -12,6 +13,7 @@ export default function ContestRegistrationPage() {
   const [contest, setContest] = useState<ContestRecord | null>(null);
   const [universities, setUniversities] = useState<ContestUniversity[]>([]);
   const [registration, setRegistration] = useState<ContestRegistration | null>(null);
+  const [rounds, setRounds] = useState<ContestRound[]>([]);
   const [universityId, setUniversityId] = useState("");
   const [studyYear, setStudyYear] = useState("3");
   const [representation, setRepresentation] = useState<"individual" | "university_team">("individual");
@@ -25,7 +27,10 @@ export default function ContestRegistrationPage() {
     Promise.all([getContestBySlug(slug), loadContestPlatform()]).then(async ([record, platform]) => {
       setContest(record);
       setUniversities(platform.universities);
-      if (record && user) setRegistration(await getMyContestRegistration(record.id, user.id));
+      if (record) {
+        setRounds(await loadContestRounds(record.id));
+        if (user) setRegistration(await getMyContestRegistration(record.id, user.id));
+      }
     }).catch(() => setError("Contest registration could not be loaded.")).finally(() => setLoading(false));
   }, [slug, user]);
 
@@ -45,6 +50,7 @@ export default function ContestRegistrationPage() {
   if (loading || authLoading) return <div className="flex min-h-[70vh] items-center justify-center bg-[#071315]"><Loader2 className="h-6 w-6 animate-spin text-teal-300" /></div>;
   if (!contest) return <Navigate to="/contests" replace />;
   const isOpen = contest.stage === "registration";
+  const nextRound = rounds.filter((round) => ["scheduled", "lobby"].includes(round.status) && round.starts_at).sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())[0];
 
   return <div className="min-h-dvh bg-[#071315] px-5 py-10 text-white">
     <div className="mx-auto max-w-2xl">
@@ -57,6 +63,8 @@ export default function ContestRegistrationPage() {
         {registration ? <div className="mt-7 rounded-xl border border-teal-300/20 bg-teal-300/10 p-5">
           <p className="flex items-center gap-2 font-bold text-teal-200"><CheckCircle2 className="h-5 w-5" /> Registration received</p>
           <p className="mt-2 text-sm text-white/55">Status: <span className="capitalize text-white/80">{registration.status}</span>. Institutional verification will happen before admission to the lobby.</p>
+          {nextRound?.starts_at && <ContestCountdown startsAt={nextRound.starts_at} className="mt-5" />}
+          <Link to={`/contests/${slug}/lobby`} className="mt-5 inline-flex rounded-lg border border-teal-200/30 px-4 py-2 text-sm font-bold text-teal-200">Open contest lobby</Link>
         </div> : !isOpen ? <div className="mt-7 rounded-xl border border-amber-300/20 bg-amber-300/10 p-5">
           <p className="flex items-center gap-2 font-bold text-amber-200"><LockKeyhole className="h-5 w-5" /> Registration is not open</p>
           <p className="mt-2 text-sm text-white/55">This competition is still in the concept stage. Dates and eligibility rules will be published before registration opens.</p>

@@ -14,12 +14,13 @@ export interface ContestRecord extends ContestPreview {
   registrationOpensAt: string | null;
   registrationClosesAt: string | null;
   startsAt: string | null;
+  shareImageUrl: string | null;
   published: boolean;
 }
 
 export async function loadContestPlatform(): Promise<{ contests: ContestRecord[]; universities: ContestUniversity[] }> {
   const [{ data: contestRows, error: contestError }, { data: universityRows, error: universityError }] = await Promise.all([
-    (supabase as any).from("contests").select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,published").eq("published", true).order("created_at"),
+    (supabase as any).from("contests").select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published").eq("published", true).order("created_at"),
     (supabase as any).from("contest_universities").select("id,name,slug,abbreviation,verified").eq("active", true).order("name"),
   ]);
   if (contestError) throw contestError;
@@ -30,7 +31,7 @@ export async function loadContestPlatform(): Promise<{ contests: ContestRecord[]
       stage: row.status as ContestStage, subjects: row.subjects || [], years: row.eligible_years || [],
       format: row.competition_format || "", teams: "University teams and individual representatives",
       registrationOpensAt: row.registration_opens_at, registrationClosesAt: row.registration_closes_at,
-      startsAt: row.starts_at, published: row.published,
+      startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published,
     })),
     universities: (universityRows || []) as ContestUniversity[],
   };
@@ -275,14 +276,14 @@ export async function registerForContest(input: { contestId: string; userId: str
 
 export async function loadAdminContests(): Promise<ContestRecord[]> {
   const { data, error } = await (supabase as any).from("contests")
-    .select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,published")
+    .select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published")
     .order("created_at");
   if (error) throw error;
   return (data || []).map((row: any) => ({
     id: row.id, slug: row.slug, title: row.title, subtitle: row.subtitle, stage: row.status,
     subjects: row.subjects || [], years: row.eligible_years || [], format: row.competition_format || "",
     teams: "University teams and individual representatives", registrationOpensAt: row.registration_opens_at,
-    registrationClosesAt: row.registration_closes_at, startsAt: row.starts_at, published: row.published,
+    registrationClosesAt: row.registration_closes_at, startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published,
   }));
 }
 
@@ -306,6 +307,7 @@ export interface ContestDraft {
   registrationOpensAt: string | null;
   registrationClosesAt: string | null;
   startsAt: string | null;
+  shareImageUrl: string | null;
   published: boolean;
 }
 

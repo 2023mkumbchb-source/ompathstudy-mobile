@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Building2, CheckCircle2, ClipboardPaste, FileQuestion, Loader2, Plus, Search, Sparkles, Trash2, Trophy } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, ClipboardPaste, FileQuestion, Image, Link2, Loader2, Plus, Search, Sparkles, Trash2, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { parseContestQuestions, type ParsedContestQuestion } from "@/lib/contest-parse";
 import {
@@ -27,10 +27,11 @@ Answer: B`;
 
 const emptyDraft = {
   title: "", subtitle: "", subjects: "Anatomy, Physiology, Pathology", years: [1, 2, 3] as number[],
-  format: "Qualifier → Semifinal → Grand final", registrationOpensAt: "", registrationClosesAt: "", startsAt: "",
+  format: "Qualifier → Semifinal → Grand final", registrationOpensAt: "", registrationClosesAt: "", startsAt: "", shareImageUrl: "",
 };
 
 const toIso = (value: string) => (value ? new Date(value).toISOString() : null);
+const toLocal = (value: string | null) => value ? new Date(value).toLocaleString("sv-SE", { timeZone: "Africa/Nairobi" }).slice(0, 16).replace(" ", "T") : "";
 
 export default function ContestSetup() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -163,6 +164,9 @@ export default function ContestSetup() {
           <label className="text-sm font-semibold">Contest starts
             <input type="datetime-local" value={draft.startsAt} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
+          <label className="text-sm font-semibold sm:col-span-2">Share image URL
+            <input type="url" value={draft.shareImageUrl} onChange={(e) => setDraft({ ...draft, shareImageUrl: e.target.value })} placeholder="https://.../contest-poster.jpg" className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+          </label>
           <label className="flex items-end gap-3 text-sm font-semibold">
             <input type="checkbox" checked={creating} onChange={(e) => setCreating(e.target.checked)} className="h-4 w-4" /> Publish immediately
           </label>
@@ -175,7 +179,7 @@ export default function ContestSetup() {
               subjects: draft.subjects.split(",").map((item) => item.trim()).filter(Boolean),
               years: draft.years, format: draft.format,
               registrationOpensAt: toIso(draft.registrationOpensAt), registrationClosesAt: toIso(draft.registrationClosesAt),
-              startsAt: toIso(draft.startsAt), published: creating,
+              startsAt: toIso(draft.startsAt), shareImageUrl: draft.shareImageUrl || null, published: creating,
             });
             setContests(await loadAdminContests());
             setContestId(created.id);
@@ -194,13 +198,14 @@ export default function ContestSetup() {
           {contests.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.stage}{item.published ? "" : " · unpublished"}</option>)}
         </select>
         {contest && (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-5 space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
             <button disabled={busy === "publish"} onClick={() => void run("publish", async () => {
               await updateContestDetails(contest.id, {
                 title: contest.title, subtitle: contest.subtitle,
                 subjects: contest.subjects, years: contest.years, format: contest.format,
                 registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt,
-                startsAt: contest.startsAt, published: !contest.published,
+                startsAt: contest.startsAt, shareImageUrl: contest.shareImageUrl, published: !contest.published,
               });
               setContests(await loadAdminContests());
               return contest.published ? "Contest hidden from the public page." : "Contest is now visible on the public contest page.";
@@ -217,6 +222,13 @@ export default function ContestSetup() {
               </button>
             ))}
             <Link to={`/contests/${contest.slug}/briefing`} className="text-sm font-bold text-primary hover:underline">Open public page →</Link>
+          </div>
+          <div className="grid gap-4 rounded-xl border p-4 md:grid-cols-[1fr,auto]">
+            <label className="text-sm font-semibold"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Contest share image</span><input type="url" value={contest.shareImageUrl || ""} onChange={(e) => setContests((items) => items.map((item) => item.id === contest.id ? { ...item, shareImageUrl: e.target.value } : item))} placeholder="Paste a public HTTPS image URL" className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" /></label>
+            <button disabled={busy === "share-image"} onClick={() => void run("share-image", async () => { await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: contest.shareImageUrl, published: contest.published }); setContests(await loadAdminContests()); return "Share image saved."; })} className="self-end rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Save image</button>
+            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt="Contest share preview" className="max-h-48 w-full rounded-lg border object-cover md:col-span-2" />}
+            <div className="flex flex-wrap gap-2 md:col-span-2"><a href={`https://wa.me/?text=${encodeURIComponent(contest.title + "\nhttps://www.ompathstudy.com/contests/" + contest.slug + "/briefing")}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold"><Link2 className="h-4 w-4" /> Share on WhatsApp</a><button onClick={() => void navigator.clipboard.writeText(`https://www.ompathstudy.com/contests/${contest.slug}/briefing`)} className="rounded-lg border px-4 py-2 text-sm font-bold">Copy contest link</button></div>
+          </div>
           </div>
         )}
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
@@ -374,8 +386,10 @@ export default function ContestSetup() {
         <p className="mt-2 text-sm text-muted-foreground">A lobby round is visible to verified participants; a live round accepts attempts and needs start and end times.</p>
         <div className="mt-4 space-y-3">
           {rounds.map((round) => (
-            <div key={round.id} className="flex flex-wrap items-center gap-3 rounded-xl border p-4">
-              <div className="min-w-0 flex-1"><p className="font-bold">{round.title}</p><p className="text-xs text-muted-foreground">{round.question_count} questions · currently {round.status}</p></div>
+            <div key={round.id} className="rounded-xl border p-4">
+              <div><p className="font-bold">{round.title}</p><p className="text-xs text-muted-foreground">{round.question_count} questions · currently {round.status}</p></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, starts_at: toIso(e.target.value) } : item))} className="mt-1 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (East Africa Time)<input type="datetime-local" value={toLocal(round.ends_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, ends_at: toIso(e.target.value) } : item))} className="mt-1 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label></div>
+              <div className="mt-4 flex flex-wrap gap-3">
               {(["lobby", "live", "closed"] as ContestRound["status"][]).map((status) => (
                 <button key={status} disabled={busy === round.id + status} onClick={() => void run(round.id + status, async () => {
                   const startsAt = round.starts_at || new Date().toISOString();
@@ -393,6 +407,7 @@ export default function ContestSetup() {
                   {status}
                 </button>
               ))}
+              </div>
             </div>
           ))}
         </div>

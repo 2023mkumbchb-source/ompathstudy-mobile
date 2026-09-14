@@ -92,6 +92,17 @@
       "destination": "/api/sitemap?file=:file"
     },
     {
+      "source": "/contests/:slug/briefing",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawl|[Ss]pider|facebookexternalhit|[Ww]hats[Aa]pp|[Tt]witter[Bb]ot|[Ss]lack[Bb]ot|[Tt]elegram[Bb]ot|[Dd]iscord[Bb]ot|[Ll]inked[Ii]n[Bb]ot).*"
+        }
+      ],
+      "destination": "/api/og-meta?path=/contests/:slug/briefing"
+    },
+    {
       "source": "/blog/:slug",
       "has": [
         {

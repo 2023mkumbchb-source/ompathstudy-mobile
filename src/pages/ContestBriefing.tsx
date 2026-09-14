@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, Loader2, LockKeyhole, Maximize, MonitorUp, Shi
 import { CONTEST_RULES } from "@/lib/contest";
 import { getContestBySlug, type ContestRecord } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
+import ShareButtons from "@/components/ShareButtons";
 
 const checks = [
   { icon: LockKeyhole, label: "Verified account", detail: "Required for live contests" },
@@ -41,6 +42,11 @@ export default function ContestBriefing() {
     getContestBySlug(slug).then(setContest).finally(() => setLoading(false));
   }, [slug]);
 
+  useEffect(() => {
+    if (!contest) return;
+    updateMetaTags({ title: `${contest.title} | OmpathStudy`, description: contest.subtitle || "Register for this OmpathStudy live medical contest.", image: contest.shareImageUrl || undefined, url: `https://www.ompathstudy.com/contests/${contest.slug}/briefing` });
+  }, [contest]);
+
   if (loading) return <div className="flex min-h-dvh items-center justify-center bg-[#03090a]"><Loader2 className="h-6 w-6 animate-spin text-teal-300" /></div>;
   if (!contest) return <Navigate to="/contests" replace />;
 
@@ -60,6 +66,8 @@ export default function ContestBriefing() {
             <p className="mt-7 text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Participant briefing</p>
             <h1 className="mt-3 max-w-3xl font-serif text-3xl font-bold sm:text-5xl">{contest.title}</h1>
             <p className="mt-4 max-w-2xl leading-relaxed text-white/55">{contest.subtitle || "Review the contest requirements before registration and entry."}</p>
+            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt={`${contest.title} poster`} className="mt-6 max-h-80 w-full rounded-xl border border-white/10 object-cover" />}
+            <ShareButtons url={`https://www.ompathstudy.com/contests/${contest.slug}/briefing`} title={contest.title} description={contest.subtitle} className="mt-5" />
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2">
               {checks.map(({ icon: Icon, label, detail }) => (

@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarClock, CheckCircle2, CircleDashed, Clock3, Loader2, 
 import { useAuth } from "@/hooks/useAuth";
 import { getContestBySlug, getMyContestRegistration, loadContestRounds, type ContestRecord, type ContestRegistration, type ContestRound } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
+import ContestCountdown from "@/components/ContestCountdown";
 
 function formatDuration(seconds: number) {
   const minutes = Math.round(seconds / 60);
@@ -37,6 +38,9 @@ export default function ContestLobby() {
 
   const verified = registration?.status === "verified";
   const liveRound = rounds.find((round) => round.status === "live");
+  const scheduledRound = rounds
+    .filter((round) => ["scheduled", "lobby"].includes(round.status) && round.starts_at)
+    .sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())[0];
 
   return <div className="min-h-dvh bg-[#071315] px-5 py-10 text-white">
     <div className="mx-auto max-w-4xl">
@@ -67,7 +71,8 @@ export default function ContestLobby() {
               <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-bold capitalize text-white/55">{round.status}</span>
             </div>) : <p className="text-sm text-white/45">Rounds have not been published yet.</p>}
           </div>
-          {!liveRound && <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.07] p-4"><p className="text-sm font-bold text-amber-200">Schedule not announced</p><p className="mt-1 text-xs leading-relaxed text-white/45">No attempt can start until a verified moderator opens a scheduled round.</p></div>}
+          {!liveRound && scheduledRound?.starts_at && <ContestCountdown startsAt={scheduledRound.starts_at} className="mt-5 rounded-xl border border-teal-300/20 bg-teal-300/[0.07] p-4" />}
+          {!liveRound && !scheduledRound?.starts_at && <div className="mt-5 rounded-xl border border-amber-300/15 bg-amber-300/[0.07] p-4"><p className="text-sm font-bold text-amber-200">Schedule not announced</p><p className="mt-1 text-xs leading-relaxed text-white/45">The moderator has not assigned a start date and time yet.</p></div>}
           {liveRound && verified && <div className="mt-5 rounded-xl border border-teal-300/20 bg-teal-300/10 p-4"><p className="font-bold text-teal-200">{liveRound.title} is live</p><p className="mt-1 text-xs text-white/50">Your timer begins when the secure attempt is created.</p><Link to={`/contests/${slug}/round/${liveRound.id}`} className="mt-4 inline-flex rounded-lg bg-teal-300 px-4 py-2.5 text-sm font-bold text-[#071315]">Enter live round</Link></div>}
         </article>
       </section>

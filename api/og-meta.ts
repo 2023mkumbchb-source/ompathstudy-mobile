@@ -687,6 +687,15 @@ export default async function handler(req: Request): Promise<Response> {
       description = pages[section].description;
       keywords = pages[section].keywords;
       bodyExtra = await buildLiveIndexLinks(section);
+    } else if (section === "contests" && param) {
+      const rows = await sbFetch("contests", `select=slug,title,subtitle,share_image_url,starts_at&slug=eq.${encodeURIComponent(param)}&published=eq.true&limit=1`);
+      const contest = rows?.[0];
+      if (!contest) return permanentRedirect("/contests");
+      title = `${contest.title} | OmpathStudy`;
+      description = toMetaDescription(contest.subtitle || "Register for this live medical knowledge contest.", "Register for this OmpathStudy live medical knowledge contest.");
+      ogImage = contest.share_image_url || OG_FALLBACK_IMAGE;
+      keywords = `OmpathStudy, medical contest Kenya, ${contest.title}, live exam competition`;
+      type = "website";
     } else if (section === "blog" && param) {
       const article = await fetchArticleBySlug(param);
       if (!article) {
