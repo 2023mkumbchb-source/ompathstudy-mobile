@@ -27,7 +27,7 @@ export default function ContestOperations() {
 
   async function saveRound(round: ContestRound) {
     setSaving(round.id); setMessage("");
-    try { await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: round.tab_switch_limit, focusLossLimit: round.focus_loss_limit, autoEliminate: round.auto_eliminate, autoOpen: round.auto_open, autoClose: round.auto_close, entryGraceMinutes: round.entry_grace_minutes, resultsVisible: round.results_visible }); setMessage(`${round.title} settings saved.`); }
+    try { await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: round.tab_switch_limit, focusLossLimit: round.focus_loss_limit, autoEliminate: round.auto_eliminate, autoOpen: round.auto_open, autoClose: round.auto_close, entryGraceMinutes: round.entry_grace_minutes, resultsVisible: round.results_visible, shuffleQuestions: round.shuffle_questions, marksCorrect: round.marks_correct, marksIncorrect: round.marks_incorrect }); setMessage(`${round.title} settings saved.`); }
     catch (cause: any) { setMessage(cause?.message || "Round settings could not be saved."); }
     finally { setSaving(""); }
   }

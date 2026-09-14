@@ -17,11 +17,12 @@ export interface ContestRecord extends ContestPreview {
   startsAt: string | null;
   shareImageUrl: string | null;
   published: boolean;
+  maxParticipantsPerUniversity: number;
 }
 
 export async function loadContestPlatform(): Promise<{ contests: ContestRecord[]; universities: ContestUniversity[] }> {
   const [{ data: contestRows, error: contestError }, { data: universityRows, error: universityError }] = await Promise.all([
-    (supabase as any).from("contests").select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published").eq("published", true).order("created_at"),
+    (supabase as any).from("contests").select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published,max_participants_per_university").eq("published", true).order("created_at"),
     (supabase as any).from("contest_universities").select("id,name,slug,abbreviation,verified").eq("active", true).order("name"),
   ]);
   if (contestError) throw contestError;
@@ -32,7 +33,7 @@ export async function loadContestPlatform(): Promise<{ contests: ContestRecord[]
       stage: row.status as ContestStage, subjects: row.subjects || [], years: row.eligible_years || [],
       format: row.competition_format || "", teams: "University teams and individual representatives",
       registrationOpensAt: row.registration_opens_at, registrationClosesAt: row.registration_closes_at,
-      startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published,
+      startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published, maxParticipantsPerUniversity: row.max_participants_per_university || 50,
     })),
     universities: (universityRows || []) as ContestUniversity[],
   };
@@ -46,6 +47,8 @@ export interface ContestRegistration {
   representation: "individual" | "university_team";
   status: "pending" | "verified" | "rejected" | "withdrawn";
   contest_universities?: { name: string; abbreviation: string | null } | null;
+  team_name?: string | null;
+  team_role?: "captain" | "member";
 }
 
 export interface ContestRound {
@@ -72,11 +75,14 @@ export interface ContestRound {
   university_b_id: string | null;
   university_a: { name: string; abbreviation: string | null } | null;
   university_b: { name: string; abbreviation: string | null } | null;
+  shuffle_questions: boolean;
+  marks_correct: number;
+  marks_incorrect: number;
 }
 
 export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
   const { data, error } = await (supabase as any).from("contest_rounds")
-    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title,auto_open,auto_close,entry_grace_minutes,results_visible,university_a_id,university_b_id,university_a:contest_universities!contest_rounds_university_a_id_fkey(name,abbreviation),university_b:contest_universities!contest_rounds_university_b_id_fkey(name,abbreviation)")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title,auto_open,auto_close,entry_grace_minutes,results_visible,university_a_id,university_b_id,shuffle_questions,marks_correct,marks_incorrect,university_a:contest_universities!contest_rounds_university_a_id_fkey(name,abbreviation),university_b:contest_universities!contest_rounds_university_b_id_fkey(name,abbreviation)")
     .eq("contest_id", contestId).order("round_number");
   if (error) throw error;
   return (data || []) as ContestRound[];
@@ -196,7 +202,7 @@ export interface AdminContestRegistration extends ContestRegistration {
 
 export async function loadAdminContestRegistrations(contestId: string): Promise<AdminContestRegistration[]> {
   const { data, error } = await (supabase as any).from("contest_registrations")
-    .select("id,contest_id,user_id,university_id,study_year,representation,status,created_at,contest_universities(name,abbreviation)")
+    .select("id,contest_id,user_id,university_id,study_year,representation,status,team_name,team_role,created_at,contest_universities(name,abbreviation)")
     .eq("contest_id", contestId).order("created_at", { ascending: false });
   if (error) throw error;
   return (data || []) as AdminContestRegistration[];
@@ -207,7 +213,7 @@ export async function setContestRegistrationStatus(registrationId: string, statu
   if (error || data?.error) throw error || new Error(data.error);
 }
 
-export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean; universityAId?: string | null; universityBId?: string | null }) {
+export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean; universityAId?: string | null; universityBId?: string | null; shuffleQuestions?: boolean; marksCorrect?: number; marksIncorrect?: number }) {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "configure_round", ...input } });
   if (error || data?.error) throw error || new Error(data.error);
 }
@@ -310,32 +316,28 @@ export async function getContestBySlug(slug: string): Promise<ContestRecord | nu
 
 export async function getMyContestRegistration(contestId: string, userId: string): Promise<ContestRegistration | null> {
   const { data, error } = await (supabase as any).from("contest_registrations")
-    .select("id,contest_id,university_id,study_year,representation,status,contest_universities(name,abbreviation)")
+    .select("id,contest_id,university_id,study_year,representation,status,team_name,team_role,contest_universities(name,abbreviation)")
     .eq("contest_id", contestId).eq("user_id", userId).maybeSingle();
   if (error) throw error;
   return data as ContestRegistration | null;
 }
 
-export async function registerForContest(input: { contestId: string; userId: string; universityId: string; studyYear: number; representation: "individual" | "university_team" }) {
-  const { data, error } = await (supabase as any).from("contest_registrations").insert({
-    contest_id: input.contestId, user_id: input.userId, university_id: input.universityId,
-    study_year: input.studyYear, representation: input.representation, status: "pending",
-    accepted_rules_at: new Date().toISOString(),
-  }).select("id,contest_id,university_id,study_year,representation,status").single();
-  if (error) throw error;
-  return data as ContestRegistration;
+export async function registerForContest(input: { contestId: string; userId: string; universityId: string; studyYear: number; representation: "individual" | "university_team"; teamName?: string; teamRole?: "captain" | "member" }) {
+  void input.userId;
+  const data = await contestControl<{ registration: ContestRegistration }>({ action: "register_contest", ...input });
+  return data.registration;
 }
 
 export async function loadAdminContests(): Promise<ContestRecord[]> {
   const { data, error } = await (supabase as any).from("contests")
-    .select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published")
+    .select("id,slug,title,subtitle,status,subjects,eligible_years,competition_format,registration_opens_at,registration_closes_at,starts_at,share_image_url,published,max_participants_per_university")
     .order("created_at");
   if (error) throw error;
   return (data || []).map((row: any) => ({
     id: row.id, slug: row.slug, title: row.title, subtitle: row.subtitle, stage: row.status,
     subjects: row.subjects || [], years: row.eligible_years || [], format: row.competition_format || "",
     teams: "University teams and individual representatives", registrationOpensAt: row.registration_opens_at,
-    registrationClosesAt: row.registration_closes_at, startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published,
+    registrationClosesAt: row.registration_closes_at, startsAt: row.starts_at, shareImageUrl: row.share_image_url, published: row.published, maxParticipantsPerUniversity: row.max_participants_per_university || 50,
   }));
 }
 

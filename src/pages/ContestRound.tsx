@@ -39,6 +39,7 @@ export default function ContestRoundPage() {
       const localDrafts = Object.fromEntries(questionRows.flatMap((question) => { const value = localStorage.getItem(`contest-draft:${roundId}:${question.id}`); return value === null ? [] : [[question.id, Number(value)]]; }));
       if (Object.keys(localDrafts).length) setAnswers((current) => ({ ...current, ...localDrafts }));
       if (existingAttempt) {
+        if (activeRound.shuffle_questions) setQuestions(stableShuffle(questionRows, existingAttempt.id));
         setAttempt(existingAttempt);
         if (existingAttempt.status === "submitted") { setSubmitted(true); if (activeRound.results_visible) setScore(existingAttempt.score); return; }
         if (existingAttempt.status === "eliminated") { setEliminated(true); return; }
@@ -74,7 +75,7 @@ export default function ContestRoundPage() {
   async function enterExam() {
     if (!registration || !user || !round || !questions.length) return;
     setError("");
-    try { await document.documentElement.requestFullscreen?.().catch(() => undefined); const active = await getOrStartContestAttempt(round.id, registration, user.id); setAttempt(active); setStarted(true); }
+    try { await document.documentElement.requestFullscreen?.().catch(() => undefined); const active = await getOrStartContestAttempt(round.id, registration, user.id); setAttempt(active); if (round.shuffle_questions) setQuestions((items) => stableShuffle(items, active.id)); setStarted(true); }
     catch (cause: any) { setError(cause?.message || "The exam could not be started."); }
   }
   async function chooseAnswer(question: ContestQuestion, selectedIndex: number) {
@@ -127,3 +128,12 @@ export default function ContestRoundPage() {
 
 function ExamStat({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4"><p className="text-xs text-white/40">{label}</p><p className="mt-1 text-xl font-bold text-teal-200">{value}</p></div>; }
 function StateMessage({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) { return <div className="flex min-h-dvh items-center justify-center bg-[#071315] px-5 text-white"><div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0b1d20] p-8 text-center"><div className="flex justify-center">{icon}</div><h1 className="mt-5 font-serif text-3xl font-bold">{title}</h1><p className="mt-3 text-sm leading-relaxed text-white/60">{text}</p></div></div>; }
+
+function stableShuffle<T>(items: T[], seed: string): T[] {
+  let state = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) state = Math.imul(state ^ seed.charCodeAt(index), 16777619);
+  const next = () => { state ^= state << 13; state ^= state >>> 17; state ^= state << 5; return (state >>> 0) / 4294967296; };
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) { const target = Math.floor(next() * (index + 1)); [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]]; }
+  return shuffled;
+}

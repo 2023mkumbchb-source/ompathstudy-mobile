@@ -135,6 +135,26 @@ serve(async (req) => {
       return json({ success: true, university: data });
     }
 
+    if (action === "register_contest") {
+      const contestId = String(body?.contestId || ""), universityId = String(body?.universityId || "");
+      const studyYear = Number(body?.studyYear), representation = String(body?.representation || "individual");
+      const teamName = representation === "university_team" ? String(body?.teamName || "").trim().slice(0, 80) : null;
+      const teamRole = body?.teamRole === "captain" ? "captain" : "member";
+      if (!Number.isInteger(studyYear) || studyYear < 1 || studyYear > 6 || !["individual", "university_team"].includes(representation)) return json({ error: "Invalid registration details" }, 400);
+      if (representation === "university_team" && (!teamName || teamName.length < 2)) return json({ error: "Enter your university team name" }, 400);
+      const { data: contest } = await admin.from("contests").select("id,status,published,registration_opens_at,registration_closes_at,eligible_years,max_participants_per_university").eq("id", contestId).maybeSingle();
+      const now = Date.now();
+      if (!contest || !contest.published || contest.status !== "registration" || (contest.registration_opens_at && new Date(contest.registration_opens_at).getTime() > now) || (contest.registration_closes_at && new Date(contest.registration_closes_at).getTime() <= now)) return json({ error: "Registration is not open" }, 409);
+      if (Array.isArray(contest.eligible_years) && contest.eligible_years.length && !contest.eligible_years.includes(studyYear)) return json({ error: "Your study year is not eligible" }, 400);
+      const { count } = await admin.from("contest_registrations").select("id", { count: "exact", head: true }).eq("contest_id", contestId).eq("university_id", universityId).neq("status", "withdrawn");
+      if ((count || 0) >= Number(contest.max_participants_per_university || 50)) return json({ error: "This university has reached its participant limit" }, 409);
+      if (representation === "university_team" && teamRole === "captain") { const { count: captains } = await admin.from("contest_registrations").select("id", { count: "exact", head: true }).eq("contest_id", contestId).eq("university_id", universityId).ilike("team_name", teamName).eq("team_role", "captain").neq("status", "withdrawn"); if (captains) return json({ error: "This team already has a captain" }, 409); }
+      const { data, error } = await admin.from("contest_registrations").insert({ contest_id: contestId, user_id: user.id, university_id: universityId, study_year: studyYear, representation, team_name: teamName, team_role: teamRole, status: "pending", accepted_rules_at: new Date().toISOString() }).select("id,contest_id,university_id,study_year,representation,status,team_name,team_role").single();
+      if (error?.code === "23505") return json({ error: "You are already registered for this contest" }, 409);
+      if (error) throw error;
+      return json({ success: true, registration: data });
+    }
+
     if (action === "set_university_active") {
       if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
       const { error } = await admin.from("contest_universities")
@@ -272,6 +292,9 @@ serve(async (req) => {
         results_visible: Boolean(body?.resultsVisible),
         ...(Object.prototype.hasOwnProperty.call(body, "universityAId") ? { university_a_id: body?.universityAId || null } : {}),
         ...(Object.prototype.hasOwnProperty.call(body, "universityBId") ? { university_b_id: body?.universityBId || null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(body, "shuffleQuestions") ? { shuffle_questions: Boolean(body?.shuffleQuestions) } : {}),
+        ...(Object.prototype.hasOwnProperty.call(body, "marksCorrect") ? { marks_correct: Math.max(0.01, Math.min(100, Number(body?.marksCorrect) || 1)) } : {}),
+        ...(Object.prototype.hasOwnProperty.call(body, "marksIncorrect") ? { marks_incorrect: Math.max(-10, Math.min(0, Number(body?.marksIncorrect) || 0)) } : {}),
         locked_at: status === "scheduled" ? current.locked_at : (current.locked_at || new Date().toISOString()),
         updated_at: new Date().toISOString(),
       }).eq("id", roundId);
