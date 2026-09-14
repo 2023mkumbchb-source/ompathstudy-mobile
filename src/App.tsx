@@ -18,6 +18,8 @@ import { Loader2 } from "lucide-react";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import LearnerProfileGate from "@/components/LearnerProfileGate";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
+import AppUpdateDialog from "@/components/AppUpdateDialog";
+import { useAutoSync } from "@/hooks/useAutoSync";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -134,6 +136,7 @@ const AnimatedRoutes = () => {
 
 function MobileAppBridge() {
   useMobileApp();
+  useAutoSync();
   return null;
 }
 
@@ -146,6 +149,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <MobileAppBridge />
+            <AppUpdateDialog />
             <ScrollToTop />
             <ScrollProgressBar />
             <BackToTopButton />

@@ -544,3 +544,108 @@ export async function clearOfflineCache(): Promise<void> {
     clearStore("sync_state"),
   ]);
 }
+
+/**
+ * Automatically unpacks the pre-bundled offline seed file on first app launch
+ * if the local IndexedDB database is empty.
+ */
+export async function ensureOfflineSeeded(): Promise<boolean> {
+  try {
+    const stats = await getOfflineStorageStats();
+    if (stats.articleCount > 0) return false;
+
+    const res = await fetch("/offline-seed.json");
+    if (!res.ok) return false;
+    const bundle = await res.json();
+
+    if (Array.isArray(bundle.summaries) && bundle.summaries.length) {
+      await saveSummariesOffline(bundle.summaries);
+    }
+    if (Array.isArray(bundle.articles) && bundle.articles.length) {
+      await saveArticlesOffline(bundle.articles);
+    }
+    if (Array.isArray(bundle.mcq_sets) && bundle.mcq_sets.length) {
+      await saveMcqSetsOffline(bundle.mcq_sets);
+    }
+    if (Array.isArray(bundle.flashcard_sets) && bundle.flashcard_sets.length) {
+      await saveFlashcardSetsOffline(bundle.flashcard_sets);
+    }
+
+    if (bundle.generated_at) {
+      await setSyncMetadata("last_sync", bundle.generated_at);
+      await setSyncMetadata("is_fully_synced", true);
+    }
+    return true;
+  } catch (err) {
+    console.warn("Could not seed offline data from bundle:", err);
+    return false;
+  }
+}
+
+/**
+ * Intelligent background delta sync:
+ * Checks for any articles, question banks, or flashcards updated since last sync,
+ * downloading only modified records so the app is always up-to-date without large downloads.
+ */
+export async function autoDeltaSync(): Promise<{ updated: number }> {
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return { updated: 0 };
+  }
+
+  try {
+    const stats = await getOfflineStorageStats();
+    if (!stats.lastSync) {
+      await ensureOfflineSeeded();
+      return { updated: 0 };
+    }
+
+    const since = stats.lastSync;
+    let totalUpdated = 0;
+
+    // 1. Check for updated articles
+    const { data: updatedArticles } = await supabase
+      .from("articles")
+      .select("*")
+      .gt("updated_at", since)
+      .eq("published", true)
+      .eq("is_raw", false)
+      .is("deleted_at", null);
+
+    if (updatedArticles && updatedArticles.length > 0) {
+      await saveArticlesOffline(updatedArticles as Article[]);
+      totalUpdated += updatedArticles.length;
+    }
+
+    // 2. Check for updated MCQs
+    const { data: updatedMcqs } = await supabase
+      .from("mcq_sets")
+      .select("*")
+      .gt("updated_at", since)
+      .eq("published", true)
+      .is("deleted_at", null);
+
+    if (updatedMcqs && updatedMcqs.length > 0) {
+      await saveMcqSetsOffline(updatedMcqs as McqSet[]);
+      totalUpdated += updatedMcqs.length;
+    }
+
+    // 3. Check for updated flashcards
+    const { data: updatedFlashcards } = await supabase
+      .from("flashcard_sets")
+      .select("*")
+      .gt("updated_at", since)
+      .eq("published", true)
+      .is("deleted_at", null);
+
+    if (updatedFlashcards && updatedFlashcards.length > 0) {
+      await saveFlashcardSetsOffline(updatedFlashcards as FlashcardSet[]);
+      totalUpdated += updatedFlashcards.length;
+    }
+
+    await setSyncMetadata("last_sync", new Date().toISOString());
+    return { updated: totalUpdated };
+  } catch (err) {
+    console.warn("Delta auto-sync failed:", err);
+    return { updated: 0 };
+  }
+}
