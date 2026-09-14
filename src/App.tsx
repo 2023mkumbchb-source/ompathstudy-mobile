@@ -12,6 +12,8 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { ScrollProgressBar, BackToTopButton } from "@/components/ScrollFX";
 import ContentProtection from "@/components/ContentProtection";
 import PurchaseResume from "@/components/PurchaseResume";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import { useMobileApp } from "@/hooks/useMobileApp";
 import { Loader2 } from "lucide-react";
 import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import LearnerProfileGate from "@/components/LearnerProfileGate";
@@ -129,27 +131,34 @@ const AnimatedRoutes = () => {
   );
 };
 
+function MobileAppBridge() {
+  useMobileApp();
+  return null;
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <ScrollToTop />
-              <ScrollProgressBar />
-              <BackToTopButton />
-              <ContentProtection />
-              <PurchaseResume />
-              <LearnerProfileGate />
-              <Navbar />
-              <AnimatedRoutes />
-              <SiteFooter />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <MobileAppBridge />
+            <ScrollToTop />
+            <ScrollProgressBar />
+            <BackToTopButton />
+            <ContentProtection />
+            <PurchaseResume />
+            <LearnerProfileGate />
+            <Navbar />
+            <AnimatedRoutes />
+            <SiteFooter />
+            <MobileBottomNav />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   </ThemeProvider>
 );
 

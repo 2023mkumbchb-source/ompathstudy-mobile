@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getSetting } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { isNativeApp } from "@/hooks/useMobileApp";
 
 export interface AccessPlan {
   id: string;
@@ -265,21 +266,23 @@ export function useAccess() {
     loadPaymentSettings(true).then(setSettings);
   }, []);
 
-  const isFree = (settings?.price ?? 0) <= 0;
-  const hasPass = !!pass;
-  const ownerAccess = isAdmin;
+  const isApp = isNativeApp();
+  const isFree = (settings?.price ?? 0) <= 0 || isApp;
+  const hasPass = !!pass || isApp;
+  const ownerAccess = isAdmin || isApp;
   return {
     loading,
     settings: settings ?? DEFAULT_SETTINGS,
     pass,
     isFree,
     hasPass,
-    /** unlocked = free site, or a valid pass */
+    isApp,
+    /** unlocked = free site, valid pass, or running as the App */
     unlocked: isFree || hasPass || ownerAccess,
-    /** Answers/reveals are a subscriber feature — never unlocked for guests. */
-    canReveal: isFree || hasPass || ownerAccess,
-    /** PDF handouts are a pro feature: subscribers only. */
-    canDownload: ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
+    /** Answers/reveals unlocked for subscribers and all App users! */
+    canReveal: isApp || isFree || hasPass || ownerAccess,
+    /** PDF handouts are unlocked for App users! */
+    canDownload: isApp || ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
     applyPass: (p: AccessPass) => setPass(p),
     signOutPass: () => { clearPass(); setPass(null); },
     refresh,
