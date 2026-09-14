@@ -1,9 +1,9 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
@@ -19,6 +19,8 @@ import RouteErrorBoundary from "@/components/RouteErrorBoundary";
 import LearnerProfileGate from "@/components/LearnerProfileGate";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
 import AppUpdateDialog from "@/components/AppUpdateDialog";
+import NotificationBanner from "@/components/NotificationBanner";
+import { setupNativeNotificationListener } from "@/lib/notifications";
 import { useAutoSync } from "@/hooks/useAutoSync";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -135,8 +137,20 @@ const AnimatedRoutes = () => {
 };
 
 function MobileAppBridge() {
+  const navigate = useNavigate();
   useMobileApp();
   useAutoSync();
+
+  useEffect(() => {
+    setupNativeNotificationListener((url) => {
+      if (url.startsWith("http")) {
+        window.location.href = url;
+      } else {
+        navigate(url);
+      }
+    });
+  }, [navigate]);
+
   return null;
 }
 
@@ -149,6 +163,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <MobileAppBridge />
+            <NotificationBanner />
             <AppUpdateDialog />
             <ScrollToTop />
             <ScrollProgressBar />

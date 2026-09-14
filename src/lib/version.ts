@@ -1,7 +1,7 @@
 import { getSetting } from "./store";
 import { isOfflineMode } from "./offlineStore";
 
-export const CURRENT_APP_VERSION = "1.0.1";
+export const CURRENT_APP_VERSION = "1.0.2";
 export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/story-weave-box/releases/latest";
 
 export interface AppUpdateInfo {

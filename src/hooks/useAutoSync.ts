@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ensureOfflineSeeded, autoDeltaSync } from "@/lib/offlineStore";
 import { precacheAponeurosisImages } from "@/lib/offlineImageStore";
+import { checkForNewNotifications } from "@/lib/notifications";
 import { toast } from "sonner";
 
 export function useAutoSync() {
@@ -33,6 +34,9 @@ export function useAutoSync() {
               console.log(`[OmpathStudy] All ${total} Aponeurosis spot diagrams cached offline.`);
             }
           });
+
+          // 4. Check for new broadcast notifications and trigger banner/system alert if found
+          void checkForNewNotifications();
         }
       } catch (err) {
         console.warn("[OmpathStudy] Background auto-sync error:", err);

@@ -17,6 +17,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 import HeaderSearch from "./HeaderSearch";
 import ompathLogo from "@/assets/ompath-logo.webp";
 import { useAuth } from "@/hooks/useAuth";
@@ -209,10 +210,12 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <NotificationBell />
             <ThemeToggle />
           </div>
 
-          <div className="flex items-center gap-1.5 md:hidden">
+          <div className="flex items-center gap-1 md:hidden">
+            <NotificationBell />
             <ThemeToggle />
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>

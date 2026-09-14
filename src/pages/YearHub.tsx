@@ -12,6 +12,7 @@ import { Helmet } from "react-helmet-async";
 import { getUnitsForYear, unitPath, type Unit } from "@/lib/academic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getYear3Semester } from "@/lib/year3Semesters";
+import ExamCountdownWidget from "@/components/ExamCountdownWidget";
 
 function year3SemesterFor(article: Article): 1 | 2 | 3 {
   if ([1, 2, 3].includes(Number(article.semester_number))) return Number(article.semester_number) as 1 | 2 | 3;
@@ -203,6 +204,8 @@ export default function YearHub() {
           </Link>
         ))}
       </div>
+
+      <ExamCountdownWidget yearNumber={parsedYear} className="mt-6" />
 
       {parsedYear === 3 && (
         <section className="mt-6 rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 sm:p-6">
