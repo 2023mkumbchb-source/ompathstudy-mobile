@@ -13,16 +13,15 @@ import { getUnitsForYear, unitPath, type Unit } from "@/lib/academic";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getYear3Semester } from "@/lib/year3Semesters";
 
-function year3SemesterFor(article: Article): 1 | 2 | 3 | null {
+function year3SemesterFor(article: Article): 1 | 2 | 3 {
   if ([1, 2, 3].includes(Number(article.semester_number))) return Number(article.semester_number) as 1 | 2 | 3;
   const unit = getCategoryDisplayName(article.category);
   const mapped = getYear3Semester(unit);
   if (mapped) return mapped;
-  if (/virology|mycology/i.test(article.title)) return 3;
-  if (/bacteriology|parasitology|entomology/i.test(article.title)) return 1;
-  if (/hematopathology|haematology/i.test(article.title)) return 2;
-  if (/practical/i.test(article.title)) return 3;
-  return null;
+  if (/virology|mycology|dermatopath|neuropath|breast|bone|reproductive|urinary|blood transfusion/i.test(`${article.title} ${unit}`)) return 3;
+  if (/bacteriology|parasitology|entomology|general path|immunopath|genetic/i.test(`${article.title} ${unit}`)) return 1;
+  if (/hematopathology|haematology|cardiovascular|respiratory|gastrointestinal|endocrine|pharmacology/i.test(`${article.title} ${unit}`)) return 2;
+  return 1;
 }
 
 function year3ResourceKind(article: Article): "cat" | "exam" | "notes" {
@@ -76,16 +75,22 @@ export default function YearHub() {
     if (!isValidYear) { setRecentLoading(false); return; }
     let alive = true;
     setRecentLoading(true);
-    getPublishedArticleSummaries(yearLabel).then(list => {
-      if (!alive) return;
-      const sorted = [...list].sort((a, b) =>
-        new Date(b.updated_at || b.created_at).getTime() -
-        new Date(a.updated_at || a.created_at).getTime()
-      );
-      setRecent(sorted.slice(0, 6));
-      setYearArticles(sorted);
-      setRecentLoading(false);
-    });
+    getPublishedArticleSummaries(yearLabel)
+      .then(list => {
+        if (!alive) return;
+        const sorted = [...list].sort((a, b) =>
+          new Date(b.updated_at || b.created_at).getTime() -
+          new Date(a.updated_at || a.created_at).getTime()
+        );
+        setRecent(sorted.slice(0, 6));
+        setYearArticles(sorted);
+      })
+      .catch((err) => {
+        console.warn("Could not load year articles:", err);
+      })
+      .finally(() => {
+        if (alive) setRecentLoading(false);
+      });
     return () => { alive = false; };
   }, [isValidYear, yearLabel]);
 
@@ -93,11 +98,17 @@ export default function YearHub() {
     if (!isValidYear) { setUnitsLoading(false); return; }
     let alive = true;
     setUnitsLoading(true);
-    getUnitsForYear(parsedYear).then((list) => {
-      if (!alive) return;
-      setCanonicalUnits(list);
-      setUnitsLoading(false);
-    });
+    getUnitsForYear(parsedYear)
+      .then((list) => {
+        if (!alive) return;
+        setCanonicalUnits(list);
+      })
+      .catch((err) => {
+        console.warn("Could not load units for year:", err);
+      })
+      .finally(() => {
+        if (alive) setUnitsLoading(false);
+      });
     return () => { alive = false; };
   }, [isValidYear, parsedYear]);
 

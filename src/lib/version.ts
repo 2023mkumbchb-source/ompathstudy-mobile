@@ -1,7 +1,7 @@
 import { getSetting } from "./store";
 import { isOfflineMode } from "./offlineStore";
 
-export const CURRENT_APP_VERSION = "1.0.0";
+export const CURRENT_APP_VERSION = "1.0.1";
 export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/story-weave-box/releases/latest";
 
 export interface AppUpdateInfo {
@@ -38,22 +38,46 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   }
 
   try {
+    // 1. Check Supabase app_settings
     const [latestVersion, downloadUrl, updateNotes] = await Promise.all([
       getSetting("app_latest_version"),
       getSetting("app_download_url"),
       getSetting("app_update_notes"),
     ]);
 
-    const targetVersion = latestVersion ? latestVersion.trim() : CURRENT_APP_VERSION;
-    const targetUrl = downloadUrl ? downloadUrl.trim() : DEFAULT_DOWNLOAD_URL;
-    const updateAvailable = isNewerVersion(CURRENT_APP_VERSION, targetVersion);
+    let targetVersion = latestVersion ? latestVersion.trim() : "";
+    let targetUrl = downloadUrl ? downloadUrl.trim() : DEFAULT_DOWNLOAD_URL;
+    let notes = updateNotes || undefined;
+
+    // 2. Fallback: check GitHub releases API
+    if (!targetVersion || targetVersion === CURRENT_APP_VERSION) {
+      try {
+        const ghRes = await fetch("https://api.github.com/repos/2023mkumbchb-source/story-weave-box/releases/latest", {
+          headers: { Accept: "application/vnd.github.v3+json" },
+        });
+        if (ghRes.ok) {
+          const release = await ghRes.json();
+          const ghTag = (release.tag_name || "").replace(/^v/i, "").replace(/-apk$/i, "");
+          if (ghTag) {
+            targetVersion = ghTag;
+            if (release.html_url) targetUrl = release.html_url;
+            if (release.body) notes = release.body;
+          }
+        }
+      } catch {
+        // ignore github error
+      }
+    }
+
+    const effectiveVersion = targetVersion || CURRENT_APP_VERSION;
+    const updateAvailable = isNewerVersion(CURRENT_APP_VERSION, effectiveVersion);
 
     return {
       updateAvailable,
       currentVersion: CURRENT_APP_VERSION,
-      latestVersion: targetVersion,
+      latestVersion: effectiveVersion,
       downloadUrl: targetUrl,
-      notes: updateNotes || undefined,
+      notes,
     };
   } catch (err) {
     console.warn("Update check failed:", err);

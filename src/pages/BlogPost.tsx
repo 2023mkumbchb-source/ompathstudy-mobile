@@ -27,6 +27,7 @@ import StudyControls from "@/components/StudyControls";
 import NoteAudioPlayer from "@/components/NoteAudioPlayer";
 import HelpfulVote from "@/components/HelpfulVote";
 import ArticleMcqOption from "@/components/ArticleMcqOption";
+import OfflineImage from "@/components/OfflineImage";
 import {
   splitLeakedAnswer, cleanMetaTitle, cleanMetaDescription,
   articleHaystack, inferExamType, inferUnit,
@@ -883,7 +884,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
         if (src) {
         els.push(
           <figure key={`img-${i}`} className="my-7 overflow-hidden rounded-lg border border-border bg-muted/20">
-            <img src={src} alt={alt} loading="lazy" decoding="async" className="w-full object-contain" />
+            <OfflineImage src={src} alt={alt} loading="lazy" decoding="async" className="w-full object-contain" />
             {alt && <figcaption className="border-t border-border px-4 py-2 text-sm leading-relaxed text-muted-foreground">{alt}</figcaption>}
           </figure>
         );

@@ -15,7 +15,7 @@ export default function AppUpdateDialog() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Check for update after slight delay so app shell loads smoothly
+    // Check for update promptly on app startup
     const timer = setTimeout(() => {
       checkForAppUpdate().then((info) => {
         if (info?.updateAvailable) {
@@ -26,7 +26,7 @@ export default function AppUpdateDialog() {
           }
         }
       });
-    }, 4000);
+    }, 1200);
 
     return () => clearTimeout(timer);
   }, []);

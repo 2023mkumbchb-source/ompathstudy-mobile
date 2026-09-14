@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 /** Canonical public origin used for OAuth redirects (production must be the .com domain). */
 export function canonicalOrigin(): string {
@@ -15,10 +17,32 @@ export function safePostLoginPath(value: unknown): string {
 
 /**
  * Google sign-in for students, so subscriptions can be tied to an account.
- * Uses a plain full-page redirect (works on Vercel and inside the preview).
+ * In native Capacitor APK: uses in-app browser sheet and custom app scheme.
+ * On web: uses standard redirect.
  */
 export async function signInWithGoogle(): Promise<{ redirected?: boolean; error?: string }> {
   try {
+    const isNative = Capacitor.isNativePlatform();
+
+    if (isNative) {
+      const redirectTo = "ompathstudy://auth/callback";
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+
+      if (error) return { error: error.message };
+      if (data?.url) {
+        await Browser.open({ url: data.url, windowName: "_self" });
+        return { redirected: true };
+      }
+      return { error: "Could not generate sign-in link." };
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

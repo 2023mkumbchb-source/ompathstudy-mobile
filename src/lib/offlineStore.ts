@@ -220,7 +220,27 @@ export async function getSummariesOffline(year?: string): Promise<Article[]> {
         if (year && /^Year [1-6]$/.test(year)) {
           list = list.filter((a) => (a.category || "").startsWith(`${year}:`));
         }
-        resolve(list);
+        if (list.length > 0) {
+          resolve(list);
+          return;
+        }
+
+        // Fallback: If article_summaries was empty, read directly from articles store
+        try {
+          const tx2 = db.transaction("articles", "readonly");
+          const store2 = tx2.objectStore("articles");
+          const req2 = store2.getAll();
+          req2.onsuccess = () => {
+            let fullList = (req2.result || []) as Article[];
+            if (year && /^Year [1-6]$/.test(year)) {
+              fullList = fullList.filter((a) => (a.category || "").startsWith(`${year}:`));
+            }
+            resolve(fullList);
+          };
+          req2.onerror = () => resolve([]);
+        } catch {
+          resolve([]);
+        }
       };
       req.onerror = () => resolve([]);
     });
@@ -562,8 +582,23 @@ export async function clearOfflineCache(): Promise<void> {
 export async function ensureOfflineSeeded(): Promise<boolean> {
   try {
     const stats = await getOfflineStorageStats();
-    if (stats.articleCount > 0) return false;
+    if (stats.articleCount > 0 && stats.summaryCount > 0) return false;
 
+    // 1. Fast path: seed summaries immediately from lightweight (~400KB) offline-summaries.json
+    try {
+      const sumRes = await fetch("/offline-summaries.json");
+      if (sumRes.ok) {
+        const summaries = await sumRes.json();
+        if (Array.isArray(summaries) && summaries.length > 0) {
+          await saveSummariesOffline(summaries);
+          console.log(`[OmpathStudy] Fast seeded ${summaries.length} summaries.`);
+        }
+      }
+    } catch (e) {
+      console.warn("Fast summary seed skipped:", e);
+    }
+
+    // 2. Full bundle unpack
     const res = await fetch("/offline-seed.json");
     if (!res.ok) return false;
     const bundle = await res.json();
@@ -623,6 +658,23 @@ export async function autoDeltaSync(): Promise<{ updated: number }> {
 
     if (updatedArticles && updatedArticles.length > 0) {
       await saveArticlesOffline(updatedArticles as Article[]);
+      const previews = (updatedArticles as any[]).map((row) => ({
+        id: row.id,
+        title: row.title,
+        category: row.category,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        published: row.published,
+        slug: row.slug,
+        meta_description: row.meta_description,
+        og_image_url: row.og_image_url,
+        tags: row.tags,
+        featured_image: row.featured_image,
+        content_kind: row.content_kind,
+        content_type: row.content_type,
+        semester_number: row.semester_number,
+      }));
+      await saveSummariesOffline(previews as Article[]);
       totalUpdated += updatedArticles.length;
     }
 

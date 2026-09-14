@@ -11,9 +11,6 @@ import {
   Target,
   Database,
   ListChecks,
-  HardDrive,
-  Wifi,
-  WifiOff,
   Clock,
   Info,
 } from "lucide-react";
@@ -21,8 +18,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ThemeToggle from "./ThemeToggle";
 import HeaderSearch from "./HeaderSearch";
-import OfflineManagerModal from "./OfflineManagerModal";
-import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import ompathLogo from "@/assets/ompath-logo.webp";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -55,9 +50,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const { isOnline, stats } = useNetworkStatus();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [offlineModalOpen, setOfflineModalOpen] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
   const [hidden, setHidden] = useState(false);
 
@@ -220,21 +213,6 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
-            {/* Offline study button */}
-            <button
-              onClick={() => setOfflineModalOpen(true)}
-              className="flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-xs text-white/90 hover:bg-white/15 transition-colors"
-              title="Offline Study & Cache Manager"
-            >
-              {isOnline ? (
-                <HardDrive className="h-3.5 w-3.5 text-emerald-300" />
-              ) : (
-                <WifiOff className="h-3.5 w-3.5 text-amber-300 animate-pulse" />
-              )}
-              <span className="text-[11px] font-medium">
-                {isOnline ? (stats.articleCount > 0 ? `${stats.articleCount}` : "Sync") : "Offline"}
-              </span>
-            </button>
             <ThemeToggle />
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
@@ -258,32 +236,6 @@ export default function Navbar() {
                 <div className="flex flex-col overflow-y-auto h-[calc(100%-65px)]">
                   <div className="border-b border-white/10 px-3 py-3">
                     <HeaderSearch variant="mobile" onNavigate={() => setSidebarOpen(false)} />
-                  </div>
-
-                  {/* Quick Offline Downloads Access */}
-                  <div className="border-b border-white/10 px-3 py-2.5">
-                    <button
-                      onClick={() => {
-                        setSidebarOpen(false);
-                        setOfflineModalOpen(true);
-                      }}
-                      className="flex w-full items-center justify-between rounded-lg bg-white/10 p-2.5 text-left text-xs font-semibold text-white transition-colors hover:bg-white/15"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <HardDrive className="h-4 w-4 text-emerald-400 shrink-0" />
-                        <div>
-                          <div className="text-sm">Offline Downloads</div>
-                          <div className="text-[11px] font-normal text-white/70">
-                            {stats.articleCount > 0
-                              ? `${stats.articleCount} notes ready offline`
-                              : "Download all notes for offline"}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                        {isOnline ? "Manage" : "Offline"}
-                      </span>
-                    </button>
                   </div>
 
                   {/* Deep Study Hubs (No Home/Account duplicate!) */}
@@ -397,7 +349,6 @@ export default function Navbar() {
             </div>
           )}
       </nav>
-      <OfflineManagerModal open={offlineModalOpen} onOpenChange={setOfflineModalOpen} />
     </>
   );
 }

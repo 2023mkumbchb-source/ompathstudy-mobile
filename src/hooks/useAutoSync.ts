@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ensureOfflineSeeded, autoDeltaSync } from "@/lib/offlineStore";
+import { precacheAponeurosisImages } from "@/lib/offlineImageStore";
 import { toast } from "sonner";
 
 export function useAutoSync() {
@@ -25,6 +26,13 @@ export function useAutoSync() {
               duration: 4000,
             });
           }
+
+          // 3. Silently cache all Aponeurosis images for offline spot bank study
+          void precacheAponeurosisImages((done, total) => {
+            if (done === total && total > 0) {
+              console.log(`[OmpathStudy] All ${total} Aponeurosis spot diagrams cached offline.`);
+            }
+          });
         }
       } catch (err) {
         console.warn("[OmpathStudy] Background auto-sync error:", err);

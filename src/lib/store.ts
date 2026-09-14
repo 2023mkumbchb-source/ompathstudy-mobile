@@ -655,15 +655,23 @@ export async function getPublishedArticles(): Promise<Article[]> {
 }
 
 export async function getPublishedArticleSummaries(year?: string): Promise<Article[]> {
-  if (!year) {
-    const cached = getCachedSummaries();
-    if (cached) return cached;
+  const allCached = getCachedSummaries();
+  if (allCached && allCached.length > 0) {
+    if (!year) return allCached;
+    const filtered = allCached.filter((a) => {
+      const cat = a.category || "";
+      if (year === "Year 2") {
+        return cat.startsWith("Year 2:") || /aponeurosis/i.test(`${a.title} ${cat}`);
+      }
+      return cat.startsWith(`${year}:`);
+    });
+    if (filtered.length > 0) return filtered;
   }
 
-  // If offline, retrieve directly from IndexedDB
-  if (isOfflineMode()) {
-    const offlineList = await getSummariesOffline(year);
-    if (offlineList.length > 0) return offlineList;
+  // Check local offline summaries immediately
+  const offlineList = await getSummariesOffline(year);
+  if (isOfflineMode() && offlineList.length > 0) {
+    return offlineList;
   }
 
   try {
@@ -681,19 +689,35 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
         : query.like("category", `${year}:%`);
     }
 
-    const { data, error } = await query;
-    if (error) throw error;
-    const result = (data || []).map((row) => toArticlePreview(row)).filter(isPublicStudyArticle);
+    // Wrap query with a 6-second timeout for spotty mobile networks
+    const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
+      setTimeout(() => reject(new Error("Supabase query timed out")), 6000)
+    );
 
-    if (!year) {
-      setCachedSummaries(result);
+    const { data, error } = (await Promise.race([query, timeoutPromise])) as any;
+    if (error) throw error;
+    const result = (data || []).map((row: any) => toArticlePreview(row)).filter(isPublicStudyArticle);
+
+    if (result.length > 0) {
       void saveSummariesOffline(result);
+      if (!year) {
+        setCachedSummaries(result);
+      }
+      return result;
     }
+
+    if (offlineList.length > 0) return offlineList;
     return result;
   } catch (err) {
-    const offlineList = await getSummariesOffline(year);
+    console.warn(`[store] Remote fetch for year "${year || "all"}" failed, using offline fallback:`, err);
     if (offlineList.length > 0) return offlineList;
-    throw err;
+    const allOffline = await getSummariesOffline();
+    if (allOffline.length > 0) {
+      if (!year) return allOffline;
+      const matched = allOffline.filter((a) => (a.category || "").startsWith(`${year}:`));
+      if (matched.length > 0) return matched;
+    }
+    return [];
   }
 }
 

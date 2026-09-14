@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { LogIn, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { LogIn, Loader2, Mail, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [readerPassword, setReaderPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
   const { user, isAdmin, signIn, signUp, loading: authLoading } = useAuth();
@@ -58,12 +59,12 @@ export default function Login() {
         toast({ title: "Account created", description: "Check your inbox if confirmation is required." });
       } else {
         await signIn(email.trim(), readerPassword);
-        toast({ title: "Signed in" });
+        toast({ title: "Signed in successfully" });
       }
     } catch (err) {
       toast({
-        title: mode === "signup" ? "Could not create the account" : "Could not sign in",
-        description: err instanceof Error ? err.message : "",
+        title: mode === "signup" ? "Could not create account" : "Could not sign in",
+        description: err instanceof Error ? err.message : "Please check your email and password.",
         variant: "destructive",
       });
     } finally {
@@ -74,7 +75,7 @@ export default function Login() {
   const resetPassword = async () => {
     const cleanEmail = email.trim();
     if (!cleanEmail) {
-      toast({ title: "Enter your email first" });
+      toast({ title: "Enter your email first", description: "Type your email address above to receive a reset link." });
       return;
     }
     setBusy(true);
@@ -87,7 +88,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-73px)] items-center justify-center px-6">
+    <div className="flex min-h-[calc(100vh-73px)] items-center justify-center px-4 py-8">
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
@@ -101,48 +102,90 @@ export default function Login() {
         <meta name="twitter:description" content={description} />
       </Helmet>
       <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-border bg-card p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
-          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <ShieldCheck className="h-7 w-7" />
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <ShieldCheck className="h-6 w-6" />
           </div>
-          <h1 className="mb-2 text-center font-serif text-2xl font-bold text-foreground">
-            {mode === "signup" ? "Create your account" : "Sign in"}
+          <h1 className="mb-1 text-center font-serif text-2xl font-bold text-foreground">
+            {mode === "signup" ? "Create your account" : "Welcome back"}
           </h1>
-          <p className="mb-6 text-center text-sm text-muted-foreground">
-            Sign in so your subscription and pass code follow your email everywhere.
+          <p className="mb-6 text-center text-xs text-muted-foreground">
+            {mode === "signup"
+              ? "Create an account for personalized bookmarks, progress tracking, and pass sync."
+              : "Sign in to keep your revision binder, progress, and study tools in sync."}
           </p>
 
-          <Button type="button" onClick={google} disabled={busy} variant="outline" className="mb-4 w-full gap-2">
+          <form onSubmit={emailAuth} className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-foreground">Email Address</label>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-xs font-semibold text-foreground">Password</label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={resetPassword}
+                    disabled={busy}
+                    className="text-[11px] font-medium text-primary hover:underline"
+                  >
+                    Forgot?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={readerPassword}
+                  onChange={(e) => setReaderPassword(e.target.value)}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full gap-2 mt-2 font-semibold" disabled={busy}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              {mode === "signup" ? "Create Account" : "Sign In"}
+            </Button>
+          </form>
+
+          <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button type="button" onClick={google} disabled={busy} variant="outline" className="w-full gap-2 text-xs font-medium">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
             Continue with Google
           </Button>
 
-          <div className="mb-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span className="h-px flex-1 bg-border" /> or email <span className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={emailAuth}>
-            <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="mb-3" required />
-            <Input type="password" placeholder="Password" value={readerPassword} onChange={(e) => setReaderPassword(e.target.value)} className="mb-4" required />
-            <Button type="submit" className="w-full gap-2" disabled={busy}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-              {mode === "signup" ? "Create account" : "Sign in"}
-            </Button>
-            {mode === "signin" && (
-              <Button type="button" variant="link" onClick={resetPassword} disabled={busy} className="mt-2 w-full text-xs">
-                Forgot password?
-              </Button>
-            )}
-          </form>
-
           <button
             type="button"
             onClick={() => setMode((m) => (m === "signup" ? "signin" : "signup"))}
-            className="mt-4 w-full text-center text-xs font-semibold text-primary underline underline-offset-4"
+            className="mt-5 w-full text-center text-xs font-semibold text-primary hover:underline"
           >
-            {mode === "signup" ? "I already have an account" : "New here? Create an account"}
+            {mode === "signup" ? "Already have an account? Sign In" : "New here? Create an account"}
           </button>
-          <div className="mt-4 text-center">
+          <div className="mt-3 text-center">
             <Link to="/" className="text-xs text-muted-foreground hover:underline">← Continue as guest</Link>
           </div>
         </div>
