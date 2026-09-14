@@ -6,6 +6,7 @@ import { CONTEST_RULES } from "@/lib/contest";
 import { getContestBySlug, getMyContestRegistration, loadContestPlatform, loadContestRounds, proposeContestUniversity, registerForContest, type ContestRecord, type ContestRegistration, type ContestRound, type ContestUniversity } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
 import ContestCountdown from "@/components/ContestCountdown";
+import ContestCalendarActions from "@/components/ContestCalendarActions";
 
 export default function ContestRegistrationPage() {
   const { slug = "" } = useParams();
@@ -72,11 +73,13 @@ export default function ContestRegistrationPage() {
           <p className="flex items-center gap-2 font-bold text-teal-200"><CheckCircle2 className="h-5 w-5" /> Registration received</p>
           <p className="mt-2 text-sm text-white/55">Status: <span className="capitalize text-white/80">{registration.status}</span>. Institutional verification will happen before admission to the lobby.</p>
           {nextRound?.starts_at && <ContestCountdown startsAt={nextRound.starts_at} className="mt-5" />}
+          {nextRound?.starts_at && <ContestCalendarActions title={`${contest.title} — ${nextRound.title}`} startsAt={nextRound.starts_at} endsAt={nextRound.ends_at} details={`Your Ompath Study contest is scheduled. Sign in early and enter the secure lobby: https://www.ompathstudy.com/contests/${slug}/lobby`} location={`https://www.ompathstudy.com/contests/${slug}/lobby`} className="mt-4" />}
           <Link to={`/contests/${slug}/lobby`} className="mt-5 inline-flex rounded-lg border border-teal-200/30 px-4 py-2 text-sm font-bold text-teal-200">Open contest lobby</Link>
         </div> : !isOpen ? <div className="mt-7 rounded-xl border border-amber-300/20 bg-amber-300/10 p-5">
           <p className="flex items-center gap-2 font-bold text-amber-200"><LockKeyhole className="h-5 w-5" /> Registration is not open</p>
           <p className="mt-2 text-sm text-white/55">This competition is still in the concept stage. Dates and eligibility rules will be published before registration opens.</p>
         </div> : <form onSubmit={submit} className="mt-7 space-y-5">
+          {nextRound?.starts_at && <div className="rounded-xl border border-amber-300/20 bg-amber-300/[0.07] p-4"><p className="text-sm font-bold text-amber-200">Scheduled exam</p><ContestCountdown startsAt={nextRound.starts_at} className="mt-3" /><ContestCalendarActions title={`${contest.title} — ${nextRound.title}`} startsAt={nextRound.starts_at} endsAt={nextRound.ends_at} details="Ompath Study medical competition exam. Sign in and enter the secure lobby before the scheduled start." location={`https://www.ompathstudy.com/contests/${slug}/lobby`} className="mt-4" /></div>}
           <label className="block text-sm font-semibold">University<select required value={universityId} onChange={(e) => setUniversityId(e.target.value)} className="mt-2 w-full rounded-lg border border-white/15 bg-[#0b1d20] px-3 py-3 text-white"><option value="">Select institution</option>{universities.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}<option value="__new__">My university is not listed</option></select></label>
           {universityId === "__new__" && <div className="rounded-xl border border-teal-300/20 bg-teal-300/[0.06] p-4">
             <p className="text-sm font-bold text-teal-200">Add your university</p>

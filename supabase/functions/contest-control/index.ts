@@ -6,6 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char] || char));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -265,11 +266,45 @@ serve(async (req) => {
         auto_close: body?.autoClose !== false,
         entry_grace_minutes: Math.max(0, Math.min(60, Number(body?.entryGraceMinutes) || 10)),
         results_visible: Boolean(body?.resultsVisible),
+        ...(Object.prototype.hasOwnProperty.call(body, "universityAId") ? { university_a_id: body?.universityAId || null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(body, "universityBId") ? { university_b_id: body?.universityBId || null } : {}),
         locked_at: status === "scheduled" ? current.locked_at : (current.locked_at || new Date().toISOString()),
         updated_at: new Date().toISOString(),
       }).eq("id", roundId);
       if (error) throw error;
       return json({ success: true });
+    }
+
+    if (action === "announce_schedule") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const roundId = String(body?.roundId || "");
+      const { data: round } = await admin.from("contest_rounds").select("title,starts_at,ends_at,contest_id,contests(title,slug)").eq("id", roundId).maybeSingle();
+      if (!round?.starts_at || !round?.contests) return json({ error: "Save the round date and time first" }, 409);
+      const contest = Array.isArray(round.contests) ? round.contests[0] : round.contests;
+      const startText = new Intl.DateTimeFormat("en-KE", { timeZone: "Africa/Nairobi", dateStyle: "full", timeStyle: "short" }).format(new Date(round.starts_at));
+      const title = `${contest.title} — exam scheduled`;
+      const message = `${round.title} will begin on ${startText} (East Africa Time). Register, verify your entry and add the event to your calendar.`;
+      const actionUrl = `https://www.ompathstudy.com/contests/${contest.slug}/register`;
+      const users: Array<{ id: string; email?: string }> = [];
+      for (let page = 1; ; page += 1) { const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 }); if (error) throw error; users.push(...data.users.map((item) => ({ id: item.id, email: item.email }))); if (data.users.length < 1000) break; }
+      const recipients = users.filter((item) => item.email);
+      const { data: campaign, error: campaignError } = await admin.from("notification_campaigns").insert({ title, message, action_url: actionUrl, audience: "all_users", status: "sending", recipient_count: recipients.length, created_by: user.id }).select("id").single();
+      if (campaignError) throw campaignError;
+      for (let index = 0; index < recipients.length; index += 500) { const { error } = await admin.from("user_notifications").insert(recipients.slice(index, index + 500).map((item) => ({ campaign_id: campaign.id, user_id: item.id, title, message, action_url: actionUrl }))); if (error) throw error; }
+      const resendKey = Deno.env.get("RESEND_API_KEY");
+      const from = Deno.env.get("NOTIFICATION_FROM_EMAIL") || "Ompath Study <notifications@ompathstudy.com>";
+      const { data: preferences } = await admin.from("notification_preferences").select("user_id").eq("email_enabled", false);
+      const optedOut = new Set((preferences || []).map((item) => item.user_id));
+      let delivered = 0, failed = 0;
+      if (resendKey) for (const recipient of recipients) {
+        if (optedOut.has(recipient.id)) { await admin.from("user_notifications").update({ email_status: "skipped" }).eq("campaign_id", campaign.id).eq("user_id", recipient.id); continue; }
+        const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [recipient.email], subject: title, text: `${message}\n\nOpen: ${actionUrl}`, html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto"><h1 style="color:#0f766e">${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><p><a href="${actionUrl}" style="display:inline-block;padding:12px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:8px">Register or add to calendar</a></p></div>` }) });
+        response.ok ? delivered++ : failed++;
+        await admin.from("user_notifications").update({ email_status: response.ok ? "sent" : "failed", email_error: response.ok ? null : (await response.text()).slice(0, 500) }).eq("campaign_id", campaign.id).eq("user_id", recipient.id);
+      }
+      if (!resendKey) await admin.from("user_notifications").update({ email_status: "skipped", email_error: "Email provider is not configured" }).eq("campaign_id", campaign.id);
+      await admin.from("notification_campaigns").update({ status: !resendKey ? "partial" : failed ? "partial" : "sent", delivered_count: delivered, failed_count: failed, sent_at: new Date().toISOString() }).eq("id", campaign.id);
+      return json({ success: true, recipients: recipients.length, delivered, emailConfigured: Boolean(resendKey) });
     }
 
     if (action === "update_contest_stage") {
@@ -395,16 +430,16 @@ serve(async (req) => {
       const { error: insertError } = await admin.from("contest_integrity_events").insert({ attempt_id: attemptId, user_id: user.id, event_type: eventType });
       if (insertError) throw insertError;
       const { data: round } = await admin.from("contest_rounds").select("auto_eliminate,tab_switch_limit,focus_loss_limit").eq("id", attempt.round_id).single();
-      let eliminated = false;
+      let eliminated = false, strikes = 0, limit = eventType === "tab_hidden" ? Number(round?.tab_switch_limit || 3) : Number(round?.focus_loss_limit || 3);
       if (round?.auto_eliminate && ["tab_hidden", "focus_lost"].includes(eventType)) {
         const { count } = await admin.from("contest_integrity_events").select("id", { count: "exact", head: true }).eq("attempt_id", attemptId).eq("event_type", eventType);
-        const limit = eventType === "tab_hidden" ? round.tab_switch_limit : round.focus_loss_limit;
-        if ((count || 0) >= limit) {
+        strikes = count || 0;
+        if (strikes >= limit) {
           await admin.from("contest_attempts").update({ status: "eliminated", eliminated_at: new Date().toISOString() }).eq("id", attemptId).eq("status", "active");
           eliminated = true;
         }
       }
-      return json({ success: true, eliminated });
+      return json({ success: true, eliminated, strikes, limit });
     }
 
     if (action === "save_answer") {

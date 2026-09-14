@@ -67,11 +67,15 @@ export interface ContestRound {
   auto_close: boolean;
   entry_grace_minutes: number;
   results_visible: boolean;
+  university_a_id: string | null;
+  university_b_id: string | null;
+  university_a: { name: string; abbreviation: string | null } | null;
+  university_b: { name: string; abbreviation: string | null } | null;
 }
 
 export async function loadContestRounds(contestId: string): Promise<ContestRound[]> {
   const { data, error } = await (supabase as any).from("contest_rounds")
-    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title,auto_open,auto_close,entry_grace_minutes,results_visible")
+    .select("id,contest_id,title,round_number,status,starts_at,ends_at,duration_seconds,question_count,tab_switch_limit,focus_loss_limit,auto_eliminate,integrity_policy,source_mcq_set_id,source_exam_title,auto_open,auto_close,entry_grace_minutes,results_visible,university_a_id,university_b_id,university_a:contest_universities!contest_rounds_university_a_id_fkey(name,abbreviation),university_b:contest_universities!contest_rounds_university_b_id_fkey(name,abbreviation)")
     .eq("contest_id", contestId).order("round_number");
   if (error) throw error;
   return (data || []) as ContestRound[];
@@ -135,10 +139,10 @@ export async function proposeContestUniversity(name: string, abbreviation: strin
   return data.university as ContestUniversity;
 }
 
-export async function logContestIntegrityEvent(attemptId: string, _userId: string, eventType: string): Promise<boolean> {
+export async function logContestIntegrityEvent(attemptId: string, _userId: string, eventType: string): Promise<{ eliminated: boolean; strikes: number; limit: number }> {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "log_integrity_event", attemptId, eventType } });
   if (error || data?.error) throw error || new Error(data.error);
-  return Boolean(data.eliminated);
+  return { eliminated: Boolean(data.eliminated), strikes: Number(data.strikes || 0), limit: Number(data.limit || 3) };
 }
 
 export async function finishContestAttempt(attemptId: string): Promise<number> {
@@ -202,9 +206,14 @@ export async function setContestRegistrationStatus(registrationId: string, statu
   if (error || data?.error) throw error || new Error(data.error);
 }
 
-export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean }) {
+export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean; universityAId?: string | null; universityBId?: string | null }) {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "configure_round", ...input } });
   if (error || data?.error) throw error || new Error(data.error);
+}
+
+export async function announceContestSchedule(roundId: string): Promise<{ recipients: number; delivered: number; emailConfigured: boolean }> {
+  const data = await contestControl<{ recipients: number; delivered: number; emailConfigured: boolean }>({ action: "announce_schedule", roundId });
+  return data;
 }
 
 export async function uploadContestPoster(contestId: string, file: File): Promise<string> {

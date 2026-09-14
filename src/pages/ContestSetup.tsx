@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Building2, CheckCircle2, ClipboardPaste, FileQuestion, Image, Link2, Loader2, Plus, Search, Sparkles, Trash2, Trophy } from "lucide-react";
+import { ArrowLeft, BellRing, Building2, CheckCircle2, ClipboardPaste, FileQuestion, Image, Link2, Loader2, Plus, Search, Sparkles, Trash2, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { parseContestQuestions, type ParsedContestQuestion } from "@/lib/contest-parse";
 import {
-  addContestUniversity, configureContestRound, createContest, createContestRound, createSampleContest,
+  addContestUniversity, announceContestSchedule, configureContestRound, createContest, createContestRound, createSampleContest,
   deleteContestRound, importContestQuestions, importExamPaperToContestRound, loadAdminContests, loadAdminExamPapers, loadAllContestUniversities, loadContestRounds,
   setContestUniversityActive, updateContestDetails, updateContestStage, uploadContestPoster,
   type AdminExamPaper, type ContestRecord, type ContestRound, type ContestUniversity,
@@ -389,16 +389,19 @@ export default function ContestSetup() {
           {rounds.map((round) => (
             <div key={round.id} className="rounded-xl border p-4">
               <div><p className="font-bold">{round.title}</p><p className="text-xs text-muted-foreground">{round.question_count} questions · currently {round.status}</p></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">University A<select value={round.university_a_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_a_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal"><option value="">Select first university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-xs font-bold">University B<select value={round.university_b_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_b_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal"><option value="">Select second university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, starts_at: toIso(e.target.value) } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (East Africa Time)<input type="datetime-local" value={toLocal(round.ends_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, ends_at: toIso(e.target.value) } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label></div>
               <button disabled={!round.starts_at || !round.ends_at || busy === round.id + "schedule"} onClick={() => void run(round.id + "schedule", async () => {
                 if (!round.starts_at || !round.ends_at) throw new Error("Select both the starting and ending date and time.");
                 if (new Date(round.ends_at) <= new Date(round.starts_at)) throw new Error("The ending time must be after the starting time.");
-                await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: round.tab_switch_limit, focusLossLimit: round.focus_loss_limit, autoEliminate: round.auto_eliminate });
+                if (round.university_a_id && round.university_a_id === round.university_b_id) throw new Error("Choose two different universities.");
+                await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: 3, focusLossLimit: 3, autoEliminate: true, universityAId: round.university_a_id, universityBId: round.university_b_id });
                 await refreshRounds();
                 return `${round.title} schedule saved successfully.`;
               })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
                 {busy === round.id + "schedule" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />} Save date &amp; time
               </button>
+              <button disabled={!round.starts_at || busy === round.id + "notify"} onClick={() => void run(round.id + "notify", async () => { const result = await announceContestSchedule(round.id); return result.emailConfigured ? `Notice sent in-app to ${result.recipients} users; ${result.delivered} emails delivered.` : `In-app notice sent to ${result.recipients} users. Configure Resend to enable email delivery.`; })} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-40 sm:ml-3 sm:w-auto"><BellRing className="mr-2 h-4 w-4" /> Notify all users</button>
               <div className="mt-4 flex flex-wrap gap-3">
               {(["lobby", "live", "closed"] as ContestRound["status"][]).map((status) => (
                 <button key={status} disabled={busy === round.id + status} onClick={() => void run(round.id + status, async () => {
@@ -408,8 +411,8 @@ export default function ContestSetup() {
                     : new Date(new Date(startsAt).getTime() + round.duration_seconds * 1000).toISOString();
                   await configureContestRound({
                     roundId: round.id, status, startsAt, endsAt,
-                    durationSeconds: round.duration_seconds, tabSwitchLimit: round.tab_switch_limit,
-                    focusLossLimit: round.focus_loss_limit, autoEliminate: round.auto_eliminate,
+                    durationSeconds: round.duration_seconds, tabSwitchLimit: 3,
+                    focusLossLimit: 3, autoEliminate: true, universityAId: round.university_a_id, universityBId: round.university_b_id,
                   });
                   await refreshRounds();
                   return `${round.title} is now ${status}.`;
