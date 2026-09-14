@@ -382,13 +382,22 @@ export default function ContestSetup() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-bold">7. Open the round</h2>
-        <p className="mt-2 text-sm text-muted-foreground">A lobby round is visible to verified participants; a live round accepts attempts and needs start and end times.</p>
+        <h2 className="text-lg font-bold">7. Schedule and open the round</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Choose the date and time, save the schedule, then leave the round in Lobby until you are ready to start it.</p>
         <div className="mt-4 space-y-3">
           {rounds.map((round) => (
             <div key={round.id} className="rounded-xl border p-4">
               <div><p className="font-bold">{round.title}</p><p className="text-xs text-muted-foreground">{round.question_count} questions · currently {round.status}</p></div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, starts_at: toIso(e.target.value) } : item))} className="mt-1 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (East Africa Time)<input type="datetime-local" value={toLocal(round.ends_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, ends_at: toIso(e.target.value) } : item))} className="mt-1 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, starts_at: toIso(e.target.value) } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (East Africa Time)<input type="datetime-local" value={toLocal(round.ends_at)} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, ends_at: toIso(e.target.value) } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label></div>
+              <button disabled={!round.starts_at || !round.ends_at || busy === round.id + "schedule"} onClick={() => void run(round.id + "schedule", async () => {
+                if (!round.starts_at || !round.ends_at) throw new Error("Select both the starting and ending date and time.");
+                if (new Date(round.ends_at) <= new Date(round.starts_at)) throw new Error("The ending time must be after the starting time.");
+                await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: round.tab_switch_limit, focusLossLimit: round.focus_loss_limit, autoEliminate: round.auto_eliminate });
+                await refreshRounds();
+                return `${round.title} schedule saved successfully.`;
+              })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
+                {busy === round.id + "schedule" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />} Save date &amp; time
+              </button>
               <div className="mt-4 flex flex-wrap gap-3">
               {(["lobby", "live", "closed"] as ContestRound["status"][]).map((status) => (
                 <button key={status} disabled={busy === round.id + status} onClick={() => void run(round.id + status, async () => {
@@ -403,7 +412,7 @@ export default function ContestSetup() {
                   });
                   await refreshRounds();
                   return `${round.title} is now ${status}.`;
-                })} className={`rounded-lg border px-4 py-2 text-sm font-bold capitalize disabled:opacity-40 ${round.status === status ? "border-primary bg-primary/10 text-primary" : ""}`}>
+                })} className={`min-h-11 flex-1 rounded-lg border px-4 py-2 text-sm font-bold capitalize disabled:opacity-40 sm:flex-none ${round.status === status ? "border-primary bg-primary/10 text-primary" : ""}`}>
                   {status}
                 </button>
               ))}
