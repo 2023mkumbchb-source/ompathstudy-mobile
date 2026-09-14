@@ -273,9 +273,13 @@ serve(async (req) => {
       const { data: current } = await admin.from("contest_rounds").select("question_count,locked_at").eq("id", roundId).maybeSingle();
       if (!current) return json({ error: "Round not found" }, 404);
       if (["lobby", "live", "closed"].includes(status) && Number(current.question_count) < 1) return json({ error: "Import questions before opening the round" }, 409);
-      const startsAt = body?.startsAt || null;
+      const requestedStartsAt = body?.startsAt || null;
       const durationSeconds = Math.max(60, Math.min(14400, Number(body?.durationSeconds) || 1800));
-      const endsAt = body?.endsAt || (startsAt ? new Date(new Date(startsAt).getTime() + durationSeconds * 1000).toISOString() : null);
+      const startsAt = status === "live" && (!requestedStartsAt || new Date(requestedStartsAt).getTime() <= Date.now()) ? new Date().toISOString() : requestedStartsAt;
+      const requestedEndsAt = body?.endsAt || null;
+      const endsAt = startsAt && (status === "live" || !requestedEndsAt || new Date(requestedEndsAt) <= new Date(startsAt))
+        ? new Date(new Date(startsAt).getTime() + durationSeconds * 1000).toISOString()
+        : requestedEndsAt;
       if (["scheduled", "lobby"].includes(status) && startsAt && new Date(startsAt).getTime() <= Date.now()) return json({ error: "A scheduled round must start in the future" }, 400);
       if (["scheduled", "lobby", "live"].includes(status) && startsAt && (!endsAt || new Date(endsAt) <= new Date(startsAt))) return json({ error: "The ending time must be after the starting time" }, 400);
       if (startsAt && endsAt && new Date(endsAt).getTime() - new Date(startsAt).getTime() > (durationSeconds + 900) * 1000) return json({ error: "The round window is too long for its examination duration. Use the duration plus no more than 15 minutes." }, 400);
@@ -299,6 +303,10 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       }).eq("id", roundId);
       if (error) throw error;
+      if (status === "live") {
+        const { data: activeRound } = await admin.from("contest_rounds").select("contest_id").eq("id", roundId).single();
+        if (activeRound?.contest_id) await admin.from("contests").update({ status: "live", starts_at: startsAt, updated_at: new Date().toISOString() }).eq("id", activeRound.contest_id);
+      }
       return json({ success: true });
     }
 

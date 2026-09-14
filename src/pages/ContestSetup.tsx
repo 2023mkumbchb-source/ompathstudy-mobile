@@ -395,7 +395,8 @@ export default function ContestSetup() {
                 if (!round.starts_at || !round.ends_at) throw new Error("Select both the starting and ending date and time.");
                 if (new Date(round.ends_at) <= new Date(round.starts_at)) throw new Error("The ending time must be after the starting time.");
                 if (round.university_a_id && round.university_a_id === round.university_b_id) throw new Error("Choose two different universities.");
-                await configureContestRound({ roundId: round.id, status: round.status, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: 3, focusLossLimit: 3, autoEliminate: true, universityAId: round.university_a_id, universityBId: round.university_b_id });
+                const scheduleStatus = ["closed", "cancelled", "live"].includes(round.status) ? "scheduled" : round.status;
+                await configureContestRound({ roundId: round.id, status: scheduleStatus, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: 3, focusLossLimit: 3, autoEliminate: true, universityAId: round.university_a_id, universityBId: round.university_b_id });
                 await refreshRounds();
                 return `${round.title} schedule saved successfully.`;
               })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
@@ -405,8 +406,8 @@ export default function ContestSetup() {
               <div className="mt-4 flex flex-wrap gap-3">
               {(["lobby", "live", "closed"] as ContestRound["status"][]).map((status) => (
                 <button key={status} disabled={busy === round.id + status} onClick={() => void run(round.id + status, async () => {
-                  const startsAt = round.starts_at || new Date().toISOString();
-                  const endsAt = round.ends_at && new Date(round.ends_at) > new Date(startsAt)
+                  const startsAt = status === "live" ? new Date().toISOString() : (round.starts_at || new Date(Date.now() + 5 * 60_000).toISOString());
+                  const endsAt = status !== "live" && round.ends_at && new Date(round.ends_at) > new Date(startsAt)
                     ? round.ends_at
                     : new Date(new Date(startsAt).getTime() + round.duration_seconds * 1000).toISOString();
                   await configureContestRound({

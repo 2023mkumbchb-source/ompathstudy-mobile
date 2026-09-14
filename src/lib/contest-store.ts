@@ -209,13 +209,11 @@ export async function loadAdminContestRegistrations(contestId: string): Promise<
 }
 
 export async function setContestRegistrationStatus(registrationId: string, status: ContestRegistration["status"]) {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "registration_status", registrationId, status } });
-  if (error || data?.error) throw error || new Error(data.error);
+  await contestControl({ action: "registration_status", registrationId, status });
 }
 
 export async function configureContestRound(input: { roundId: string; status: ContestRound["status"]; startsAt: string | null; endsAt: string | null; durationSeconds: number; tabSwitchLimit: number; focusLossLimit: number; autoEliminate: boolean; autoOpen?: boolean; autoClose?: boolean; entryGraceMinutes?: number; resultsVisible?: boolean; universityAId?: string | null; universityBId?: string | null; shuffleQuestions?: boolean; marksCorrect?: number; marksIncorrect?: number }) {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "configure_round", ...input } });
-  if (error || data?.error) throw error || new Error(data.error);
+  await contestControl({ action: "configure_round", ...input });
 }
 
 export async function announceContestSchedule(roundId: string): Promise<{ recipients: number; delivered: number; emailConfigured: boolean }> {
@@ -258,19 +256,15 @@ export async function loadContestQuestionAnalytics(roundId: string): Promise<Con
 
 export interface RehearsalResult { score: number; correct: number; total: number; details: { questionId: string; correct: boolean; explanation: string | null }[] }
 export async function scoreContestRehearsal(roundId: string, answers: Record<string, number>): Promise<RehearsalResult> {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "rehearsal_score", roundId, answers } });
-  if (error || data?.error) throw error || new Error(data.error);
-  return data as RehearsalResult;
+  return contestControl<RehearsalResult>({ action: "rehearsal_score", roundId, answers });
 }
 
 export async function overrideContestAttempt(attemptId: string, status: ContestAttempt["status"], reason: string) {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "override_attempt", attemptId, status, reason } });
-  if (error || data?.error) throw error || new Error(data.error);
+  await contestControl({ action: "override_attempt", attemptId, status, reason });
 }
 
 export async function decideContestAdvancement(input: { registrationId: string; sourceRoundId: string; targetRoundId?: string | null; decision: "advanced" | "eliminated" | "wildcard"; reason: string }) {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "advance_registration", ...input } });
-  if (error || data?.error) throw error || new Error(data.error);
+  await contestControl({ action: "advance_registration", ...input });
 }
 
 export interface ContestAdvancement { id: string; decision: "advanced" | "eliminated" | "wildcard"; reason: string; created_at: string; contest_rounds: { title: string } | null }
@@ -285,13 +279,12 @@ export async function loadMyContestAdvancements(contestId: string, registrationI
 export interface ContestAppeal { id: string; contest_id: string; registration_id: string; attempt_id: string | null; advancement_id: string | null; user_id: string; category: "integrity" | "score" | "advancement" | "technical"; statement: string; status: "open" | "reviewing" | "upheld" | "overturned" | "dismissed"; resolution: string | null; created_at: string }
 export async function loadMyContestAppeals(contestId: string): Promise<ContestAppeal[]> { const { data, error } = await (supabase as any).from("contest_appeals").select("id,contest_id,registration_id,attempt_id,advancement_id,user_id,category,statement,status,resolution,created_at").eq("contest_id", contestId).order("created_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAppeal[]; }
 export async function loadMyContestAttempts(registrationId: string): Promise<ContestAttempt[]> { const { data, error } = await (supabase as any).from("contest_attempts").select("id,round_id,registration_id,user_id,status,started_at,submitted_at,score").eq("registration_id", registrationId).order("started_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAttempt[]; }
-export async function submitContestAppeal(input: { contestId: string; registrationId: string; attemptId?: string | null; advancementId?: string | null; category: ContestAppeal["category"]; statement: string }) { const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "submit_appeal", ...input } }); if (error || data?.error) throw error || new Error(data.error); }
+export async function submitContestAppeal(input: { contestId: string; registrationId: string; attemptId?: string | null; advancementId?: string | null; category: ContestAppeal["category"]; statement: string }) { await contestControl({ action: "submit_appeal", ...input }); }
 export async function loadAdminContestAppeals(): Promise<ContestAppeal[]> { const { data, error } = await (supabase as any).from("contest_appeals").select("id,contest_id,registration_id,attempt_id,advancement_id,user_id,category,statement,status,resolution,created_at").order("created_at", { ascending: false }); if (error) throw error; return (data || []) as ContestAppeal[]; }
-export async function resolveContestAppeal(appealId: string, status: "reviewing" | "upheld" | "overturned" | "dismissed", resolution: string) { const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "resolve_appeal", appealId, status, resolution } }); if (error || data?.error) throw error || new Error(data.error); }
+export async function resolveContestAppeal(appealId: string, status: "reviewing" | "upheld" | "overturned" | "dismissed", resolution: string) { await contestControl({ action: "resolve_appeal", appealId, status, resolution }); }
 
 export async function publishContestResults(roundId: string): Promise<number> {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "publish_results", roundId } });
-  if (error || data?.error) throw error || new Error(data.error);
+  const data = await contestControl<{ count: number }>({ action: "publish_results", roundId });
   return Number(data.count || 0);
 }
 
@@ -342,13 +335,24 @@ export async function loadAdminContests(): Promise<ContestRecord[]> {
 }
 
 export async function updateContestStage(id: string, stage: ContestStage) {
-  const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "update_contest_stage", contestId: id, stage } });
-  if (error || data?.error) throw error || new Error(data.error);
+  await contestControl({ action: "update_contest_stage", contestId: id, stage });
 }
 
 async function contestControl<T = any>(body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke("contest-control", { body });
-  if (error || data?.error) throw error || new Error(data.error);
+  if (data?.error) throw new Error(String(data.error));
+  if (error) {
+    const response = (error as any)?.context;
+    if (response && typeof response.clone === "function") {
+      try {
+        const payload = await response.clone().json();
+        if (payload?.error) throw new Error(String(payload.error));
+      } catch (cause) {
+        if (cause instanceof Error && cause.message !== "Unexpected end of JSON input") throw cause;
+      }
+    }
+    throw new Error((error as any)?.message || "The contest service could not complete this action.");
+  }
   return data as T;
 }
 
