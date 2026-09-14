@@ -254,11 +254,15 @@ serve(async (req) => {
       if (!current) return json({ error: "Round not found" }, 404);
       if (["lobby", "live", "closed"].includes(status) && Number(current.question_count) < 1) return json({ error: "Import questions before opening the round" }, 409);
       const startsAt = body?.startsAt || null;
-      const endsAt = body?.endsAt || null;
-      if (status === "live" && (!startsAt || !endsAt || new Date(endsAt) <= new Date(startsAt))) return json({ error: "A live round needs valid start and end times" }, 400);
+      const durationSeconds = Math.max(60, Math.min(14400, Number(body?.durationSeconds) || 1800));
+      const endsAt = body?.endsAt || (startsAt ? new Date(new Date(startsAt).getTime() + durationSeconds * 1000).toISOString() : null);
+      if (["scheduled", "lobby"].includes(status) && startsAt && new Date(startsAt).getTime() <= Date.now()) return json({ error: "A scheduled round must start in the future" }, 400);
+      if (["scheduled", "lobby", "live"].includes(status) && startsAt && (!endsAt || new Date(endsAt) <= new Date(startsAt))) return json({ error: "The ending time must be after the starting time" }, 400);
+      if (startsAt && endsAt && new Date(endsAt).getTime() - new Date(startsAt).getTime() > (durationSeconds + 900) * 1000) return json({ error: "The round window is too long for its examination duration. Use the duration plus no more than 15 minutes." }, 400);
+      if (status === "live" && (!startsAt || !endsAt)) return json({ error: "A live round needs valid start and end times" }, 400);
       const { error } = await admin.from("contest_rounds").update({
         status, starts_at: startsAt, ends_at: endsAt,
-        duration_seconds: Math.max(60, Math.min(14400, Number(body?.durationSeconds) || 1800)),
+        duration_seconds: durationSeconds,
         tab_switch_limit: Math.max(1, Math.min(20, Number(body?.tabSwitchLimit) || 2)),
         focus_loss_limit: Math.max(1, Math.min(30, Number(body?.focusLossLimit) || 3)),
         auto_eliminate: Boolean(body?.autoEliminate),
@@ -477,6 +481,18 @@ serve(async (req) => {
       if (rows.length) { const { error } = await admin.from("contest_university_results").insert(rows); if (error) throw error; }
       await admin.from("contest_rounds").update({ results_visible: true, updated_at: new Date().toISOString() }).eq("id", roundId);
       return json({ success: true, count: rows.length });
+    }
+
+    if (action === "question_analytics") {
+      if (!await isAdmin()) return json({ error: "Administrator access required" }, 403);
+      const roundId = String(body?.roundId || "");
+      const [{ data: questions, error: questionError }, { data: answers, error: answerError }] = await Promise.all([
+        admin.from("contest_questions").select("id,position,stem,options").eq("round_id", roundId).order("position"),
+        admin.from("contest_answers").select("question_id,selected_index,contest_attempts!inner(round_id,status)").eq("contest_attempts.round_id", roundId).in("contest_attempts.status", ["submitted", "active"]),
+      ]);
+      if (questionError) throw questionError; if (answerError) throw answerError;
+      const analytics = (questions || []).map((question) => { const responses = (answers || []).filter((item) => item.question_id === question.id); const choiceCounts = Array.from({ length: Array.isArray(question.options) ? question.options.length : 0 }, (_, index) => responses.filter((item) => Number(item.selected_index) === index).length); const leading = Math.max(0, ...choiceCounts); return { questionId: question.id, position: question.position, stem: question.stem, responses: responses.length, choiceCounts, leadingChoiceRate: responses.length ? Math.round(leading / responses.length * 1000) / 10 : 0 }; });
+      return json({ success: true, analytics });
     }
 
     if (action === "submit_attempt") {

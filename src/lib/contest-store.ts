@@ -45,6 +45,7 @@ export interface ContestRegistration {
   study_year: number;
   representation: "individual" | "university_team";
   status: "pending" | "verified" | "rejected" | "withdrawn";
+  contest_universities?: { name: string; abbreviation: string | null } | null;
 }
 
 export interface ContestRound {
@@ -243,6 +244,12 @@ export async function loadContestIntegritySummary(roundId: string) {
   return { attempts: attempts || [], events: (events || []).filter((event: any) => ids.has(event.attempt_id)) };
 }
 
+export interface ContestQuestionAnalytics { questionId: string; position: number; stem: string; responses: number; choiceCounts: number[]; leadingChoiceRate: number }
+export async function loadContestQuestionAnalytics(roundId: string): Promise<ContestQuestionAnalytics[]> {
+  const data = await contestControl<{ analytics: ContestQuestionAnalytics[] }>({ action: "question_analytics", roundId });
+  return data.analytics || [];
+}
+
 export interface RehearsalResult { score: number; correct: number; total: number; details: { questionId: string; correct: boolean; explanation: string | null }[] }
 export async function scoreContestRehearsal(roundId: string, answers: Record<string, number>): Promise<RehearsalResult> {
   const { data, error } = await supabase.functions.invoke("contest-control", { body: { action: "rehearsal_score", roundId, answers } });
@@ -303,7 +310,7 @@ export async function getContestBySlug(slug: string): Promise<ContestRecord | nu
 
 export async function getMyContestRegistration(contestId: string, userId: string): Promise<ContestRegistration | null> {
   const { data, error } = await (supabase as any).from("contest_registrations")
-    .select("id,contest_id,university_id,study_year,representation,status")
+    .select("id,contest_id,university_id,study_year,representation,status,contest_universities(name,abbreviation)")
     .eq("contest_id", contestId).eq("user_id", userId).maybeSingle();
   if (error) throw error;
   return data as ContestRegistration | null;

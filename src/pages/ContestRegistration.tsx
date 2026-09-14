@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Loader2, LockKeyhole, School, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Award, BellRing, CheckCircle2, Loader2, LockKeyhole, School, ShieldCheck, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CONTEST_RULES } from "@/lib/contest";
-import { getContestBySlug, getMyContestRegistration, loadContestPlatform, loadContestRounds, proposeContestUniversity, registerForContest, type ContestRecord, type ContestRegistration, type ContestRound, type ContestUniversity } from "@/lib/contest-store";
+import { getContestBySlug, getMyContestRegistration, loadContestPlatform, loadContestRounds, loadMyContestAttempts, proposeContestUniversity, registerForContest, type ContestAttempt, type ContestRecord, type ContestRegistration, type ContestRound, type ContestUniversity } from "@/lib/contest-store";
 import { updateMetaTags } from "@/lib/seo";
 import ContestCountdown from "@/components/ContestCountdown";
 import ContestCalendarActions from "@/components/ContestCalendarActions";
@@ -15,6 +15,7 @@ export default function ContestRegistrationPage() {
   const [universities, setUniversities] = useState<ContestUniversity[]>([]);
   const [registration, setRegistration] = useState<ContestRegistration | null>(null);
   const [rounds, setRounds] = useState<ContestRound[]>([]);
+  const [attempts, setAttempts] = useState<ContestAttempt[]>([]);
   const [universityId, setUniversityId] = useState("");
   const [newUniversityName, setNewUniversityName] = useState("");
   const [newUniversityAbbreviation, setNewUniversityAbbreviation] = useState("");
@@ -32,7 +33,7 @@ export default function ContestRegistrationPage() {
       setUniversities(platform.universities);
       if (record) {
         setRounds(await loadContestRounds(record.id));
-        if (user) setRegistration(await getMyContestRegistration(record.id, user.id));
+        if (user) { const entry = await getMyContestRegistration(record.id, user.id); setRegistration(entry); if (entry) setAttempts(await loadMyContestAttempts(entry.id)); }
       }
     }).catch(() => setError("Contest registration could not be loaded.")).finally(() => setLoading(false));
   }, [slug, user]);
@@ -60,6 +61,8 @@ export default function ContestRegistrationPage() {
   if (!contest) return <Navigate to="/contests" replace />;
   const isOpen = contest.stage === "registration";
   const nextRound = rounds.filter((round) => ["scheduled", "lobby"].includes(round.status) && round.starts_at).sort((a, b) => new Date(a.starts_at!).getTime() - new Date(b.starts_at!).getTime())[0];
+  const latestResult = attempts.find((attempt) => attempt.status === "submitted" && attempt.score !== null);
+  const resultRound = latestResult ? rounds.find((round) => round.id === latestResult.round_id) : null;
 
   return <div className="min-h-dvh bg-[#071315] px-5 py-10 text-white">
     <div className="mx-auto max-w-2xl">
@@ -70,11 +73,14 @@ export default function ContestRegistrationPage() {
         <p className="mt-2 text-white/50">Participant registration</p>
 
         {registration ? <div className="mt-7 rounded-xl border border-teal-300/20 bg-teal-300/10 p-5">
-          <p className="flex items-center gap-2 font-bold text-teal-200"><CheckCircle2 className="h-5 w-5" /> Registration received</p>
-          <p className="mt-2 text-sm text-white/55">Status: <span className="capitalize text-white/80">{registration.status}</span>. Institutional verification will happen before admission to the lobby.</p>
+          <p className="flex items-center gap-2 font-bold text-teal-200"><CheckCircle2 className="h-5 w-5" /> Contest dashboard</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-lg border border-white/10 bg-black/10 p-3"><p className="text-xs text-white/40">University</p><p className="mt-1 font-bold">{registration.contest_universities?.name || "Pending institution review"}</p></div><div className="rounded-lg border border-white/10 bg-black/10 p-3"><p className="text-xs text-white/40">Admission</p><p className="mt-1 font-bold capitalize">{registration.status}</p></div></div>
+          <p className="mt-3 text-sm text-white/55">{registration.status === "verified" ? "Your identity and institution are verified for the secure lobby." : "Institutional verification must be completed before examination entry."}</p>
           {nextRound?.starts_at && <ContestCountdown startsAt={nextRound.starts_at} className="mt-5" />}
           {nextRound?.starts_at && <ContestCalendarActions title={`${contest.title} — ${nextRound.title}`} startsAt={nextRound.starts_at} endsAt={nextRound.ends_at} details={`Your Ompath Study contest is scheduled. Sign in early and enter the secure lobby: https://www.ompathstudy.com/contests/${slug}/lobby`} location={`https://www.ompathstudy.com/contests/${slug}/lobby`} className="mt-4" />}
-          <Link to={`/contests/${slug}/lobby`} className="mt-5 inline-flex rounded-lg border border-teal-200/30 px-4 py-2 text-sm font-bold text-teal-200">Open contest lobby</Link>
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-white/10 p-3 text-xs leading-relaxed text-white/50"><BellRing className="mt-0.5 h-4 w-4 shrink-0 text-teal-300" /> Site and email reminders follow your notification preference. Calendar reminders remain on your own device.</div>
+          {latestResult && resultRound?.results_visible && <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/10 p-4"><p className="flex items-center gap-2 font-bold text-amber-200"><Trophy className="h-4 w-4" /> Published result: {latestResult.score}%</p><p className="mt-1 text-xs text-white/50">{resultRound.title} · submitted {latestResult.submitted_at ? new Date(latestResult.submitted_at).toLocaleString("en-KE") : "successfully"}</p><button onClick={() => window.print()} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-200/30 px-3 py-2 text-xs font-bold text-amber-100"><Award className="h-4 w-4" /> Print result certificate</button></div>}
+          <div className="mt-5 flex flex-wrap gap-2"><Link to={`/contests/${slug}/lobby`} className="inline-flex rounded-lg border border-teal-200/30 px-4 py-2 text-sm font-bold text-teal-200">Open contest lobby</Link><Link to={`/contests/${slug}/progress`} className="inline-flex rounded-lg border border-white/15 px-4 py-2 text-sm font-bold text-white/70">My progression</Link><Link to={`/contests/${slug}/leaderboard`} className="inline-flex rounded-lg border border-white/15 px-4 py-2 text-sm font-bold text-white/70">Leaderboard</Link></div>
         </div> : !isOpen ? <div className="mt-7 rounded-xl border border-amber-300/20 bg-amber-300/10 p-5">
           <p className="flex items-center gap-2 font-bold text-amber-200"><LockKeyhole className="h-5 w-5" /> Registration is not open</p>
           <p className="mt-2 text-sm text-white/55">This competition is still in the concept stage. Dates and eligibility rules will be published before registration opens.</p>
