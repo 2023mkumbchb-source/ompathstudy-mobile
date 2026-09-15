@@ -13,6 +13,9 @@ export default function PaymentSettingsAdmin() {
   const [price, setPrice] = useState("0");
   const [ratio, setRatio] = useState("0.25");
   const [downloads, setDownloads] = useState(true);
+  const [examPrice, setExamPrice] = useState("0");
+  const [mcqPrice, setMcqPrice] = useState("0");
+  const [mcqFreeLimit, setMcqFreeLimit] = useState("0");
   const [plans, setPlans] = useState<AccessPlan[]>(DEFAULT_PLANS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -34,7 +37,10 @@ export default function PaymentSettingsAdmin() {
       getSetting("redacted_names"),
       getSetting("show_content_counts"),
       getSetting("mobile_about_profile"),
-    ]).then(([p, r, d, pl, fv, gsv, rn, sc, ap]) => {
+      getSetting("exam_price"),
+      getSetting("mcq_price"),
+      getSetting("mcq_free_limit"),
+    ]).then(([p, r, d, pl, fv, gsv, rn, sc, ap, ep, mp, ml]) => {
       setPrice(p || "0");
       setRatio(r || "0.25");
       setDownloads((d || "true") !== "false");
@@ -42,6 +48,9 @@ export default function PaymentSettingsAdmin() {
       setGuestSlideView(gsv === "half" ? "half" : "all");
       setRedacted((rn ?? "").trim() || DEFAULT_SITE_SETTINGS.redactedNames.join(", "));
       setShowCounts(sc === "true");
+      setExamPrice(ep || "0");
+      setMcqPrice(mp || "0");
+      setMcqFreeLimit(ml || "0");
       try { setAbout({ ...DEFAULT_ABOUT_PROFILE, ...JSON.parse(ap || "{}") }); } catch { /* defaults */ }
       try {
         const parsed = JSON.parse(pl || "[]");
@@ -74,10 +83,20 @@ export default function PaymentSettingsAdmin() {
   const save = async () => {
     setSaving(true);
     try {
-      await saveSetting("access_price_kes", String(Math.max(0, Number(price) || 0)));
-      await saveSetting("paywall_free_ratio", String(Math.min(0.9, Math.max(0.05, Number(ratio) || 0.25))));
-      await saveSetting("pdf_download_enabled", downloads ? "true" : "false");
-      await saveSetting("access_plans", JSON.stringify(plans));
+      const cleanAmount = (value: string) => String(Math.max(0, Number(value) || 0));
+      const cleanPlans = plans.map((plan) => ({ ...plan, label: plan.label.trim() || "Access pass", price: Math.max(0, Number(plan.price) || 0), days: Math.max(1, Math.round(Number(plan.days) || 1)) }));
+      const { data, error } = await (supabase as any).rpc("admin_save_payment_settings", { settings: {
+        access_price_kes: cleanAmount(price),
+        paywall_free_ratio: String(Math.min(0.9, Math.max(0.05, Number(ratio) || 0.25))),
+        pdf_download_enabled: downloads ? "true" : "false",
+        access_plans: JSON.stringify(cleanPlans),
+        exam_price: cleanAmount(examPrice),
+        mcq_price: cleanAmount(mcqPrice),
+        mcq_free_limit: String(Math.max(0, Math.round(Number(mcqFreeLimit) || 0))),
+      } });
+      if (error) throw error;
+      if (!data || data.access_price_kes !== cleanAmount(price)) throw new Error("Payment settings were not confirmed by the server.");
+      setPlans(cleanPlans);
       await saveSetting("founder_page_visible", founderVisible ? "true" : "false");
       await saveSetting("guest_slide_view", guestSlideView);
       await saveSetting("redacted_names", redacted);
@@ -174,6 +193,16 @@ export default function PaymentSettingsAdmin() {
           Handouts are deliberately abridged: about half the plates, no teaching notes, no reader corrections, and a diagonal
           watermark carrying the buyer’s pass code so leaks are traceable.
         </p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">Exam and MCQ payments</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block"><span className="text-xs font-semibold text-muted-foreground">Exam price (KES)</span><Input inputMode="decimal" value={examPrice} onChange={(e) => setExamPrice(e.target.value)} /></label>
+          <label className="block"><span className="text-xs font-semibold text-muted-foreground">MCQ unlock price (KES)</span><Input inputMode="decimal" value={mcqPrice} onChange={(e) => setMcqPrice(e.target.value)} /></label>
+          <label className="block"><span className="text-xs font-semibold text-muted-foreground">Free MCQs per set</span><Input inputMode="numeric" value={mcqFreeLimit} onChange={(e) => setMcqFreeLimit(e.target.value)} /></label>
+        </div>
+        <p className="mt-3 text-[11px] text-muted-foreground">Zero keeps that area free. Enter a non-zero amount to activate payment for that area.</p>
       </div>
 
       {/* ── Site visibility ── */}

@@ -267,9 +267,9 @@ export function useAccess() {
   }, []);
 
   const isApp = isNativeApp();
-  const isFree = (settings?.price ?? 0) <= 0 || isApp;
-  const hasPass = !!pass || isApp;
-  const ownerAccess = isAdmin || isApp;
+  const isFree = (settings?.price ?? 0) <= 0;
+  const hasPass = !!pass;
+  const ownerAccess = isAdmin;
   return {
     loading,
     settings: settings ?? DEFAULT_SETTINGS,
@@ -279,10 +279,10 @@ export function useAccess() {
     isApp,
     /** unlocked = free site, valid pass, or running as the App */
     unlocked: isFree || hasPass || ownerAccess,
-    /** Answers/reveals unlocked for subscribers and all App users! */
-    canReveal: isApp || isFree || hasPass || ownerAccess,
-    /** PDF handouts are unlocked for App users! */
-    canDownload: isApp || ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
+    /** Answers/reveals unlock for subscribers or administrators. */
+    canReveal: isFree || hasPass || ownerAccess,
+    /** PDF handouts follow the configured subscription permission. */
+    canDownload: ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
     applyPass: (p: AccessPass) => setPass(p),
     signOutPass: () => { clearPass(); setPass(null); },
     refresh,
