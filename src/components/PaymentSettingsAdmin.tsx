@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AccessPlan, DEFAULT_PLANS, loadPaymentSettings } from "@/lib/access";
 import { DEFAULT_ABOUT_PROFILE, DEFAULT_SITE_SETTINGS, loadSiteSettings, AboutProfile } from "@/lib/site-settings";
 import { toast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 /** Admin panel: price, where the paywall starts, PDF downloads and the 3 plans. */
 export default function PaymentSettingsAdmin() {
@@ -45,13 +47,28 @@ export default function PaymentSettingsAdmin() {
         const parsed = JSON.parse(pl || "[]");
         if (Array.isArray(parsed) && parsed.length) setPlans(parsed);
       } catch { /* keep defaults */ }
-      setLoading(false);
-    });
+    }).catch((error) => {
+      console.error("Unable to load payment settings:", error);
+      toast({
+        title: "Could not load payment settings",
+        description: "Check your connection and try again.",
+        variant: "destructive",
+      });
+    }).finally(() => setLoading(false));
   }, []);
 
   const loadPasses = async () => {
-    const { data } = await supabase.functions.invoke("access-code", { body: { action: "list" } });
-    setPasses(data?.passes || []);
+    try {
+      const { data, error } = await supabase.functions.invoke("access-code", { body: { action: "list" } });
+      if (error || data?.error) throw new Error(data?.error || error?.message || "Request failed");
+      setPasses(data?.passes || []);
+    } catch (error) {
+      toast({
+        title: "Could not load passes",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const save = async () => {

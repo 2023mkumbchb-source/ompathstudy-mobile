@@ -129,6 +129,7 @@ const AnimatedRoutes = () => {
             <Route path="/notifications" element={<SignedInRoute><Notifications /></SignedInRoute>} />
             <Route path="/updates" element={<Updates />} />
             <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
+            <Route path="/admin/payments" element={<AdminRoute><Navigate to="/admin#payments" replace /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/admin/unedited-uploads" element={<AdminRoute><Navigate to="/source-library" replace /></AdminRoute>} />
             <Route path="/unedited-uploads" element={<AdminRoute><Navigate to="/source-library" replace /></AdminRoute>} />

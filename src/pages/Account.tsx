@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import {
   Loader2, ShieldCheck, Pencil, Check, LogOut, KeyRound, GraduationCap, X,
   LayoutDashboard, FileEdit, FolderTree, Database, BookOpen, Target, Sparkles, Bell,
-  Smartphone, Volume2, ChevronRight, RefreshCw,
+  Smartphone, Volume2, ChevronRight, RefreshCw, CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -473,6 +473,9 @@ export default function Account() {
             </Link>
             <Link to="/admin/study-system" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <Database className="h-3.5 w-3.5 text-primary" /> Study System
+            </Link>
+            <Link to="/admin/payments" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+              <CreditCard className="h-3.5 w-3.5 text-primary" /> Payments
             </Link>
           </div>
         </section>
