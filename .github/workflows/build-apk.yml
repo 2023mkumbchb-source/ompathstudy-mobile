@@ -35,7 +35,16 @@ jobs:
         run: npm test
 
       - name: Refresh Complete Offline Content Seed
-        run: node scripts/generate-offline-seed.mjs
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if node scripts/generate-offline-seed.mjs; then
+              exit 0
+            fi
+            echo "Supabase seed refresh attempt ${attempt} failed; retrying..."
+            sleep $((attempt * 5))
+          done
+          echo "::warning::Supabase seed refresh failed after 3 attempts; using the last verified packaged seed."
 
       - name: Build Web Assets
         run: npm run build

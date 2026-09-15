@@ -7,8 +7,29 @@ export interface NormalizedMcqQuestion {
   [key: string]: unknown;
 }
 
-export function cleanMcqOption(value: unknown): string {
+/** Convert legacy OCR/LaTeX fragments into readable plain medical text. */
+export function cleanExamText(value: unknown): string {
   return String(value || "")
+    .replace(/\$+/g, "")
+    .replace(/\\(?:text|mathrm)\{([^{}]*)\}/g, "$1")
+    .replace(/\\alpha\b/g, "α")
+    .replace(/\\beta\b/g, "β")
+    .replace(/\\gamma\b/g, "γ")
+    .replace(/\\delta\b/g, "δ")
+    .replace(/\\mu\b/g, "µ")
+    .replace(/\\times\b/g, "×")
+    .replace(/_\{([^{}]+)\}/g, "_$1")
+    .replace(/\^\{([^{}]+)\}/g, "^$1")
+    .replace(/[{}]/g, "")
+    .replace(/\\([_+\-])/g, "$1")
+    .replace(/\\[;,!]/g, " ")
+    .replace(/\\+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function cleanMcqOption(value: unknown): string {
+  return cleanExamText(value)
     .replace(/&amp;nbsp;|&nbsp;|\u00a0/gi, " ")
     .replace(/<[^>]*>/g, " ")
     .replace(/^\s*(?:option\s*)?[A-F][.)]\s*/i, "")
@@ -17,7 +38,7 @@ export function cleanMcqOption(value: unknown): string {
 }
 
 function cleanLegacyBoundaryText(value: unknown): string {
-  return String(value || "")
+  return cleanExamText(value)
     .replace(/\s*---\s*(?:#{1,6}\s+(?:set\b|genetics\b|ha?emat|patholog|microbi|parasit|mycolog|virolog)[\s\S]*)?$/i, "")
     .replace(/\s+/g, " ")
     .trim();
