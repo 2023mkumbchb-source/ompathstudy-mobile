@@ -50,6 +50,9 @@ serve(async (req) => {
     const rawUrl = String(body.action_url || "").trim();
     const actionUrl = rawUrl && (/^\/[a-z0-9/_?=&%#.-]*$/i.test(rawUrl) || /^https:\/\/(www\.)?ompathstudy\.com(?:\/|$)/i.test(rawUrl)) ? rawUrl : null;
     const emailActionUrl = actionUrl?.startsWith("/") ? `https://www.ompathstudy.com${actionUrl}` : actionUrl;
+    const sendApp = body.send_app !== false;
+    const sendEmail = body.send_email === true;
+    if (!sendApp && !sendEmail) return json({ error: "Choose at least one delivery channel" }, 400);
     if (!title || !message) return json({ error: "Title and message are required" }, 400);
     if (audience === "study_year" && (!Number.isInteger(studyYear) || studyYear < 1 || studyYear > 6)) {
       return json({ error: "Choose a study year from 1 to 6" }, 400);
@@ -87,16 +90,17 @@ serve(async (req) => {
       const emails = new Set((data || []).map((row) => String(row.email || "").toLowerCase()).filter(Boolean));
       eligibleIds = new Set(users.filter((u) => ids.has(u.id) || (u.email && emails.has(u.email.toLowerCase()))).map((u) => u.id));
     }
-    const recipients = users.filter((u) => eligibleIds.has(u.id) && u.email);
+    const appRecipients = users.filter((u) => eligibleIds.has(u.id));
+    const emailRecipients = appRecipients.filter((u): u is { id: string; email: string } => Boolean(u.email));
 
     const { data: campaign, error: campaignError } = await admin.from("notification_campaigns").insert({
       title, message, type, priority, action_url: actionUrl, audience, study_year: studyYear,
-      status: "sending", recipient_count: recipients.length, created_by: user.id,
+      status: "sending", recipient_count: sendApp ? appRecipients.length : emailRecipients.length, created_by: user.id,
     }).select("id").single();
     if (campaignError) throw campaignError;
 
-    if (recipients.length) {
-      const rows = recipients.map((recipient) => ({
+    if (sendApp && appRecipients.length) {
+      const rows = appRecipients.map((recipient) => ({
         campaign_id: campaign.id, user_id: recipient.id, title, message, type, priority,
         study_year: studyYear, action_url: actionUrl,
       }));
@@ -110,10 +114,10 @@ serve(async (req) => {
     const from = Deno.env.get("NOTIFICATION_FROM_EMAIL") || "Ompath Study <notifications@ompathstudy.com>";
     let delivered = 0;
     let failed = 0;
-    if (resendKey) {
+    if (sendEmail && resendKey) {
       const { data: preferences } = await admin.from("notification_preferences").select("user_id,email_enabled").eq("email_enabled", false);
       const optedOut = new Set((preferences || []).map((row) => row.user_id));
-      for (const recipient of recipients) {
+      for (const recipient of emailRecipients) {
         if (optedOut.has(recipient.id)) {
           await admin.from("user_notifications").update({ email_status: "skipped" }).eq("campaign_id", campaign.id).eq("user_id", recipient.id);
           continue;
@@ -134,14 +138,14 @@ serve(async (req) => {
         if (response.ok) delivered++;
         else failed++;
       }
-    } else {
+    } else if (sendEmail) {
       await admin.from("user_notifications").update({ email_status: "skipped", email_error: "Email provider is not configured" }).eq("campaign_id", campaign.id);
     }
 
-    const status = !resendKey ? "partial" : failed ? (delivered ? "partial" : "failed") : "sent";
+    const status = sendEmail && !resendKey ? "partial" : failed ? (delivered ? "partial" : "failed") : "sent";
     await admin.from("notification_campaigns").update({ status, delivered_count: delivered, failed_count: failed, sent_at: new Date().toISOString() }).eq("id", campaign.id);
     const { data: completedCampaign } = await admin.from("notification_campaigns").select("*").eq("id", campaign.id).single();
-    return json({ success: true, campaign: completedCampaign, campaign_id: campaign.id, recipients: recipients.length, email_configured: Boolean(resendKey), delivered, failed, status });
+    return json({ success: true, campaign: completedCampaign, campaign_id: campaign.id, recipients: sendApp ? appRecipients.length : emailRecipients.length, channels: { app: sendApp, email: sendEmail }, email_configured: Boolean(resendKey), delivered, failed, status });
   } catch (error) {
     console.error("send-notification", error);
     return json({ error: error instanceof Error ? error.message : "Notification failed" }, 500);

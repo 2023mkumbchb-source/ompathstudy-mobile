@@ -227,12 +227,15 @@ async function invokeAdminNotificationAction(body: Record<string, unknown>) {
 
 /** Admin helper to securely publish through the authenticated Edge Function. */
 export async function publishBroadcastNotification(
-  input: Omit<AppNotification, "id" | "created_at">
+  input: Omit<AppNotification, "id" | "created_at">,
+  delivery: { app: boolean; email: boolean } = { app: true, email: false },
 ): Promise<AppNotification> {
   const data = await invokeAdminNotificationAction({
     action: "create",
     ...input,
     audience: input.study_year ? "study_year" : "all_users",
+    send_app: delivery.app,
+    send_email: delivery.email,
   });
   const newNotif = normalizeNotification(data.campaign);
   const updated = cacheAndNotify([newNotif, ...getCachedNotifications().filter((n) => n.id !== newNotif.id)]);
@@ -380,12 +383,12 @@ export async function triggerNativeNotification(notification: AppNotification): 
 
     const typePrefix =
       notification.type === "exam"
-        ? "📝 Exam Alert: "
+        ? "Exam alert: "
         : notification.type === "update"
-        ? "🚀 Update: "
+        ? "App update: "
         : notification.type === "note"
-        ? "📚 New Content: "
-        : "📢 Ompath Study: ";
+        ? "New study material: "
+        : "Ompath Study: ";
 
     await LocalNotifications.schedule({
       notifications: [

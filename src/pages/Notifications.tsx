@@ -127,7 +127,7 @@ export default function Notifications() {
     setCheckingPermission(false);
     setPermissionStatus(granted ? "granted" : "denied");
     if (granted) {
-      toast({ title: "Notification permission granted! 🔔" });
+      toast({ title: "Notification permission granted" });
     } else {
       toast({
         title: "Permission denied",
@@ -149,7 +149,7 @@ export default function Notifications() {
       action_url: "/exams",
     });
     toast({
-      title: "Test notification sent! 🔔",
+      title: "Test notification sent",
       description: "Check your status bar and listen for the chime sound.",
     });
   };
@@ -304,10 +304,10 @@ export default function Notifications() {
       <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
         {[
           { id: "all", label: `All (${notifications.length})` },
-          { id: "exam", label: `📝 Exams (${notifications.filter((n) => n.type === "exam").length})` },
-          { id: "update", label: `🚀 Updates (${notifications.filter((n) => n.type === "update").length})` },
-          { id: "note", label: `📚 Notes (${notifications.filter((n) => n.type === "note").length})` },
-          { id: "general", label: `📢 General (${notifications.filter((n) => n.type === "general").length})` },
+          { id: "exam", label: `Exams (${notifications.filter((n) => n.type === "exam").length})` },
+          { id: "update", label: `Updates (${notifications.filter((n) => n.type === "update").length})` },
+          { id: "note", label: `Notes (${notifications.filter((n) => n.type === "note").length})` },
+          { id: "general", label: `General (${notifications.filter((n) => n.type === "general").length})` },
         ].map((tab) => (
           <button
             key={tab.id}

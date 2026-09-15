@@ -72,6 +72,8 @@ export default function NotificationAdmin() {
   const [studyYear, setStudyYear] = useState("3");
   const [priority, setPriority] = useState<NotificationPriority>("urgent");
   const [sending, setSending] = useState(false);
+  const [sendApp, setSendApp] = useState(true);
+  const [sendEmail, setSendEmail] = useState(false);
 
   const [broadcasts, setBroadcasts] = useState<AppNotification[]>([]);
   const [loadingBroadcasts, setLoadingBroadcasts] = useState(true);
@@ -113,6 +115,7 @@ export default function NotificationAdmin() {
         variant: "destructive",
       });
     }
+    if (!sendApp && !sendEmail) return toast({ title: "Choose a delivery channel", description: "Enable App notification, Email notification, or both.", variant: "destructive" });
 
     setSending(true);
     try {
@@ -123,11 +126,11 @@ export default function NotificationAdmin() {
         priority,
         study_year: audience === "year" ? Number(studyYear) : null,
         action_url: actionUrl.trim() || null,
-      });
+      }, { app: sendApp, email: sendEmail });
 
       toast({
-        title: "Broadcast Published Successfully! 🚀",
-        description: `Notification dispatched to ${audience === "year" ? `Year ${studyYear} students` : "all learners"}. WhatsApp-style banner and status bar alerts triggered.`,
+        title: "Broadcast sent",
+        description: `${sendApp ? "App notification" : ""}${sendApp && sendEmail ? " and " : ""}${sendEmail ? "email" : ""} sent to ${audience === "year" ? `Year ${studyYear} students` : "all learners"}.`,
       });
 
       setTitle("");
@@ -179,7 +182,7 @@ export default function NotificationAdmin() {
       });
 
       toast({
-        title: "Notification updated! ✏️",
+        title: "Notification updated",
         description: "Updated broadcast has been saved and synchronized.",
       });
       setEditOpen(false);
@@ -201,7 +204,7 @@ export default function NotificationAdmin() {
       playNotificationChime();
       await triggerNativeNotification(b);
       toast({
-        title: "Test alert triggered! 🔔",
+        title: "Test alert triggered",
         description: `Notification sent to device: "${b.title}"`,
       });
     } catch (err: any) {
@@ -252,7 +255,7 @@ export default function NotificationAdmin() {
           <Bell className="h-6 w-6 text-primary" /> Notification & Broadcast Studio
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Send real-time <strong>WhatsApp-style alerts</strong>, examination reminders, and update announcements to all OmpathStudy APK & web students.
+          Create professional app alerts and optional email messages. Each delivery channel is controlled independently.
         </p>
       </div>
       {loadingBroadcasts && <div className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading previous broadcasts…</div>}
@@ -281,7 +284,7 @@ export default function NotificationAdmin() {
                 }`}
               >
                 <GraduationCap className="h-4 w-4" />
-                <span>📝 Exam Alert</span>
+                <span>Exam alert</span>
               </button>
 
               <button
@@ -294,7 +297,7 @@ export default function NotificationAdmin() {
                 }`}
               >
                 <Sparkles className="h-4 w-4" />
-                <span>🚀 App Update</span>
+                <span>App update</span>
               </button>
 
               <button
@@ -307,7 +310,7 @@ export default function NotificationAdmin() {
                 }`}
               >
                 <BookOpen className="h-4 w-4" />
-                <span>📚 New Notes</span>
+                <span>New notes</span>
               </button>
 
               <button
@@ -320,8 +323,16 @@ export default function NotificationAdmin() {
                 }`}
               >
                 <Bell className="h-4 w-4" />
-                <span>📢 General</span>
+                <span>General</span>
               </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Delivery channels</label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex items-center justify-between rounded-xl border border-border p-3"><span><strong className="block text-sm">App notification</strong><span className="text-xs text-muted-foreground">APK notification centre, banner and device alert</span></span><Switch checked={sendApp} onCheckedChange={setSendApp} /></label>
+              <label className="flex items-center justify-between rounded-xl border border-border p-3"><span><strong className="block text-sm">Email notification</strong><span className="text-xs text-muted-foreground">Send a separate message to registered email addresses</span></span><Switch checked={sendEmail} onCheckedChange={setSendEmail} /></label>
             </div>
           </div>
 
@@ -425,7 +436,7 @@ export default function NotificationAdmin() {
             <div>
               <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <Sparkles className="h-4 w-4 text-amber-500" />
-                Urgent WhatsApp-Style Alert
+                High-priority app alert
               </span>
               <p className="text-xs text-muted-foreground">
                 Pops down immediately as a floating banner on student screens with notification sound.
@@ -441,7 +452,7 @@ export default function NotificationAdmin() {
           <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
             <Button
               onClick={handleSend}
-              disabled={sending || !title.trim() || !message.trim()}
+              disabled={sending || !title.trim() || !message.trim() || (!sendApp && !sendEmail)}
               className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
             >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -468,7 +479,7 @@ export default function NotificationAdmin() {
               <Smartphone className="h-4 w-4 text-primary" />
               <span>Student Phone Preview</span>
             </h3>
-            <span className="text-[11px] text-muted-foreground">Live Mockup</span>
+            <span className="text-[11px] text-muted-foreground">Live draft preview</span>
           </div>
 
           {/* Mock Smartphone Frame */}
@@ -503,17 +514,16 @@ export default function NotificationAdmin() {
                       <span className="text-[9px] text-white/40">Just now</span>
                     </div>
 
-                    <p className="truncate text-xs font-bold text-white">
+                    <p className="break-words text-xs font-bold text-white">
                       {title || "Pathology CAT 1 Alert"}
                     </p>
-                    <p className="line-clamp-2 text-[10px] text-white/70 mt-0.5">
+                    <p className="whitespace-pre-wrap break-words text-[10px] leading-relaxed text-white/70 mt-0.5">
                       {message ||
                         "Clinical questions and spotter bank now available for revision."}
                     </p>
 
-                    <span className="mt-1.5 inline-block text-[9px] font-semibold text-emerald-400">
-                      Tap to open →
-                    </span>
+                    {actionUrl && <span className="mt-1.5 inline-block text-[9px] font-semibold text-emerald-400">Open details</span>}
+                    <div className="mt-2 flex gap-1 text-[8px] uppercase tracking-wide text-white/40"><span>{sendApp ? "App" : ""}</span>{sendApp && sendEmail && <span>•</span>}<span>{sendEmail ? "Email" : ""}</span></div>
                   </div>
                 </div>
               </div>
@@ -585,7 +595,7 @@ export default function NotificationAdmin() {
 
                   {b.action_url && (
                     <span className="mt-1.5 block text-[11px] text-primary truncate">
-                      🔗 {b.action_url}
+                      Link: {b.action_url}
                     </span>
                   )}
                 </div>
@@ -648,10 +658,10 @@ export default function NotificationAdmin() {
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: "exam", label: "📝 Exam" },
-                  { id: "update", label: "🚀 Update" },
-                  { id: "note", label: "📚 Notes" },
-                  { id: "general", label: "📢 General" },
+                  { id: "exam", label: "Exam" },
+                  { id: "update", label: "Update" },
+                  { id: "note", label: "Notes" },
+                  { id: "general", label: "General" },
                 ].map((c) => (
                   <button
                     key={c.id}
@@ -765,7 +775,7 @@ export default function NotificationAdmin() {
               <div>
                 <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  Urgent WhatsApp Alert
+                  High-priority app alert
                 </span>
                 <p className="text-[11px] text-muted-foreground">
                   Triggers immediate popup banner on students' screens
