@@ -1,0 +1,2 @@
+Ompath Study Mobile v1.0.8 release build.
+Includes notification routing, Broadcast Studio, email link, and editable hidden About page fixes.
