@@ -8,133 +8,73 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
-
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '21'
-
       - name: Install Exact Node Dependencies
         run: npm ci --legacy-peer-deps
-
       - name: Test Mobile Application
         run: npm test
-
       - name: Refresh Complete Offline Content Seed
         shell: bash
         run: |
           for attempt in 1 2 3; do
-            if node scripts/generate-offline-seed.mjs; then
-              exit 0
-            fi
+            if node scripts/generate-offline-seed.mjs; then exit 0; fi
             echo "Supabase seed refresh attempt ${attempt} failed; retrying..."
             sleep $((attempt * 5))
           done
           echo "::warning::Supabase seed refresh failed after 3 attempts; using the last verified packaged seed."
-
       - name: Build Web Assets
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://dekyjrfwvavtoivqivno.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_jOXeiFMWJj1z_M-zShimXA_cG9f2QxL' }}
-
       - name: Sync Capacitor Android
         run: npx cap sync android
-
       - name: Package Silent OTA Web Bundle
         run: |
           cd dist
           zip -r ../OmpathStudy-web-bundle.zip .
-
       - name: Make Gradle Executable
         run: chmod +x android/gradlew
-
       - name: Build Android Debug APK
         run: |
           cd android
           ./gradlew assembleDebug
-
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk Ompath-v1.0.16.apk
-
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Ompath-v1.0.17.apk
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OmpathStudy-Android-APK
-          path: Ompath-v1.0.16.apk
+          name: OmpathStudy-Android-APK-v1.0.17
+          path: Ompath-v1.0.17.apk
           retention-days: 30
-
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.16-apk
-          name: Ompath Mobile v1.0.16
+          tag_name: v1.0.17-apk
+          name: Ompath Mobile v1.0.17
           body: |
-            ## Ompath Android Native App v1.0.16
-            - Shorter Ompath app name and refreshed OMPATH header identity
-            - Interactive medical launch experience on every native app opening
-            - Library opens immediately from the synchronized offline catalogue
-            - Anatomy images resolve from packaged/cache storage before the network
-            - Stale image mappings safely fall back to the live image while online
-            - PDF actions open a closeable in-app preview instead of an external blank page
-            - Android Back closes previews and notifications before navigating away
-            - Exit confirmation on the home screen
-            - Native listeners remain stable while the app is idle
-            - Corrected and medically structured Systemic Pathology advanced essay archive
-            - Removed false blank-page messages and all source-page placeholders
-            - Article links consistently open at the title instead of a saved footer position
-            - Cached notes open immediately while Supabase refreshes them in the background
-            - Every release build refreshes the complete offline content seed from Supabase
-            - Public, signed-in learner and administrator routes separated
-            - Alerts removed from bottom navigation and retained in the signed-in header
-            - Source Library and every administration route centrally protected
-            - Legacy public content-write permissions removed
-            - Personal pages require an authenticated user session
-            - Downloaded anatomy images persist after app restart and OTA updates
-            - Service-worker cleanup no longer deletes the offline medical-image library
-            - Study-profile prompt restricted to successful new registrations
-            - Existing and offline users are never blocked by the profile prompt
-            - Offline-first content library with Wi-Fi auto synchronization
-            - Packaged anatomy image manifest for instant airplane-mode viewing
-            - Failed image tracking and automatic retry on the next synchronization
-            - Deleted and unpublished content is removed during full reconciliation
-            - Dedicated mobile layout with bottom navigation bar
-            - Live unread notification counter badge
-            - Dedicated Student Notification Center (`/notifications`)
-            - Full Admin Broadcast Studio with View, Edit, and Delete controls (`/admin/notifications`)
-            - Mobile Push, WhatsApp-style banners, and Chime sound toggles
-            - Secure per-user Supabase Realtime notification delivery
-            - Silent in-app OTA web bundle updates
-            - Truly fixed header on every non-exam screen
-            - Automatic complete offline post and image synchronization
-            - Reliable authenticated notification publishing from mobile sessions
-            - In-app Update Center with download progress and automatic restart
-            - Offline Library dashboard with complete manual synchronization
-            - Repaired mobile menu layering, scrolling and page links
-            - Notification links stay inside the APK while email links open the website
-            - Repaired Broadcast Studio and separated campaigns from personal app alerts
-            - About page hidden by default and editable by administrators
-            - Fixed Broadcast Studio runtime crash and hardened notification cache
-            - Bottom navigation remains available on admin and recovery screens
-            - Independent App notification and Email notification delivery switches
-            - Responsive live phone preview and professional emoji-free notification format
+            ## Ompath Android Native App v1.0.17
+            - Android versionCode 17 and versionName 1.0.17
+            - Rebuilt from the current main branch
+            - Publishes the installable APK and OTA web bundle
+            - Includes the current Supabase subscription/paywall backend integration
           files: |
-            Ompath-v1.0.16.apk
+            Ompath-v1.0.17.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
