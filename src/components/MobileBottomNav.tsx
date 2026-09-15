@@ -25,11 +25,6 @@ export default function MobileBottomNav() {
     return unsub;
   }, []);
 
-  // Don't show inside admin routes
-  if (currentPath.startsWith("/admin")) {
-    return null;
-  }
-
   const navItems = [
     { label: "Home", path: "/", icon: Home },
     { label: "Library", path: "/blog", icon: BookOpen },
@@ -80,4 +75,3 @@ export default function MobileBottomNav() {
     </nav>
   );
 }
-

@@ -115,7 +115,10 @@ export function getCachedNotifications(): AppNotification[] {
     const raw = localStorage.getItem(STORAGE_KEY_NOTIFICATIONS);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object" && Boolean(row.id))
+      .map(normalizeNotification);
   } catch {
     return [];
   }

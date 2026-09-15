@@ -57,23 +57,23 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.8.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.9.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmpathStudy-Android-APK
-          path: OmpathStudy-v1.0.8.apk
+          path: OmpathStudy-v1.0.9.apk
           retention-days: 30
 
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.8-apk
-          name: Ompath Study Mobile v1.0.8
+          tag_name: v1.0.9-apk
+          name: Ompath Study Mobile v1.0.9
           body: |
-            ## Ompath Study Android Native App v1.0.8
+            ## Ompath Study Android Native App v1.0.9
             - Dedicated mobile layout with bottom navigation bar
             - Live unread notification counter badge
             - Dedicated Student Notification Center (`/notifications`)
@@ -90,8 +90,10 @@ jobs:
             - Notification links stay inside the APK while email links open the website
             - Repaired Broadcast Studio and separated campaigns from personal app alerts
             - About page hidden by default and editable by administrators
+            - Fixed Broadcast Studio runtime crash and hardened notification cache
+            - Bottom navigation remains available on admin and recovery screens
           files: |
-            OmpathStudy-v1.0.8.apk
+            OmpathStudy-v1.0.9.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

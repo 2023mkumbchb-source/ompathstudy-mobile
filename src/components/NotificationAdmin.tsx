@@ -405,7 +405,7 @@ export default function NotificationAdmin() {
                   <SelectValue placeholder="Quick preset..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRESET_LINKS.map((p) => (
+                  {PRESET_LINKS.filter((p) => p.value).map((p) => (
                     <SelectItem key={p.value || "none"} value={p.value}>
                       {p.label}
                     </SelectItem>
@@ -745,7 +745,7 @@ export default function NotificationAdmin() {
                     <SelectValue placeholder="Quick preset..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {PRESET_LINKS.map((p) => (
+                    {PRESET_LINKS.filter((p) => p.value).map((p) => (
                       <SelectItem key={p.value || "none"} value={p.value}>
                         {p.label}
                       </SelectItem>
