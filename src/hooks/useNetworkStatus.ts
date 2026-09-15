@@ -42,6 +42,7 @@ export function useNetworkStatus() {
     storyCount: 0,
     lastSync: null,
     isFullySynced: false,
+    failedImageCount: 0,
   });
 
   const [isSyncing, setIsSyncing] = useState(false);

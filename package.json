@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/generate-offline-image-manifest.mjs",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
@@ -19,6 +20,7 @@
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/network": "^8.0.1",
     "@capacitor/status-bar": "^8.0.3",
     "@capgo/capacitor-updater": "^8.51.16",
     "@hookform/resolvers": "^3.10.0",

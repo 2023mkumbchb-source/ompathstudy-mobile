@@ -12,17 +12,35 @@ const STORE_NAME = "images";
 
 // In-memory registry of active object URLs created from blobs
 const memoryBlobUrls = new Map<string, string>();
+let packagedManifestPromise: Promise<Record<string, string>> | null = null;
+
+async function getPackagedManifest(): Promise<Record<string, string>> {
+  if (!packagedManifestPromise) {
+    packagedManifestPromise = fetch("/offline-image-manifest.json")
+      .then((response) => response.ok ? response.json() : { images: {} })
+      .then((value) => value?.images || {})
+      .catch(() => ({}));
+  }
+  return packagedManifestPromise;
+}
 
 let idbPromise: Promise<IDBDatabase> | null = null;
 
 export async function getCachedImageCount(): Promise<number> {
   try {
-    const db = await openImageDb();
-    return await new Promise<number>((resolve) => {
-      const req = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).count();
-      req.onsuccess = () => resolve(req.result || 0);
-      req.onerror = () => resolve(0);
-    });
+    let downloaded = 0;
+    if (typeof window !== "undefined" && "caches" in window) {
+      downloaded = (await (await caches.open(CACHE_NAME)).keys()).length;
+    } else {
+      const db = await openImageDb();
+      downloaded = await new Promise<number>((resolve) => {
+        const req = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).count();
+        req.onsuccess = () => resolve(req.result || 0);
+        req.onerror = () => resolve(0);
+      });
+    }
+    const packaged = Object.keys(await getPackagedManifest()).length;
+    return downloaded + packaged;
   } catch { return 0; }
 }
 
@@ -57,6 +75,12 @@ export async function getCachedImageUrl(originalUrl: string): Promise<string | n
   if (cleanUrl.startsWith("blob:") || cleanUrl.startsWith("data:")) {
     return cleanUrl;
   }
+  if (/^(\/|\.\/)/.test(cleanUrl)) return cleanUrl;
+
+  // Prefer files shipped inside the APK. This makes anatomy spot banks work
+  // immediately in airplane mode without relying on CacheStorage or CORS.
+  const packaged = (await getPackagedManifest())[cleanUrl];
+  if (packaged) return packaged;
 
   // Check memory map first
   if (memoryBlobUrls.has(cleanUrl)) {
@@ -110,13 +134,18 @@ export async function cacheSingleImage(url: string): Promise<boolean> {
   if (!url || typeof window === "undefined") return false;
   const cleanUrl = url.trim();
   if (cleanUrl.startsWith("blob:") || cleanUrl.startsWith("data:")) return true;
+  // Relative assets are shipped in the APK's web bundle and need no download.
+  if (/^(\/|\.\/)/.test(cleanUrl)) return true;
+  if ((await getPackagedManifest())[cleanUrl]) return true;
 
   try {
     const res = await fetch(cleanUrl, { mode: "cors" });
     if (!res.ok) return false;
     const blob = await res.blob();
 
-    // 1. Save to CacheStorage
+    // CacheStorage is the canonical download store. Do not duplicate every
+    // medical image in IndexedDB, which previously doubled phone storage use.
+    let stored = false;
     if ("caches" in window) {
       try {
         const cache = await caches.open(CACHE_NAME);
@@ -126,13 +155,14 @@ export async function cacheSingleImage(url: string): Promise<boolean> {
             "Cache-Control": "public, max-age=31536000",
           },
         }));
+        stored = true;
       } catch (e) {
         // Cache API put might fail on some schemes, fallback to IndexedDB
       }
     }
 
-    // 2. Save to IndexedDB
-    try {
+    // IndexedDB is used only where CacheStorage is unavailable or rejected.
+    if (!stored) try {
       const db = await openImageDb();
       await new Promise<void>((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, "readwrite");
@@ -141,11 +171,11 @@ export async function cacheSingleImage(url: string): Promise<boolean> {
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
+      stored = true;
     } catch (e) {
       // ignore
     }
-
-    return true;
+    return stored;
   } catch (err) {
     return false;
   }
@@ -159,13 +189,13 @@ export function extractImageUrls(content: string): string[] {
   const urls = new Set<string>();
 
   // Markdown ![alt](url)
-  const mdMatches = content.matchAll(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g);
+  const mdMatches = content.matchAll(/!\[[^\]]*\]\(([^\s)]+)\)/g);
   for (const m of mdMatches) {
     urls.add(m[1].trim());
   }
 
   // HTML <img src="url">
-  const htmlMatches = content.matchAll(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/gi);
+  const htmlMatches = content.matchAll(/<img[^>]+src=["']([^"']+)["']/gi);
   for (const m of htmlMatches) {
     urls.add(m[1].trim());
   }
@@ -191,7 +221,7 @@ export function extractArticleImageUrls(article: Record<string, unknown>): strin
 export async function cacheAllArticleImages(
   articles: Array<Record<string, unknown>>,
   onProgress?: (done: number, total: number) => void,
-): Promise<{ cached: number; total: number }> {
+): Promise<{ cached: number; total: number; failed: string[] }> {
   const urls = articles.flatMap(extractArticleImageUrls);
   return cacheImageBatch(urls, 4, onProgress);
 }
@@ -203,11 +233,12 @@ export async function cacheImageBatch(
   urls: string[],
   concurrency = 4,
   onProgress?: (done: number, total: number) => void
-): Promise<{ cached: number; total: number }> {
+): Promise<{ cached: number; total: number; failed: string[] }> {
   const uniqueUrls = Array.from(new Set(urls.filter(Boolean)));
   const total = uniqueUrls.length;
   let done = 0;
   let cached = 0;
+  const failed: string[] = [];
 
   const queue = [...uniqueUrls];
 
@@ -217,6 +248,7 @@ export async function cacheImageBatch(
       if (!url) break;
       const success = await cacheSingleImage(url);
       if (success) cached++;
+      else failed.push(url);
       done++;
       onProgress?.(done, total);
     }
@@ -225,7 +257,7 @@ export async function cacheImageBatch(
   const workers = Array.from({ length: Math.min(concurrency, total) }, () => worker());
   await Promise.all(workers);
 
-  return { cached, total };
+  return { cached, total, failed };
 }
 
 /**
@@ -234,15 +266,15 @@ export async function cacheImageBatch(
  */
 export async function precacheAponeurosisImages(
   onProgress?: (done: number, total: number) => void
-): Promise<{ cached: number; total: number }> {
+): Promise<{ cached: number; total: number; failed: string[] }> {
   if (typeof window === "undefined" || !navigator.onLine) {
-    return { cached: 0, total: 0 };
+    return { cached: 0, total: 0, failed: [] };
   }
 
   try {
     // 1. Fetch seed bundle to extract all Aponeurosis image URLs
     const res = await fetch("/offline-seed.json");
-    if (!res.ok) return { cached: 0, total: 0 };
+    if (!res.ok) return { cached: 0, total: 0, failed: [] };
     const bundle = await res.json();
     const articles = (bundle.articles || []) as { title?: string; category?: string; content?: string }[];
 
@@ -259,6 +291,6 @@ export async function precacheAponeurosisImages(
     return await cacheImageBatch(imageUrls, 5, onProgress);
   } catch (err) {
     console.warn("[OmpathStudy] Failed to precache Aponeurosis images:", err);
-    return { cached: 0, total: 0 };
+    return { cached: 0, total: 0, failed: [] };
   }
 }

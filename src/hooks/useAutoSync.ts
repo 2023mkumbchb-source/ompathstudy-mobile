@@ -4,6 +4,7 @@ import { checkForNewNotifications, startNotificationRealtime } from "@/lib/notif
 import { supabase } from "@/integrations/supabase/client";
 import { App as CapApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { Network } from "@capacitor/network";
 import { toast } from "sonner";
 
 export function useAutoSync() {
@@ -40,7 +41,9 @@ export function useAutoSync() {
 
           // 3. Once daily, reconcile the complete published library. This stores
           // every full post, MCQ set, flashcard set and every referenced image.
-          if (fullSyncDue) {
+          const network = Capacitor.isNativePlatform() ? await Network.getStatus().catch(() => null) : null;
+          const wifiOrWeb = !Capacitor.isNativePlatform() || network?.connectionType === "wifi";
+          if (fullSyncDue && wifiOrWeb) {
             const result = await syncAllContentForOffline();
             if (result.success) {
               localStorage.setItem("ompath_last_full_offline_sync", String(Date.now()));
@@ -78,10 +81,14 @@ export function useAutoSync() {
     const appStateListener = Capacitor.isNativePlatform()
       ? CapApp.addListener("appStateChange", ({ isActive }) => { if (isActive) void runSync(); })
       : null;
+    const networkListener = Capacitor.isNativePlatform()
+      ? Network.addListener("networkStatusChange", (status) => { if (status.connected && status.connectionType === "wifi") void runSync(); })
+      : null;
     return () => {
       window.removeEventListener("online", onOnline);
       window.clearInterval(interval);
       void appStateListener?.then((listener) => listener.remove());
+      void networkListener?.then((listener) => listener.remove());
       subscription.unsubscribe();
       stopRealtime?.();
     };

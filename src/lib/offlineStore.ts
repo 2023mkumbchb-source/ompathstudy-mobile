@@ -101,6 +101,23 @@ async function withStore<T>(
   });
 }
 
+async function pruneStoreToIds(storeName: string, validIds: Set<string>): Promise<void> {
+  const db = await openOfflineDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    const store = tx.objectStore(storeName);
+    const cursor = store.openCursor();
+    cursor.onsuccess = () => {
+      const item = cursor.result;
+      if (!item) return;
+      if (!validIds.has(String(item.key))) item.delete();
+      item.continue();
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
 // ── Article Offline Operations ──
 
 export async function saveArticleOffline(article: Article): Promise<void> {
@@ -388,6 +405,7 @@ export interface OfflineStorageStats {
   storyCount: number;
   lastSync: string | null;
   isFullySynced: boolean;
+  failedImageCount: number;
 }
 
 export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
@@ -414,29 +432,21 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
       countStore("stories"),
     ]);
 
-    let lastSync: string | null = null;
-    let isFullySynced = false;
-    try {
-      const tx = db.transaction("sync_state", "readonly");
-      const store = tx.objectStore("sync_state");
-      const req = store.get("last_sync");
-      await new Promise<void>((res) => {
-        req.onsuccess = () => {
-          if (req.result?.value) lastSync = req.result.value;
-          res();
-        };
-        req.onerror = () => res();
-      });
-
-      const fullSyncReq = store.get("is_fully_synced");
-      await new Promise<void>((res) => {
-        fullSyncReq.onsuccess = () => {
-          if (fullSyncReq.result?.value) isFullySynced = !!fullSyncReq.result.value;
-          res();
-        };
-        fullSyncReq.onerror = () => res();
-      });
-    } catch {}
+    const getMetadata = (key: string): Promise<any> => new Promise((resolve) => {
+      try {
+        const req = db.transaction("sync_state", "readonly").objectStore("sync_state").get(key);
+        req.onsuccess = () => resolve(req.result?.value);
+        req.onerror = () => resolve(undefined);
+      } catch { resolve(undefined); }
+    });
+    const [lastSyncValue, fullSyncValue, failedImagesValue] = await Promise.all([
+      getMetadata("last_sync"),
+      getMetadata("is_fully_synced"),
+      getMetadata("failed_image_urls"),
+    ]);
+    const lastSync = typeof lastSyncValue === "string" ? lastSyncValue : null;
+    const isFullySynced = fullSyncValue === true;
+    const failedImageCount = Array.isArray(failedImagesValue) ? failedImagesValue.length : 0;
 
     return {
       articleCount,
@@ -445,7 +455,8 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
       flashcardCount,
       storyCount,
       lastSync,
-      isFullySynced: isFullySynced || articleCount >= 100,
+      isFullySynced: failedImageCount === 0 && isFullySynced,
+      failedImageCount,
     };
   } catch {
     return {
@@ -456,6 +467,7 @@ export async function getOfflineStorageStats(): Promise<OfflineStorageStats> {
       storyCount: 0,
       lastSync: null,
       isFullySynced: false,
+      failedImageCount: 0,
     };
   }
 }
@@ -509,6 +521,7 @@ export async function syncAllContentForOffline(
     const totalArticles = cleanSummaries.length;
     const batchSize = 60;
     let savedArticles = 0;
+    const failedImages = new Set<string>();
 
     onProgress?.({
       phase: "articles",
@@ -529,7 +542,8 @@ export async function syncAllContentForOffline(
       if (artErr) throw artErr;
       if (fullArticles) {
         await saveArticlesOffline(fullArticles as Article[]);
-        await cacheAllArticleImages(fullArticles as Array<Record<string, unknown>>);
+        const imageResult = await cacheAllArticleImages(fullArticles as Array<Record<string, unknown>>);
+        imageResult.failed.forEach((url) => failedImages.add(url));
         savedArticles += fullArticles.length;
       }
 
@@ -542,6 +556,8 @@ export async function syncAllContentForOffline(
         percent,
       });
     }
+    await pruneStoreToIds("articles", new Set(cleanSummaries.map((item) => item.id)));
+    await pruneStoreToIds("article_summaries", new Set(cleanSummaries.map((item) => item.id)));
 
     // 3. Fetch all MCQ / Exam Sets
     onProgress?.({
@@ -561,6 +577,7 @@ export async function syncAllContentForOffline(
     if (mcqError) throw mcqError;
     if (mcqSets) {
       await saveMcqSetsOffline(mcqSets as McqSet[]);
+      await pruneStoreToIds("mcq_sets", new Set(mcqSets.map((item) => item.id)));
     }
 
     // 4. Fetch Flashcard Sets
@@ -581,6 +598,7 @@ export async function syncAllContentForOffline(
     if (flashcardError) throw flashcardError;
     if (flashcards) {
       await saveFlashcardSetsOffline(flashcards as FlashcardSet[]);
+      await pruneStoreToIds("flashcard_sets", new Set(flashcards.map((item) => item.id)));
     }
 
     onProgress?.({ phase: "stories", message: "Caching all published stories and images...", current: savedArticles, total: totalArticles, percent: 97 });
@@ -590,17 +608,19 @@ export async function syncAllContentForOffline(
     if (storyError) throw storyError;
     if (stories) {
       await saveStoriesOffline(stories as unknown as Story[]);
-      await cacheAllArticleImages(stories as Array<Record<string, unknown>>);
+      const imageResult = await cacheAllArticleImages(stories as Array<Record<string, unknown>>);
+      imageResult.failed.forEach((url) => failedImages.add(url));
     }
 
     // Record completion
     const timestamp = new Date().toISOString();
     await setSyncMetadata("last_sync", timestamp);
-    await setSyncMetadata("is_fully_synced", true);
+    await setSyncMetadata("failed_image_urls", [...failedImages]);
+    await setSyncMetadata("is_fully_synced", failedImages.size === 0);
 
     onProgress?.({
       phase: "complete",
-      message: `Complete! All ${savedArticles} notes & question banks are ready offline.`,
+      message: failedImages.size ? `${savedArticles} notes saved; ${failedImages.size} images need retry.` : `All ${savedArticles} notes and question banks are ready offline.`,
       current: savedArticles,
       total: totalArticles,
       percent: 100,
@@ -688,6 +708,11 @@ export async function ensureOfflineSeeded(): Promise<boolean> {
     if (Array.isArray(bundle.stories) && bundle.stories.length) {
       await saveStoriesOffline(bundle.stories);
       await cacheAllArticleImages(bundle.stories);
+    }
+    if (Array.isArray(bundle.articles) && bundle.articles.length) {
+      const imageResult = await cacheAllArticleImages(bundle.articles);
+      await setSyncMetadata("failed_image_urls", imageResult.failed);
+      await setSyncMetadata("is_fully_synced", imageResult.failed.length === 0);
     }
 
     if (bundle.generated_at) {
