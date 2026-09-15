@@ -57,23 +57,28 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.13.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.14.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmpathStudy-Android-APK
-          path: OmpathStudy-v1.0.13.apk
+          path: OmpathStudy-v1.0.14.apk
           retention-days: 30
 
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.13-apk
-          name: Ompath Study Mobile v1.0.13
+          tag_name: v1.0.14-apk
+          name: Ompath Study Mobile v1.0.14
           body: |
-            ## Ompath Study Android Native App v1.0.13
+            ## Ompath Study Android Native App v1.0.14
+            - Public, signed-in learner and administrator routes separated
+            - Alerts removed from bottom navigation and retained in the signed-in header
+            - Source Library and every administration route centrally protected
+            - Legacy public content-write permissions removed
+            - Personal pages require an authenticated user session
             - Downloaded anatomy images persist after app restart and OTA updates
             - Service-worker cleanup no longer deletes the offline medical-image library
             - Study-profile prompt restricted to successful new registrations
@@ -103,7 +108,7 @@ jobs:
             - Independent App notification and Email notification delivery switches
             - Responsive live phone preview and professional emoji-free notification format
           files: |
-            OmpathStudy-v1.0.13.apk
+            OmpathStudy-v1.0.14.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

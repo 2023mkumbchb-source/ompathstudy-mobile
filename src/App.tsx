@@ -22,6 +22,7 @@ import NotificationBanner from "@/components/NotificationBanner";
 import { setupNativeNotificationListener } from "@/lib/notifications";
 import { openNotificationAction } from "@/lib/notification-navigation";
 import { useAutoSync } from "@/hooks/useAutoSync";
+import { AdminRoute, SignedInRoute } from "@/components/AccessRoute";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -87,8 +88,8 @@ const AnimatedRoutes = () => {
             <Route path="/" element={<Index />} />
             <Route path="/year/:yearNumber" element={<YearHub />} />
             <Route path="/year/:yearNumber/unit/:unitSlug" element={<UnitPage />} />
-            <Route path="/my-revision" element={<MyRevision />} />
-            <Route path="/revision-planner" element={<RevisionPlanner />} />
+            <Route path="/my-revision" element={<SignedInRoute><MyRevision /></SignedInRoute>} />
+            <Route path="/revision-planner" element={<SignedInRoute><RevisionPlanner /></SignedInRoute>} />
             <Route path="/supplementary-revision" element={<Navigate to="/revision-index" replace />} />
             <Route path="/revision-index" element={<RevisionIndex />} />
             <Route path="/search" element={<GlobalSearch />} />
@@ -102,37 +103,37 @@ const AnimatedRoutes = () => {
             <Route path="/exams/:id/start" element={<ExamStart />} />
             <Route path="/contests" element={<Contests />} />
             <Route path="/contests/:slug/briefing" element={<ContestBriefing />} />
-            <Route path="/contests/:slug/register" element={<ContestRegistration />} />
-            <Route path="/contests/:slug/lobby" element={<ContestLobby />} />
-            <Route path="/contests/:slug/round/:roundId" element={<ContestRound />} />
+            <Route path="/contests/:slug/register" element={<SignedInRoute><ContestRegistration /></SignedInRoute>} />
+            <Route path="/contests/:slug/lobby" element={<SignedInRoute><ContestLobby /></SignedInRoute>} />
+            <Route path="/contests/:slug/round/:roundId" element={<SignedInRoute><ContestRound /></SignedInRoute>} />
             <Route path="/contests/:slug/leaderboard" element={<ContestLeaderboard />} />
-            <Route path="/contests/:slug/progress" element={<ContestProgress />} />
-            <Route path="/contests/:slug/certificate/:attemptId" element={<ContestCertificate />} />
-            <Route path="/admin/editor" element={<AdminEditor />} />
-            <Route path="/admin/categories" element={<CategoryManager />} />
-            <Route path="/admin/study-system" element={<StudySystemAdmin />} />
-            <Route path="/admin/contests" element={<ContestAdmin />} />
-            <Route path="/admin/contests/setup" element={<ContestSetup />} />
-            <Route path="/admin/contests/questions" element={<ContestQuestionAdmin />} />
-            <Route path="/admin/contests/operations" element={<ContestOperations />} />
-            <Route path="/admin/contests/rehearsal" element={<ContestRehearsal />} />
-            <Route path="/admin/contests/appeals" element={<ContestAppealsAdmin />} />
+            <Route path="/contests/:slug/progress" element={<SignedInRoute><ContestProgress /></SignedInRoute>} />
+            <Route path="/contests/:slug/certificate/:attemptId" element={<SignedInRoute><ContestCertificate /></SignedInRoute>} />
+            <Route path="/admin/editor" element={<AdminRoute><AdminEditor /></AdminRoute>} />
+            <Route path="/admin/categories" element={<AdminRoute><CategoryManager /></AdminRoute>} />
+            <Route path="/admin/study-system" element={<AdminRoute><StudySystemAdmin /></AdminRoute>} />
+            <Route path="/admin/contests" element={<AdminRoute><ContestAdmin /></AdminRoute>} />
+            <Route path="/admin/contests/setup" element={<AdminRoute><ContestSetup /></AdminRoute>} />
+            <Route path="/admin/contests/questions" element={<AdminRoute><ContestQuestionAdmin /></AdminRoute>} />
+            <Route path="/admin/contests/operations" element={<AdminRoute><ContestOperations /></AdminRoute>} />
+            <Route path="/admin/contests/rehearsal" element={<AdminRoute><ContestRehearsal /></AdminRoute>} />
+            <Route path="/admin/contests/appeals" element={<AdminRoute><ContestAppealsAdmin /></AdminRoute>} />
             <Route path="/stories" element={<Stories />} />
             <Route path="/stories/:id" element={<StoryRead />} />
-            <Route path="/submit-story" element={<SubmitStory />} />
+            <Route path="/submit-story" element={<SignedInRoute><SubmitStory /></SignedInRoute>} />
             <Route path="/essays" element={<Essays />} />
             <Route path="/essays/:slug" element={<EssayStudy />} />
             <Route path="/login" element={<Login />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/account" element={<SignedInRoute><Account /></SignedInRoute>} />
+            <Route path="/notifications" element={<SignedInRoute><Notifications /></SignedInRoute>} />
             <Route path="/updates" element={<Updates />} />
-            <Route path="/admin/notifications" element={<AdminNotifications />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/unedited-uploads" element={<Navigate to="/source-library" replace />} />
-            <Route path="/unedited-uploads" element={<Navigate to="/source-library" replace />} />
-            <Route path="/source-library" element={<SourceLibrary />} />
-            <Route path="/source-library/:slug" element={<SourceLibrary />} />
+            <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
+            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+            <Route path="/admin/unedited-uploads" element={<AdminRoute><Navigate to="/source-library" replace /></AdminRoute>} />
+            <Route path="/unedited-uploads" element={<AdminRoute><Navigate to="/source-library" replace /></AdminRoute>} />
+            <Route path="/source-library" element={<AdminRoute><SourceLibrary /></AdminRoute>} />
+            <Route path="/source-library/:slug" element={<AdminRoute><SourceLibrary /></AdminRoute>} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

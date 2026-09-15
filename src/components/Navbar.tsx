@@ -52,7 +52,7 @@ function getActiveYear(pathname: string, search: string): number | null {
 export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { founderPageVisible } = useSiteSettings();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
@@ -61,11 +61,13 @@ export default function Navbar() {
   const links = useMemo(() => {
     const base = [
       { to: "/", label: "Home", icon: Home },
-      { to: "/my-revision", label: "My Revision", icon: Target },
       { to: "/revision-index", label: "Exam Revision", icon: ListChecks },
       { to: "/contests", label: "Mega Contest", icon: Trophy },
-      { to: "/account", label: "Account", icon: UserRound },
     ];
+    if (user) {
+      base.push({ to: "/my-revision", label: "My Revision", icon: Target });
+      base.push({ to: "/account", label: "Account", icon: UserRound });
+    } else base.push({ to: "/login", label: "Sign In", icon: UserRound });
     if (isAdmin) {
       base.push({ to: "/admin", label: "Dashboard", icon: LayoutDashboard });
       base.push({ to: "/admin/notifications", label: "Broadcast Studio", icon: Bell });
@@ -73,19 +75,21 @@ export default function Navbar() {
       base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }
     return base;
-  }, [isAdmin]);
+  }, [user, isAdmin]);
 
   // Mobile drawer links: exclude Home & Account (already in bottom nav!) and focus on study tools
   const mobileDrawerLinks = useMemo(() => {
     const base = [
-      { to: "/notifications", label: "Notifications & Alerts", icon: Bell },
       { to: "/updates", label: "App Updates & Offline Library", icon: Database },
       { to: "/revision-index", label: "Exam Revision Bank", icon: ListChecks },
-      { to: "/my-revision", label: "My Revision Planner", icon: Target },
       { to: "/exams", label: "Timed Weekly Exams", icon: Clock },
       { to: "/contests", label: "Mega Contests", icon: Trophy },
       { to: "/stories", label: "Medical Stories", icon: BookOpen },
     ];
+    if (user) base.unshift(
+      { to: "/notifications", label: "Notifications & Alerts", icon: Bell },
+      { to: "/my-revision", label: "My Revision Planner", icon: Target },
+    );
     if (founderPageVisible || isAdmin) base.push({ to: "/about", label: isAdmin && !founderPageVisible ? "About Preview (Hidden)" : "About & Medical Sources", icon: Info });
     if (isAdmin) {
       base.push({ to: "/admin", label: "Admin Dashboard", icon: LayoutDashboard });
@@ -94,7 +98,7 @@ export default function Navbar() {
       base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }
     return base;
-  }, [isAdmin, founderPageVisible]);
+  }, [user, isAdmin, founderPageVisible]);
 
   const isExamPage = /^\/exams\/[^/]+\/start/.test(location.pathname);
 
@@ -176,12 +180,12 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
-            <NotificationBell />
+            {user && <NotificationBell />}
             <ThemeToggle />
           </div>
 
           <div className="flex items-center gap-1 md:hidden">
-            <NotificationBell />
+            {user && <NotificationBell />}
             <ThemeToggle />
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>

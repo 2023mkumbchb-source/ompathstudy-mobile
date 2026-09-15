@@ -1483,6 +1483,7 @@ export type Database = {
           reading_time_minutes: number | null
           scheduled_at: string | null
           slug: string | null
+          submitted_by: string | null
           tags: string[]
           title: string
           toc_enabled: boolean
@@ -1507,6 +1508,7 @@ export type Database = {
           reading_time_minutes?: number | null
           scheduled_at?: string | null
           slug?: string | null
+          submitted_by?: string | null
           tags?: string[]
           title: string
           toc_enabled?: boolean
@@ -1531,11 +1533,20 @@ export type Database = {
           reading_time_minutes?: number | null
           scheduled_at?: string | null
           slug?: string | null
+          submitted_by?: string | null
           tags?: string[]
           title?: string
           toc_enabled?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stories_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       syllabus_topics: {
         Row: {
