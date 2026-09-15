@@ -74,8 +74,6 @@ export async function loadPaymentSettings(force = false): Promise<PaymentSetting
     } catch { /* keep defaults */ }
     const ratio = Number(ratioRaw);
     const sitePrice = priceRaw === "" ? 0 : Math.max(0, Number(priceRaw) || 0);
-    // Existing installations did not have reveal_price_kes. In that case use
-    // the current site price so Reveal remains paid wherever the site is paid.
     const parsedReveal = Number(revealRaw);
     const revealPrice = revealRaw === ""
       ? sitePrice
@@ -272,8 +270,8 @@ export function useAccess() {
     hasPass,
     isApp,
     unlocked: isFree || hasPass || ownerAccess,
-    /** Reveal is independently controlled: 0 = free, otherwise subscriber/admin only. */
-    canReveal: revealIsFree || hasPass || ownerAccess,
+    /** Reveal is independently controlled: 0 = free; otherwise a valid paid pass is required. */
+    canReveal: revealIsFree || hasPass,
     canDownload: ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
     applyPass: (p: AccessPass) => setPass(p),
     signOutPass: () => { clearPass(); setPass(null); },
