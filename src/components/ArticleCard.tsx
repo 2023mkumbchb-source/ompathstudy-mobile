@@ -35,7 +35,9 @@ export default function ArticleCard({ article }: { article: Article }) {
 
   const unit = getCategoryDisplayName(article.category);
   const year = getYearFromCategory(article.category);
-  const staticCover = getArticleStaticThumb(article);
+  // Legacy uploaded thumbnails were frequently unrelated to their medical
+  // topic. Cards now use a licensed, topic-matched Commons result instead.
+  const staticCover = null;
   // Prefer the clean subunit name (e.g. "Bone and Soft Tissue Pathology") as the
   // Wikipedia lookup key — far more reliable than parsing noisy exam-question titles,
   // and it means every subunit gets one consistent, correct, non-generic thumbnail.

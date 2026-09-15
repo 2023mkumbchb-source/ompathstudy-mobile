@@ -6,6 +6,7 @@ import {
   getPublishedArticleSummaries,
   getCategoryDisplayName,
   buildBlogPath,
+  getResourceSection,
   type Article,
 } from "@/lib/store";
 import { Helmet } from "react-helmet-async";
@@ -26,10 +27,8 @@ function year3SemesterFor(article: Article): 1 | 2 | 3 {
 }
 
 function year3ResourceKind(article: Article): "cat" | "exam" | "notes" {
-  const text = `${article.content_type || ""} ${article.title}`;
-  if (/\bCAT\b|continuous assessment/i.test(text)) return "cat";
-  if (/past paper|supplementary|end[- ]of[- ]year|\bexam(?:ination)?\b/i.test(text)) return "exam";
-  return "notes";
+  const section = getResourceSection(article);
+  return section === "mcq" ? "notes" : section;
 }
 
 function timeAgo(iso: string): string {
@@ -135,10 +134,16 @@ export default function YearHub() {
 
   const sections = [
     {
-      title: "Blog",
-      description: "All study notes organized by unit",
+      title: "Study Notes",
+      description: "Notes only, organized by unit",
       to: `/blog?year=${encodeURIComponent(yearLabel)}`,
       icon: BookOpen,
+    },
+    {
+      title: "MCQs",
+      description: "Practice question banks for this year",
+      to: `/mcqs?year=${encodeURIComponent(yearLabel)}`,
+      icon: FileQuestion,
     },
     {
       title: "Flashcards",

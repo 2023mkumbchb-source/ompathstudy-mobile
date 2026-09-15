@@ -8,6 +8,7 @@ import {
   getPublishedArticleSummaries,
   searchPublishedArticles,
   buildBlogPath,
+  getResourceSection,
   type Article,
 } from "@/lib/store";
 import NoteRow from "@/components/NoteRow";
@@ -326,10 +327,12 @@ export default function Blog() {
           const matchesTrack = !selectedTrack ||
             (selectedTrack === "paper-1" && /bacteriology|parasitology/i.test(unitName)) ||
             (selectedTrack === "paper-2" && /mycology|virology/i.test(unitName));
-          const resourceText = `${a.content_type || ""} ${a.title}`;
-          const isCat = /\bCAT\b|continuous assessment/i.test(resourceText);
-          const isExam = /past paper|supplementary|end[- ]of[- ]year|\bexam(?:ination)?\b/i.test(resourceText);
-          const matchesResource = !selectedResource || (selectedResource === "cat" && isCat) || (selectedResource === "exam" && isExam) || (selectedResource === "notes" && !isCat && !isExam);
+          const section = getResourceSection(a);
+          // Library is notes-only by default. Explicit CAT/exam links from a
+          // year hub still work, but MCQ banks belong on /mcqs.
+          const matchesResource = selectedResource
+            ? section === selectedResource
+            : section === "notes";
           return matchesYear && matchesUnit && matchesSemester && matchesTrack && matchesResource;
         });
 
@@ -921,7 +924,6 @@ export default function Blog() {
               className="mr-1 rounded-md bg-transparent px-2 py-1 text-xs font-semibold text-muted-foreground focus:outline-none"
             >
               <option value="all">All types</option>
-              <option value="mcq">MCQs</option>
               <option value="essay">Essays</option>
               <option value="notes">Notes</option>
             </select>

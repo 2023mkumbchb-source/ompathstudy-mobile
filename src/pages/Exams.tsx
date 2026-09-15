@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Clock, Loader2, Phone, Shield, Sparkles, Trophy, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,12 +30,16 @@ function inferUnit(exam: ExamSet): string {
 }
 
 export default function Exams() {
+  const location = useLocation();
+  const mcqMode = location.pathname.startsWith("/mcqs");
   useEffect(() => {
     updateMetaTags({
-      title: "Timed Exams",
-      description: "Timed, proctored medical MCQ exams for Kenyan health students. Unit-based weekly exams with scoring.",
+      title: mcqMode ? "Medical MCQ Practice" : "Timed Exams",
+      description: mcqMode
+        ? "Practice medical MCQs organized by academic year and unit."
+        : "Timed, proctored medical exams for Kenyan health students, organized by academic year and unit.",
     });
-  }, []);
+  }, [mcqMode]);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedYear = searchParams.get("year") || "All";
@@ -62,18 +66,23 @@ export default function Exams() {
         setUnlockedExams(new Set());
       }
     }
-  }, []);
+  }, [mcqMode]);
 
   const loadExams = async () => {
     const { data } = await supabase
       .from("mcq_sets")
       .select("*")
       .eq("published", true)
-      .or("title.ilike.%exam%,category.ilike.Weekly Exam%")
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false });
 
     const usable = ((data || []) as unknown as ExamSet[])
       .filter(isPublicMcqSet)
+      .filter((exam: any) => {
+        const text = `${exam.title || ""} ${exam.category || ""} ${exam.exam_type || ""}`;
+        const isAssessment = /\b(?:exam|examination|eoy|end[ -]of[ -]year|cat|continuous assessment|past paper|supplementary|main paper|weekly exam)\b/i.test(text);
+        return mcqMode ? !isAssessment : isAssessment;
+      })
       .map((exam) => ({ ...exam, questions: normalizeMcqQuestions(exam.questions || []) }))
       .filter((exam) => exam.questions.length > 0);
     setExamSets(dedupeResourceSummaries(usable));
@@ -150,7 +159,7 @@ export default function Exams() {
 
   const sampleExam: ExamSet = {
     id: "sample-exam",
-    title: "Sample Pathology Exam",
+    title: mcqMode ? "Sample Pathology MCQs" : "Sample Pathology Exam",
     category: "Pathology",
     created_at: new Date().toISOString(),
     questions: [
@@ -174,7 +183,7 @@ export default function Exams() {
     return examSets.filter((exam) => getYearFromCategory(exam.category) === selectedYear);
   }, [examSets, selectedYear]);
 
-  const allExams = useMemo(() => [sampleExam, ...filteredExamSets], [filteredExamSets]);
+  const allExams = useMemo(() => [sampleExam, ...filteredExamSets], [filteredExamSets, mcqMode]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,16 +193,16 @@ export default function Exams() {
         <div className="mx-auto max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
-              <Trophy className="h-3.5 w-3.5" /> Unit-Based Weekly Exams
+              <Trophy className="h-3.5 w-3.5" /> {mcqMode ? "Unit-Based MCQ Practice" : "Unit-Based Exams"}
             </div>
-            <h1 className="mb-3 font-serif text-3xl font-bold text-foreground sm:text-4xl">Exam Center</h1>
+            <h1 className="mb-3 font-serif text-3xl font-bold text-foreground sm:text-4xl">{mcqMode ? "MCQ Practice" : "Exam Centre"}</h1>
             <p className="mx-auto max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Timed, proctored MCQ exams drawn from your unit content. {selectedYear === "All" ? "Select a year from the menu to narrow exams." : `Currently viewing ${selectedYear} exams.`}
+              {mcqMode ? "Question banks for self-directed practice, separated from CATs and examination papers." : "Timed CATs and examination papers, separated from ordinary practice banks."} {selectedYear === "All" ? "Select a year to narrow the list." : `Currently viewing ${selectedYear}.`}
             </p>
           </motion.div>
 
           {/* Support card — new addition, no logic impact */}
-          <motion.div
+          {!mcqMode && <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
@@ -210,7 +219,7 @@ export default function Exams() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </motion.div>}
         </div>
       </section>
 
@@ -221,7 +230,7 @@ export default function Exams() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : allExams.length === 0 ? (
-          <p className="py-16 text-center text-muted-foreground">No exams available yet.</p>
+          <p className="py-16 text-center text-muted-foreground">No {mcqMode ? "MCQ sets" : "exams"} available yet.</p>
         ) : (
           allExams.map((exam, index) => {
             const isSample = exam.id === "sample-exam";
@@ -252,7 +261,7 @@ export default function Exams() {
                 </div>
 
                 <Button onClick={() => navigate(isSample ? `/exams/${exam.id}/start` : buildExamPath(exam))} className="w-full gap-2">
-                  <Shield className="h-4 w-4" /> Start Exam <ArrowRight className="h-4 w-4" />
+                  <Shield className="h-4 w-4" /> {mcqMode ? "Start Practice" : "Start Exam"} <ArrowRight className="h-4 w-4" />
                 </Button>
                 {!isSample && !unlocked && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">

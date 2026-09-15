@@ -360,7 +360,8 @@ function InlineAnswerBlock({ raw }: { raw: string }) {
 }
 
 function RelatedArticleCard({ article, compact = false }: { article: any; compact?: boolean }) {
-  const image = article.og_image_url || extractFirstImageFromContent(article.content || "");
+  const topicImage = useTopicThumbnailInfo(article.title, article.category, true);
+  const image = topicImage?.url || "";
   const summary = stripRichText(article.meta_description || article.content || "", compact ? 95 : 135);
   return (
     <Link
@@ -445,9 +446,9 @@ async function findClosestArticle(slugOrParam: string): Promise<{ id: string; ti
 function ClassicHeroInner({
   title, image, date, unit, shareUrl, description, category,
 }: { title: string; image: string; date: string; unit: string; shareUrl: string; description: string; category?: string }) {
-  const specificImage = image && !isGenericThumbnail(image) ? image : "";
-  const topicImage = useTopicThumbnailInfo(title, category, !specificImage);
-  const heroImage = specificImage || topicImage?.url || "";
+  const specificImage = "";
+  const topicImage = useTopicThumbnailInfo(title, category, true);
+  const heroImage = topicImage?.url || "";
   const reviewer = pickReviewer(title);
 
   /* Cinematic hero restored: slow-panning background photograph with the title

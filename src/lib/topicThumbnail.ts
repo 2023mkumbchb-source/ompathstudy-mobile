@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const CACHE_KEY = "ompath_topic_thumb_cache_v2";
+const CACHE_KEY = "ompath_topic_thumb_cache_v3";
 const NEG_TTL = 1000 * 60 * 60 * 24 * 7;
 export type TopicThumbnail = { url: string; pageUrl: string; credit: string; license: string };
 type CacheEntry = { image: TopicThumbnail | null; ts: number };
@@ -20,6 +20,29 @@ function hash(value: string): number {
 }
 
 export function extractTopicKeyword(title: string, category?: string): string | null {
+  const source = `${title || ""} ${category || ""}`.toLowerCase();
+  const clinicalTopics: Array<[RegExp, string]> = [
+    [/epidemiolog|public health|community health/, "epidemiology public health"],
+    [/aponeurosis/, "aponeurosis anatomy"],
+    [/cardiovascular|heart|cardiac/, "human heart anatomy"],
+    [/respiratory|lung|pulmonary/, "human lung anatomy"],
+    [/gastrointestinal|digestive|\bgit\b/, "human gastrointestinal anatomy"],
+    [/renal|kidney|urinary/, "human kidney anatomy"],
+    [/neurolog|brain|nervous system/, "brain anatomy"],
+    [/hemat|blood/, "human blood cells microscopy"],
+    [/bacter|microbiolog/, "medical bacteriology microscopy"],
+    [/parasit|helminth|protozo/, "medical parasitology microscopy"],
+    [/virolog|virus/, "medical virology microscopy"],
+    [/mycolog|fung/, "medical mycology microscopy"],
+    [/pharmac|drug/, "pharmacology medicine"],
+    [/histolog|microscop/, "human histology microscopy"],
+    [/embryolog|development/, "human embryology"],
+    [/anatom/, "human anatomy"],
+    [/physiolog/, "human physiology"],
+    [/patholog|disease/, "histopathology"],
+  ];
+  const recognised = clinicalTopics.find(([pattern]) => pattern.test(source));
+  if (recognised) return recognised[1];
   const cleaned = (title || "")
     .replace(/&(?:amp|nbsp);/gi, " ").replace(/\b(?:19|20)\d{2}\b/g, " ")
     .replace(/\b(?:MB[A-Z]{1,4}|HBC|UPC|VBC)\s*\d+[A-Z0-9-]*\b/gi, " ")
@@ -50,9 +73,17 @@ async function fetchCommonsThumb(query: string, identity: string): Promise<Topic
       const url = info?.thumburl || info?.url;
       if (!url || /\.svg(?:\?|$)/i.test(url)) return [];
       const meta = info.extmetadata || {};
-      return [{ url, pageUrl: info.descriptionurl || `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title || "")}`, credit: stripMarkup(meta.Artist?.value || meta.Credit?.value || "Wikimedia Commons"), license: stripMarkup(meta.LicenseShortName?.value || meta.UsageTerms?.value || "Free licence") } satisfies TopicThumbnail];
+      const image = { url, pageUrl: info.descriptionurl || `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title || "")}`, credit: stripMarkup(meta.Artist?.value || meta.Credit?.value || "Wikimedia Commons"), license: stripMarkup(meta.LicenseShortName?.value || meta.UsageTerms?.value || "Free licence") } satisfies TopicThumbnail;
+      const searchable = `${page.title || ""} ${stripMarkup(meta.ImageDescription?.value || "")}`.toLowerCase();
+      const score = query.toLowerCase().split(/\s+/).filter(Boolean).reduce((total, token) => total + (searchable.includes(token) ? 3 : 0), 0)
+        - (/logo|icon|map|building|portrait|book cover|exam paper/.test(searchable) ? 8 : 0);
+      return [{ image, score }];
     });
-    return candidates.length ? candidates[hash(identity) % Math.min(candidates.length, 8)] : null;
+    const relevant = candidates.filter((candidate) => candidate.score > 0).sort((a, b) => b.score - a.score);
+    if (!relevant.length) return null;
+    const bestScore = relevant[0].score;
+    const best = relevant.filter((candidate) => candidate.score >= bestScore - 2).slice(0, 4);
+    return best[hash(identity) % best.length].image;
   } catch { return null; }
 }
 

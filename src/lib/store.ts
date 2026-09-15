@@ -406,6 +406,18 @@ export function getCategoryDisplayName(category: string): string {
  * question banks are "MCQ", everything else reads as "Notes".
  */
 export type DisplayContentKind = "Exam" | "CAT" | "MCQ" | "Flashcards" | "Image Spot Bank" | "Essay / SAQ" | "Notes";
+export type ResourceSection = "notes" | "mcq" | "cat" | "exam";
+
+/** Canonical navigation bucket. Assessment metadata takes precedence over an
+ * old import's content_kind so a past paper can never leak into Study Notes. */
+export function getResourceSection(article: Pick<Article, "title" | "category" | "content_kind" | "content_type" | "exam_type">): ResourceSection {
+  const type = `${article.content_type || ""} ${article.exam_type || ""}`.toLowerCase();
+  const text = `${type} ${article.title || ""} ${article.category || ""}`;
+  if (/\bcat\b|continuous assessment/.test(text)) return "cat";
+  if (/past paper|supplementary|end[ -]of[ -]year|end[ -]of[ -]semester|\beoy\b|main exam|exam paper|\bexamination\b/.test(text)) return "exam";
+  if (/mcq bank|multiple[ -]choice|question bank|\bmcqs?\b|\bquiz\b/.test(text) || /\bmcq/.test((article.content_kind || "").toLowerCase())) return "mcq";
+  return "notes";
+}
 
 export function getContentKind(title: string, category = "", storedKind = ""): DisplayContentKind {
   const explicit = storedKind.trim().toLowerCase().replace(/[ _-]+/g, " ");

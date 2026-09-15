@@ -200,7 +200,7 @@ export default function Navbar() {
                       <img src={ompathLogo} alt="Ompath Study logo" width="32" height="32" className="h-full w-full object-contain" decoding="async" />
                     </div>
                     <div>
-                      <span className="font-serif text-lg font-black block leading-tight tracking-wide">OMPATH</span>
+                      <span className="font-serif text-lg font-black block leading-tight tracking-wide">OmpathStudy</span>
                       <span className="text-[10px] uppercase tracking-wider text-white/60">Learn · Recall · Practice</span>
                     </div>
                   </div>
