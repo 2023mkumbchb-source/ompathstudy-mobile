@@ -8,6 +8,10 @@ const corsHeaders = {
 
 const PALPLUSS_BASE = 'https://api.palpluss.com/v1';
 
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+}[char] || char));
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,7 +29,6 @@ serve(async (req) => {
     console.log('Palpluss callback received:', rawBody);
     const data = JSON.parse(rawBody);
 
-    // Palpluss webhook payload
     const txn = data.transaction || {};
     const providerTxnId: string | undefined = txn.id;
 
@@ -36,9 +39,7 @@ serve(async (req) => {
       );
     }
 
-    // PalPlus currently documents no webhook signature. Never trust the public
-    // callback body by itself: retrieve the transaction using our server-side
-    // API key and update access only from that authenticated provider response.
+    // Verify the callback against PalPlus before changing payment/access state.
     const verification = await fetch(`${PALPLUSS_BASE}/transactions/${encodeURIComponent(providerTxnId)}`, {
       headers: { Authorization: `Basic ${PALPLUSS_API_KEY}` },
     });
@@ -66,7 +67,7 @@ serve(async (req) => {
 
     const { data: existing, error: lookupError } = await supabase
       .from('payments')
-      .select('id, amount, provider_txn_id')
+      .select('id, amount, provider_txn_id, payment_status, buyer_email, buyer_name, user_id, package_type')
       .eq('transaction_id', externalReference)
       .eq('provider_txn_id', providerTxnId)
       .maybeSingle();
@@ -78,6 +79,8 @@ serve(async (req) => {
         { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const wasAlreadyCompleted = existing.payment_status === 'completed';
 
     const { data: payment, error: updateError } = await supabase
       .from('payments')
@@ -96,6 +99,98 @@ serve(async (req) => {
         JSON.stringify({ success: false, error: 'Failed to update payment' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // A successful payment gets one confirmation email and one in-app notification.
+    // The idempotency check prevents repeated provider callbacks from sending duplicates.
+    if (newStatus === 'completed' && !wasAlreadyCompleted && existing.user_id) {
+      const userId = existing.user_id;
+      const amount = Number(existing.amount || verifiedTxn.amount || 0);
+      const packageLabel = String(existing.package_type || 'subscription');
+      const receipt = mpesaCode || externalReference;
+      const title = 'Subscription payment confirmed';
+      const message = `Your Ompath Study payment of KES ${amount.toLocaleString()} has been confirmed. M-Pesa receipt: ${receipt}. Your paid access is being activated.`;
+      const actionUrl = '/account';
+
+      // Create a campaign record so the payment notification fits the existing
+      // notification system and can be opened from the notification centre.
+      const { data: campaign, error: campaignError } = await supabase
+        .from('notification_campaigns')
+        .insert({
+          title,
+          message,
+          action_url: actionUrl,
+          audience: 'all_users',
+          study_year: null,
+          status: 'sent',
+          recipient_count: 1,
+          delivered_count: 1,
+          failed_count: 0,
+          created_by: userId,
+          sent_at: new Date().toISOString(),
+          type: 'general',
+          priority: 'urgent',
+        })
+        .select('id')
+        .single();
+
+      if (campaignError) {
+        console.error('Payment notification campaign creation failed:', campaignError);
+      } else {
+        const { error: notificationError } = await supabase
+          .from('user_notifications')
+          .insert({
+            campaign_id: campaign.id,
+            user_id: userId,
+            title,
+            message,
+            action_url: actionUrl,
+            type: 'general',
+            priority: 'urgent',
+            study_year: null,
+            email_status: 'pending',
+          });
+        if (notificationError) console.error('Payment in-app notification failed:', notificationError);
+
+        const recipientEmail = String(existing.buyer_email || '').trim();
+        const resendKey = Deno.env.get('RESEND_API_KEY');
+        const from = Deno.env.get('NOTIFICATION_FROM_EMAIL') || 'Ompath Study <notifications@ompathstudy.com>';
+
+        if (recipientEmail && resendKey) {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from,
+              to: [recipientEmail],
+              subject: title,
+              text: `${message}\n\nPackage: ${packageLabel}\nTransaction: ${externalReference}\n\nOpen Ompath Study: https://www.ompathstudy.com/account`,
+              html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto"><h2 style="color:#0f766e">Ompath Study</h2><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><p><strong>Package:</strong> ${escapeHtml(packageLabel)}</p><p><strong>Transaction:</strong> ${escapeHtml(externalReference)}</p><p><a href="https://www.ompathstudy.com/account" style="display:inline-block;padding:12px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:8px">Open My Account</a></p><p style="font-size:12px;color:#64748b">This is your payment confirmation from Ompath Study.</p></div>`,
+            }),
+          });
+
+          if (response.ok) {
+            await supabase.from('user_notifications')
+              .update({ email_status: 'sent', email_error: null })
+              .eq('campaign_id', campaign.id).eq('user_id', userId);
+          } else {
+            const errorText = (await response.text()).slice(0, 500);
+            console.error('Payment confirmation email failed:', errorText);
+            await supabase.from('user_notifications')
+              .update({ email_status: 'failed', email_error: errorText })
+              .eq('campaign_id', campaign.id).eq('user_id', userId);
+          }
+        } else {
+          const reason = !recipientEmail ? 'No buyer email on payment record' : 'Email provider is not configured';
+          console.warn('Payment confirmation email skipped:', reason);
+          await supabase.from('user_notifications')
+            .update({ email_status: 'skipped', email_error: reason })
+            .eq('campaign_id', campaign.id).eq('user_id', userId);
+        }
+      }
     }
 
     console.log('Payment updated:', payment?.id, 'Status:', newStatus);
