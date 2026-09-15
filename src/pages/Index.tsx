@@ -112,7 +112,7 @@ export default function Index() {
     // Load last read
     setLastRead(getRecentArticles());
 
-    // Recently added: one aggregated request that returns metadata only. The
+    // Recently updated: one aggregated request that returns metadata only. The
     // database already filters out empty shells (no body text / no questions),
     // so the browser never downloads article bodies just to render this list.
     supabase
@@ -423,7 +423,7 @@ export default function Index() {
           )}
         </motion.div>
 
-        {/* Recently Added */}
+        {/* Recently Updated */}
         <motion.div
           variants={sectionReveal}
           initial="hidden"
@@ -431,8 +431,8 @@ export default function Index() {
           viewport={{ once: true, amount: 0.1 }}
         >
           <div className="mb-5">
-            <h2 className="font-serif text-xl font-bold text-foreground sm:text-2xl">Recently added</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">Fresh notes, MCQs, flashcards &amp; clinical stories</p>
+            <h2 className="font-serif text-xl font-bold text-foreground sm:text-2xl">Recently updated</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">The latest edited notes, flashcards and clinical stories</p>
           </div>
           <div className="flex gap-2 mb-5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
             {(["all", "articles", "flashcards", "stories"] as const).map(tab => (
