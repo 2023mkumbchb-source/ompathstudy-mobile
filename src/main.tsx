@@ -16,10 +16,15 @@ const tryReloadOnce = (reason: string) => {
     if (Date.now() - last < 15000) return; // avoid loops
     sessionStorage.setItem(KEY, String(Date.now()));
     console.warn("[ompath] reloading after chunk error:", reason);
-    // Best-effort: drop SW caches so the new index can fetch fresh assets
+    // Drop stale application-shell caches but preserve the separately managed
+    // offline medical-image library across OTA upgrades and app restarts.
     const doReload = () => window.location.reload();
     if ("caches" in window) {
-      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).finally(doReload);
+      caches.keys().then((keys) => Promise.all(
+        keys
+          .filter((key) => key !== "ompath-offline-images-v1")
+          .map((key) => caches.delete(key)),
+      )).finally(doReload);
     } else {
       doReload();
     }

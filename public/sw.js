@@ -1,7 +1,11 @@
-// OmpathStudy Service Worker - v8. Supabase reads are network-first so an
+// OmpathStudy Service Worker - v9. Supabase reads are network-first so an
 // empty response captured during a database migration cannot blank the site.
-const CACHE_NAME = "ompath-v8";
+const CACHE_NAME = "ompath-v9";
 const API_CACHE = "ompath-api-v4";
+// This cache belongs to offlineImageStore. It contains the student's downloaded
+// medical diagrams and must survive service-worker upgrades and app restarts.
+const OFFLINE_IMAGE_CACHE = "ompath-offline-images-v1";
+const PRESERVED_CACHES = new Set([CACHE_NAME, API_CACHE, OFFLINE_IMAGE_CACHE]);
 const STATIC_ASSETS = ["/", "/index.html", "/manifest.json"];
 
 // Install: cache shell
@@ -18,7 +22,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => k !== CACHE_NAME && k !== API_CACHE)
+          .filter((k) => !PRESERVED_CACHES.has(k))
           .map((k) => caches.delete(k))
       )
     )
