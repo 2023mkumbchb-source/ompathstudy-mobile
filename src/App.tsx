@@ -24,6 +24,7 @@ import { openNotificationAction } from "@/lib/notification-navigation";
 import { useAutoSync } from "@/hooks/useAutoSync";
 import { AdminRoute, SignedInRoute } from "@/components/AccessRoute";
 import MedicalLaunchExperience from "@/components/MedicalLaunchExperience";
+import { initOtaUpdater } from "@/lib/otaUpdater";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -154,6 +155,7 @@ function MobileAppBridge() {
     setupNativeNotificationListener((url) => {
       openNotificationAction(url, navigate);
     });
+    void initOtaUpdater();
   }, [navigate]);
 
   return null;
