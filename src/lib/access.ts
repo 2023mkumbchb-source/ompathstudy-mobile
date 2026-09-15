@@ -13,11 +13,8 @@ export interface AccessPlan {
 }
 
 export interface PaymentSettings {
-  /** 0 = everything free */
   price: number;
-  /** fraction of a locked page that stays visible (0.25 = 75% hidden) */
   freeRatio: number;
-  /** Reveal price in KES. 0 = Reveal is free; non-zero = subscription required. */
   revealPrice: number;
   downloadEnabled: boolean;
   plans: AccessPlan[];
@@ -191,11 +188,11 @@ export async function fetchAccount(code?: string): Promise<AccountInfo> {
   return data as AccountInfo;
 }
 
-function loadLinkedAccount(key: string): Promise<AccountInfo> {
-  if (linkedAccountCache?.key === key && Date.now() - linkedAccountCache.at < 60_000) {
+function loadLinkedAccount(key: string, force = false): Promise<AccountInfo> {
+  if (!force && linkedAccountCache?.key === key && Date.now() - linkedAccountCache.at < 60_000) {
     return Promise.resolve(linkedAccountCache.value);
   }
-  if (linkedAccountPromise?.key === key) return linkedAccountPromise.promise;
+  if (!force && linkedAccountPromise?.key === key) return linkedAccountPromise.promise;
   const promise = fetchAccount()
     .then((value) => {
       linkedAccountCache = { key, at: Date.now(), value };
@@ -235,11 +232,27 @@ export function useAccess() {
   }, []);
 
   useEffect(() => {
+    // A Reveal subscription is account-bound. Never let a cached local pass
+    // keep Reveal unlocked after the user has signed out.
+    if (!authLoading && !user) {
+      clearPass();
+      setPass(null);
+      return;
+    }
     if (authLoading || !user) return;
+
     let active = true;
     const accountKey = `${user.id}:${user.email || ""}`;
-    loadLinkedAccount(accountKey).then((info) => {
-      if (!active || !info.found || info.expired || !info.code || !info.expires_at) return;
+    // Always re-check when the authenticated account changes. This is
+    // especially important after Google OAuth returns to the Android APK.
+    linkedAccountCache = null;
+    loadLinkedAccount(accountKey, true).then((info) => {
+      if (!active) return;
+      if (!info.found || info.expired || !info.code || !info.expires_at) {
+        clearPass();
+        setPass(null);
+        return;
+      }
       const linked: AccessPass = {
         code: info.code,
         plan: info.plan || "subscription",
@@ -255,7 +268,22 @@ export function useAccess() {
   const refresh = useCallback(() => {
     setPass(readStoredPass());
     loadPaymentSettings(true).then(setSettings);
-  }, []);
+    if (user) {
+      const accountKey = `${user.id}:${user.email || ""}`;
+      linkedAccountCache = null;
+      void loadLinkedAccount(accountKey, true).then((info) => {
+        if (!info.found || info.expired || !info.code || !info.expires_at) return;
+        const linked: AccessPass = {
+          code: info.code,
+          plan: info.plan || "subscription",
+          expires_at: info.expires_at,
+          allow_download: info.allow_download !== false,
+        };
+        storePass(linked);
+        setPass(linked);
+      });
+    }
+  }, [user]);
 
   const isApp = isNativeApp();
   const isFree = (settings?.price ?? 0) <= 0;
@@ -269,11 +297,12 @@ export function useAccess() {
     isFree,
     hasPass,
     isApp,
+    authenticated: !!user,
     unlocked: isFree || hasPass || ownerAccess,
     /** Reveal is independently controlled: 0 = free; otherwise a valid paid pass is required. */
     canReveal: revealIsFree || hasPass,
     canDownload: ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
-    applyPass: (p: AccessPass) => setPass(p),
+    applyPass: (p: AccessPass) => { storePass(p); setPass(p); },
     signOutPass: () => { clearPass(); setPass(null); },
     refresh,
   };
