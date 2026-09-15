@@ -17,6 +17,8 @@ export interface PaymentSettings {
   price: number;
   /** fraction of a locked page that stays visible (0.25 = 75% hidden) */
   freeRatio: number;
+  /** Reveal price in KES. 0 = Reveal is free; non-zero = subscription required. */
+  revealPrice: number;
   downloadEnabled: boolean;
   plans: AccessPlan[];
 }
@@ -29,6 +31,7 @@ export const DEFAULT_PLANS: AccessPlan[] = [
 export const DEFAULT_SETTINGS: PaymentSettings = {
   price: 0,
   freeRatio: 0.25,
+  revealPrice: 5,
   downloadEnabled: true,
   plans: DEFAULT_PLANS,
 };
@@ -39,12 +42,10 @@ let settingsCache: { at: number; value: PaymentSettings } | null = null;
 let linkedAccountCache: { key: string; at: number; value: AccountInfo } | null = null;
 let linkedAccountPromise: { key: string; promise: Promise<AccountInfo> } | null = null;
 
-/** Codes are matched punctuation-insensitively, so normalise before sending. */
 export function normalizePassCode(value: string): string {
   return (value || "").trim().toUpperCase().replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "");
 }
 
-/** Attach the signed-in account (if any) so subscriptions can be tracked. */
 async function accountFields(): Promise<{ email?: string; user_id?: string }> {
   try {
     const { data } = await supabase.auth.getUser();
@@ -59,9 +60,10 @@ async function accountFields(): Promise<{ email?: string; user_id?: string }> {
 export async function loadPaymentSettings(force = false): Promise<PaymentSettings> {
   if (!force && settingsCache && Date.now() - settingsCache.at < 5 * 60_000) return settingsCache.value;
   try {
-    const [priceRaw, ratioRaw, downloadRaw, plansRaw] = await Promise.all([
+    const [priceRaw, ratioRaw, revealRaw, downloadRaw, plansRaw] = await Promise.all([
       getSetting("access_price_kes"),
       getSetting("paywall_free_ratio"),
+      getSetting("reveal_price_kes"),
       getSetting("pdf_download_enabled"),
       getSetting("access_plans"),
     ]);
@@ -71,9 +73,17 @@ export async function loadPaymentSettings(force = false): Promise<PaymentSetting
       if (Array.isArray(parsed) && parsed.length) plans = parsed as AccessPlan[];
     } catch { /* keep defaults */ }
     const ratio = Number(ratioRaw);
+    const sitePrice = priceRaw === "" ? 0 : Math.max(0, Number(priceRaw) || 0);
+    // Existing installations did not have reveal_price_kes. In that case use
+    // the current site price so Reveal remains paid wherever the site is paid.
+    const parsedReveal = Number(revealRaw);
+    const revealPrice = revealRaw === ""
+      ? sitePrice
+      : Math.max(0, Number.isFinite(parsedReveal) ? parsedReveal : sitePrice);
     const value: PaymentSettings = {
-      price: priceRaw === "" ? 0 : Math.max(0, Number(priceRaw) || 0),
+      price: sitePrice,
       freeRatio: Number.isFinite(ratio) && ratio > 0 && ratio < 1 ? ratio : 0.25,
+      revealPrice,
       downloadEnabled: (downloadRaw || "true") !== "false",
       plans,
     };
@@ -119,11 +129,7 @@ export function clearPass() {
 
 export async function verifyCode(code: string): Promise<{ ok: boolean; pass?: AccessPass; error?: string }> {
   const { data, error } = await supabase.functions.invoke("access-code", {
-    body: {
-      action: "verify",
-      code: normalizePassCode(code),
-      ...(await accountFields()),
-    },
+    body: { action: "verify", code: normalizePassCode(code), ...(await accountFields()) },
   });
   if (error) return { ok: false, error: "Could not check that code. Try again." };
   if (!data?.valid) return { ok: false, error: data?.error || "Invalid code." };
@@ -139,12 +145,7 @@ export async function verifyCode(code: string): Promise<{ ok: boolean; pass?: Ac
 
 export async function issuePassForPayment(transactionId: string, plan?: string): Promise<AccessPass | null> {
   const { data, error } = await supabase.functions.invoke("access-code", {
-    body: {
-      action: "issue",
-      transaction_id: transactionId,
-      plan,
-      ...(await accountFields()),
-    },
+    body: { action: "issue", transaction_id: transactionId, plan, ...(await accountFields()) },
   });
   if (error || !data?.success) return null;
   const pass: AccessPass = {
@@ -157,7 +158,6 @@ export async function issuePassForPayment(transactionId: string, plan?: string):
   return pass;
 }
 
-/** Let the buyer pick their own memorable pass code on the success screen. */
 export async function renamePassCode(currentCode: string, newCode: string): Promise<{ ok: boolean; pass?: AccessPass; error?: string }> {
   const { data, error } = await supabase.functions.invoke("access-code", {
     body: { action: "rename", code: currentCode, new_code: normalizePassCode(newCode), ...(await accountFields()) },
@@ -184,7 +184,6 @@ export interface AccountInfo {
   allow_download?: boolean;
 }
 
-/** Subscriber account lookup — by stored pass code, or by the signed-in account. */
 export async function fetchAccount(code?: string): Promise<AccountInfo> {
   const account = await accountFields();
   const { data, error } = await supabase.functions.invoke("access-code", {
@@ -194,7 +193,6 @@ export async function fetchAccount(code?: string): Promise<AccountInfo> {
   return data as AccountInfo;
 }
 
-/** Coalesce the many useAccess() calls on long question banks into one lookup. */
 function loadLinkedAccount(key: string): Promise<AccountInfo> {
   if (linkedAccountCache?.key === key && Date.now() - linkedAccountCache.at < 60_000) {
     return Promise.resolve(linkedAccountCache.value);
@@ -212,10 +210,6 @@ function loadLinkedAccount(key: string): Promise<AccountInfo> {
   return promise;
 }
 
-/**
- * Site-wide access state: is content free right now, does this reader hold a
- * valid pass, and may they download the watermarked PDF.
- */
 export function useAccess() {
   const { isAdmin, user, loading: authLoading } = useAuth();
   const [settings, setSettings] = useState<PaymentSettings | null>(null);
@@ -242,7 +236,6 @@ export function useAccess() {
     return () => { active = false; };
   }, []);
 
-  // Restore a subscription from the signed-in account on every browser.
   useEffect(() => {
     if (authLoading || !user) return;
     let active = true;
@@ -270,6 +263,7 @@ export function useAccess() {
   const isFree = (settings?.price ?? 0) <= 0;
   const hasPass = !!pass;
   const ownerAccess = isAdmin;
+  const revealIsFree = (settings?.revealPrice ?? DEFAULT_SETTINGS.revealPrice) <= 0;
   return {
     loading,
     settings: settings ?? DEFAULT_SETTINGS,
@@ -277,11 +271,9 @@ export function useAccess() {
     isFree,
     hasPass,
     isApp,
-    /** unlocked = free site, valid pass, or running as the App */
     unlocked: isFree || hasPass || ownerAccess,
-    /** Answers/reveals unlock for subscribers or administrators. */
-    canReveal: isFree || hasPass || ownerAccess,
-    /** PDF handouts follow the configured subscription permission. */
+    /** Reveal is independently controlled: 0 = free, otherwise subscriber/admin only. */
+    canReveal: revealIsFree || hasPass || ownerAccess,
     canDownload: ownerAccess || ((settings?.downloadEnabled ?? true) && !!pass?.allow_download),
     applyPass: (p: AccessPass) => setPass(p),
     signOutPass: () => { clearPass(); setPass(null); },
@@ -289,7 +281,6 @@ export function useAccess() {
   };
 }
 
-/** How many of `total` items stay visible before the paywall. */
 export function freeItemCount(total: number, freeRatio: number): number {
   if (total <= 2) return total;
   return Math.max(1, Math.floor(total * freeRatio));
