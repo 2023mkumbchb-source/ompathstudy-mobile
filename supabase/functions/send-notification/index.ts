@@ -49,6 +49,7 @@ serve(async (req) => {
     const studyYear = audience === "study_year" ? Number(body.study_year) : null;
     const rawUrl = String(body.action_url || "").trim();
     const actionUrl = rawUrl && (/^\/[a-z0-9/_?=&%#.-]*$/i.test(rawUrl) || /^https:\/\/(www\.)?ompathstudy\.com(?:\/|$)/i.test(rawUrl)) ? rawUrl : null;
+    const emailActionUrl = actionUrl?.startsWith("/") ? `https://www.ompathstudy.com${actionUrl}` : actionUrl;
     if (!title || !message) return json({ error: "Title and message are required" }, 400);
     if (audience === "study_year" && (!Number.isInteger(studyYear) || studyYear < 1 || studyYear > 6)) {
       return json({ error: "Choose a study year from 1 to 6" }, 400);
@@ -117,13 +118,13 @@ serve(async (req) => {
           await admin.from("user_notifications").update({ email_status: "skipped" }).eq("campaign_id", campaign.id).eq("user_id", recipient.id);
           continue;
         }
-        const link = actionUrl ? `<p><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:12px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:8px">Open Ompath Study</a></p>` : "";
+        const link = emailActionUrl ? `<p><a href="${escapeHtml(emailActionUrl)}" style="display:inline-block;padding:12px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:8px">Open Ompath Study</a></p>` : "";
         const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
             from, to: [recipient.email], subject: title,
-            text: `${message}${actionUrl ? `\n\nOpen: ${actionUrl}` : ""}\n\nManage notifications in your Ompath Study account.`,
+            text: `${message}${emailActionUrl ? `\n\nOpen: ${emailActionUrl}` : ""}\n\nManage notifications in your Ompath Study account.`,
             html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto"><h1 style="color:#0f766e">${escapeHtml(title)}</h1><p style="white-space:pre-wrap">${escapeHtml(message)}</p>${link}<p style="font-size:12px;color:#64748b">You received this account notification from Ompath Study. Manage email notifications in your account.</p></div>`,
           }),
         });

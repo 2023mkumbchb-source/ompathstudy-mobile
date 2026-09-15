@@ -44,8 +44,7 @@ import {
   publishBroadcastNotification,
   updateBroadcastNotification,
   deleteBroadcastNotification,
-  fetchBroadcastNotifications,
-  subscribeToNotifications,
+  fetchAdminBroadcasts,
   playNotificationChime,
   triggerNativeNotification,
 } from "@/lib/notifications";
@@ -59,7 +58,7 @@ const PRESET_LINKS = [
   { label: "Timed Weekly Exams", value: "/exams" },
   { label: "Mega Medical Contests", value: "/contests" },
   { label: "Latest Notes / Library", value: "/blog" },
-  { label: "Latest Mobile App Update", value: "https://github.com/2023mkumbchb-source/ompathstudy-mobile/releases/latest" },
+  { label: "Latest Mobile App Update", value: "/updates" },
 ];
 
 export default function NotificationAdmin() {
@@ -75,6 +74,8 @@ export default function NotificationAdmin() {
   const [sending, setSending] = useState(false);
 
   const [broadcasts, setBroadcasts] = useState<AppNotification[]>([]);
+  const [loadingBroadcasts, setLoadingBroadcasts] = useState(true);
+  const [broadcastError, setBroadcastError] = useState("");
 
   // Edit Modal State
   const [editingItem, setEditingItem] = useState<AppNotification | null>(null);
@@ -89,10 +90,16 @@ export default function NotificationAdmin() {
   const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
-    fetchBroadcastNotifications().then(setBroadcasts);
-    const unsub = subscribeToNotifications(setBroadcasts);
-    return unsub;
+    void refreshBroadcasts();
   }, []);
+
+  const refreshBroadcasts = async () => {
+    setLoadingBroadcasts(true);
+    setBroadcastError("");
+    try { setBroadcasts(await fetchAdminBroadcasts()); }
+    catch (error) { setBroadcastError(error instanceof Error ? error.message : "Could not load broadcasts."); }
+    finally { setLoadingBroadcasts(false); }
+  };
 
   const handlePresetChange = (val: string) => {
     if (val) setActionUrl(val);
@@ -126,6 +133,7 @@ export default function NotificationAdmin() {
       setTitle("");
       setMessage("");
       setActionUrl("");
+      await refreshBroadcasts();
     } catch (err: any) {
       toast({
         title: "Could not send broadcast",
@@ -176,6 +184,7 @@ export default function NotificationAdmin() {
       });
       setEditOpen(false);
       setEditingItem(null);
+      await refreshBroadcasts();
     } catch (err: any) {
       toast({
         title: "Could not update notification",
@@ -208,6 +217,7 @@ export default function NotificationAdmin() {
     if (!window.confirm("Are you sure you want to retract and delete this notification?")) return;
     try {
       await deleteBroadcastNotification(id);
+      await refreshBroadcasts();
       toast({ title: "Notification retracted and deleted" });
     } catch (err: any) {
       toast({
@@ -245,6 +255,8 @@ export default function NotificationAdmin() {
           Send real-time <strong>WhatsApp-style alerts</strong>, examination reminders, and update announcements to all OmpathStudy APK & web students.
         </p>
       </div>
+      {loadingBroadcasts && <div className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading previous broadcasts…</div>}
+      {broadcastError && <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{broadcastError}<Button type="button" variant="ghost" size="sm" onClick={() => void refreshBroadcasts()} className="ml-2">Retry</Button></div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Form Controls */}

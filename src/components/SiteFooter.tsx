@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BookOpen, Phone, MessageCircle, Download, Mail, Heart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/lib/site-settings";
 
 const studyLinks = [
   { to: "/year/1", label: "Year 1" },
@@ -15,19 +16,20 @@ const studyLinks = [
 export default function SiteFooter() {
   const location = useLocation();
   const { isAdmin } = useAuth();
+  const { founderPageVisible } = useSiteSettings();
 
   const exploreLinks = useMemo(() => {
     const base = [
       { to: "/", label: "Home" },
       { to: "/stories", label: "Stories" },
       { to: "/exams", label: "Weekly Exams" },
-      { to: "/about", label: "About the Founder" },
     ];
+    if (founderPageVisible || isAdmin) base.push({ to: "/about", label: "About the Founder" });
     if (isAdmin) {
       base.push({ to: "/admin", label: "Dashboard" });
     }
     return base;
-  }, [isAdmin]);
+  }, [isAdmin, founderPageVisible]);
 
   if (/^\/exams\/[^/]+\/start/.test(location.pathname)) return null;
 

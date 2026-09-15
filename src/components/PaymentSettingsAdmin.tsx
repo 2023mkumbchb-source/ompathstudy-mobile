@@ -3,7 +3,7 @@ import { Loader2, Save, ShieldCheck, Trash2, Plus, X } from "lucide-react";
 import { getSetting, saveSetting } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { AccessPlan, DEFAULT_PLANS, loadPaymentSettings } from "@/lib/access";
-import { DEFAULT_SITE_SETTINGS, loadSiteSettings } from "@/lib/site-settings";
+import { DEFAULT_ABOUT_PROFILE, DEFAULT_SITE_SETTINGS, loadSiteSettings, AboutProfile } from "@/lib/site-settings";
 import { toast } from "@/hooks/use-toast";
 
 /** Admin panel: price, where the paywall starts, PDF downloads and the 3 plans. */
@@ -19,6 +19,7 @@ export default function PaymentSettingsAdmin() {
   const [guestSlideView, setGuestSlideView] = useState<"all" | "half">("all");
   const [redacted, setRedacted] = useState(DEFAULT_SITE_SETTINGS.redactedNames.join(", "));
   const [showCounts, setShowCounts] = useState(false);
+  const [about, setAbout] = useState<AboutProfile>(DEFAULT_ABOUT_PROFILE);
 
   useEffect(() => {
     Promise.all([
@@ -30,7 +31,8 @@ export default function PaymentSettingsAdmin() {
       getSetting("guest_slide_view"),
       getSetting("redacted_names"),
       getSetting("show_content_counts"),
-    ]).then(([p, r, d, pl, fv, gsv, rn, sc]) => {
+      getSetting("mobile_about_profile"),
+    ]).then(([p, r, d, pl, fv, gsv, rn, sc, ap]) => {
       setPrice(p || "0");
       setRatio(r || "0.25");
       setDownloads((d || "true") !== "false");
@@ -38,6 +40,7 @@ export default function PaymentSettingsAdmin() {
       setGuestSlideView(gsv === "half" ? "half" : "all");
       setRedacted((rn ?? "").trim() || DEFAULT_SITE_SETTINGS.redactedNames.join(", "));
       setShowCounts(sc === "true");
+      try { setAbout({ ...DEFAULT_ABOUT_PROFILE, ...JSON.parse(ap || "{}") }); } catch { /* defaults */ }
       try {
         const parsed = JSON.parse(pl || "[]");
         if (Array.isArray(parsed) && parsed.length) setPlans(parsed);
@@ -62,6 +65,7 @@ export default function PaymentSettingsAdmin() {
       await saveSetting("guest_slide_view", guestSlideView);
       await saveSetting("redacted_names", redacted);
       await saveSetting("show_content_counts", showCounts ? "true" : "false");
+      await saveSetting("mobile_about_profile", JSON.stringify(about));
       await loadPaymentSettings(true);
       await loadSiteSettings(true);
       toast({ title: "Payment settings saved" });
@@ -98,6 +102,17 @@ export default function PaymentSettingsAdmin() {
           Answers and PDF handouts are always subscriber-only. Set the pass prices below — questions stay free to read.
         </p>
       </div>
+      <section className="rounded-2xl border border-border bg-card p-4 space-y-3">
+        <div><h3 className="font-bold">About page</h3><p className="text-xs text-muted-foreground">Hidden until you enable it. Edit what appears in the mobile app.</p></div>
+        <label className="flex items-center justify-between gap-3 text-sm"><span>Show About page</span><input type="checkbox" checked={founderVisible} onChange={(e) => setFounderVisible(e.target.checked)} /></label>
+        <Input value={about.name} onChange={(e) => setAbout({ ...about, name: e.target.value })} placeholder="Name" />
+        <Input value={about.headline} onChange={(e) => setAbout({ ...about, headline: e.target.value })} placeholder="Headline" />
+        <Input value={about.location} onChange={(e) => setAbout({ ...about, location: e.target.value })} placeholder="Location" />
+        <Input value={about.email} onChange={(e) => setAbout({ ...about, email: e.target.value })} placeholder="Email" type="email" />
+        <Input value={about.phone} onChange={(e) => setAbout({ ...about, phone: e.target.value })} placeholder="Phone" />
+        <Input value={about.whatsapp} onChange={(e) => setAbout({ ...about, whatsapp: e.target.value })} placeholder="WhatsApp digits" />
+        <Textarea value={about.bio} onChange={(e) => setAbout({ ...about, bio: e.target.value })} placeholder="About biography" rows={5} />
+      </section>
 
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="grid gap-4 sm:grid-cols-2">

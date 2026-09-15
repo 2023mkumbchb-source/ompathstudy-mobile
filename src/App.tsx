@@ -20,6 +20,7 @@ import LearnerProfileGate from "@/components/LearnerProfileGate";
 import OfflineStatusBanner from "@/components/OfflineStatusBanner";
 import NotificationBanner from "@/components/NotificationBanner";
 import { setupNativeNotificationListener } from "@/lib/notifications";
+import { openNotificationAction } from "@/lib/notification-navigation";
 import { useAutoSync } from "@/hooks/useAutoSync";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -148,11 +149,7 @@ function MobileAppBridge() {
 
   useEffect(() => {
     setupNativeNotificationListener((url) => {
-      if (url.startsWith("http")) {
-        window.location.href = url;
-      } else {
-        navigate(url);
-      }
+      openNotificationAction(url, navigate);
     });
   }, [navigate]);
 

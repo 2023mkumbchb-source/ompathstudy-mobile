@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { openNotificationAction } from "@/lib/notification-navigation";
 import {
   Bell,
   CheckCheck,
@@ -88,11 +89,7 @@ export default function NotificationBell() {
     setOpen(false);
 
     if (notif.action_url) {
-      if (notif.action_url.startsWith("http")) {
-        window.location.href = notif.action_url;
-      } else {
-        navigate(notif.action_url);
-      }
+      openNotificationAction(notif.action_url, navigate);
     }
   };
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { openNotificationAction } from "@/lib/notification-navigation";
 import {
   Bell,
   Sparkles,
@@ -44,11 +45,7 @@ export default function NotificationBanner() {
       markNotificationAsRead(activeNotif.id);
       setVisible(false);
       if (activeNotif.action_url) {
-        if (activeNotif.action_url.startsWith("http")) {
-          window.location.href = activeNotif.action_url;
-        } else {
-          navigate(activeNotif.action_url);
-        }
+        openNotificationAction(activeNotif.action_url, navigate);
       }
     }
   };

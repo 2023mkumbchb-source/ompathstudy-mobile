@@ -1,9 +1,12 @@
 import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Phone, Mail, MessageCircle, ExternalLink, GraduationCap, Code2, Stethoscope, Sparkles, ArrowRight, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import portrait from "@/assets/abongo-davis-portrait.jpg";
 import { updateMetaTags, SITE_URL } from "@/lib/seo";
+import { useSiteSettings } from "@/lib/site-settings";
+import { useAuth } from "@/hooks/useAuth";
 
 const PROJECTS = [
   {
@@ -30,6 +33,8 @@ const PROJECTS = [
 ];
 
 export default function About() {
+  const { founderPageVisible, aboutProfile, loading } = useSiteSettings();
+  const { isAdmin } = useAuth();
   useEffect(() => {
     updateMetaTags({
       title: "Abongo Davis – Founder of Ompath Study | Medical Student & Web Developer",
@@ -64,6 +69,11 @@ export default function About() {
     return () => { document.getElementById("about-person-jsonld")?.remove(); };
   }, []);
 
+  if (loading) return null;
+  if (!founderPageVisible && !isAdmin) return <Navigate to="/" replace />;
+  const phoneHref = aboutProfile.phone.replace(/[^+\d]/g, "");
+  const whatsappHref = aboutProfile.whatsapp.replace(/\D/g, "");
+
   return (
     <div className="min-h-dvh bg-muted/20">
       {/* Hero */}
@@ -83,7 +93,7 @@ export default function About() {
               <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 overflow-hidden rounded-3xl border-4 border-card shadow-2xl ring-1 ring-primary/20">
                 <img
                   src={portrait}
-                  alt="Abongo Davis — Founder of Ompath Study"
+                  alt={`${aboutProfile.name} — Founder of Ompath Study`}
                   width={768}
                   height={960}
                   className="h-full w-full object-cover"
@@ -102,29 +112,29 @@ export default function About() {
               Founder · Ompath Study
             </div>
             <h1 className="font-serif text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Abongo Davis
+              {aboutProfile.name}
             </h1>
             <p className="mt-3 text-base sm:text-lg text-muted-foreground">
-              Medical student · Web developer · Builder of useful things
+              {aboutProfile.headline}
             </p>
 
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5"><GraduationCap className="h-4 w-4 text-primary" /> Medical student</span>
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> Kenya</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {aboutProfile.location}</span>
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <a href="https://wa.me/254115475543" target="_blank" rel="noopener noreferrer"
+              <a href={`https://wa.me/${whatsappHref}`} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:opacity-90">
                 <MessageCircle className="h-4 w-4" /> WhatsApp Me
               </a>
-              <a href="mailto:hydrosafecare@gmail.com"
+              <a href={`mailto:${aboutProfile.email}`}
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-bold text-foreground hover:border-primary hover:text-primary transition">
                 <Mail className="h-4 w-4" /> Email
               </a>
-              <a href="tel:+254115475543"
+              <a href={`tel:${phoneHref}`}
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-bold text-foreground hover:border-primary hover:text-primary transition">
-                <Phone className="h-4 w-4" /> 0115 475 543
+                <Phone className="h-4 w-4" /> {aboutProfile.phone}
               </a>
             </div>
           </motion.div>
@@ -136,8 +146,7 @@ export default function About() {
         <div className="prose prose-lg max-w-none text-foreground/90">
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">About me</h2>
           <p className="text-base sm:text-lg leading-relaxed text-muted-foreground">
-            I'm Abongo Davis — a medical student and the founder of <strong className="text-foreground">Ompath Study</strong>, the free study platform you're on right now.
-            I built this site for one reason: to make studying medicine easier, cheaper and a lot less lonely for students across Kenya and East Africa.
+            {aboutProfile.bio}
           </p>
           <p className="text-base sm:text-lg leading-relaxed text-muted-foreground">
             Outside the wards I'm a self-taught web developer. I design and ship modern, fast, SEO-friendly websites for businesses,

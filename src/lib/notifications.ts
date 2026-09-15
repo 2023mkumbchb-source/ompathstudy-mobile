@@ -160,20 +160,15 @@ function normalizeNotification(row: Record<string, unknown>): AppNotification {
   };
 }
 
-/** Fetch the signed-in user's notifications, or admin campaigns for administrators. */
-export async function fetchBroadcastNotifications(): Promise<AppNotification[]> {
+/** Fetch the signed-in user's device/app notifications. */
+export async function fetchUserNotifications(): Promise<AppNotification[]> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return cacheAndNotify(getCachedNotifications());
-
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: user.id,
-      _role: "admin",
-    });
     const db = supabase as any;
-    const query = isAdmin
-      ? db.from("notification_campaigns").select("id,title,message,type,priority,study_year,action_url,created_at,expires_at").order("created_at", { ascending: false }).limit(100)
-      : db.from("user_notifications").select("id,title,message,type,priority,study_year,action_url,created_at,expires_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
+    const query = db.from("user_notifications")
+      .select("id,title,message,type,priority,study_year,action_url,created_at,expires_at")
+      .eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
     const { data, error } = await query;
     if (error) throw error;
     return cacheAndNotify((data || []).map((row) => normalizeNotification(row as Record<string, unknown>)));
@@ -185,6 +180,22 @@ export async function fetchBroadcastNotifications(): Promise<AppNotification[]> 
   notifyListeners(cached);
   return cached;
 }
+
+/** Fetch campaign records exclusively for the authenticated Broadcast Studio. */
+export async function fetchAdminBroadcasts(): Promise<AppNotification[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Your admin session has expired. Please sign in again.");
+  const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+  if (roleError || !isAdmin) throw new Error("Administrator access is required.");
+  const { data, error } = await (supabase as any).from("notification_campaigns")
+    .select("id,title,message,type,priority,study_year,action_url,created_at,expires_at")
+    .order("created_at", { ascending: false }).limit(100);
+  if (error) throw error;
+  return (data || []).map((row: Record<string, unknown>) => normalizeNotification(row));
+}
+
+/** Backward-compatible alias used by app notification consumers. */
+export const fetchBroadcastNotifications = fetchUserNotifications;
 
 async function invokeAdminNotificationAction(body: Record<string, unknown>) {
   let { data: { session } } = await supabase.auth.getSession();
@@ -320,7 +331,7 @@ export function markAllNotificationsAsRead() {
  * Check for new unread notifications and pop the WhatsApp-style banner if a new one is found.
  */
 export async function checkForNewNotifications(): Promise<void> {
-  const notifications = await fetchBroadcastNotifications();
+  const notifications = await fetchUserNotifications();
   if (!notifications.length) return;
 
   const readIds = getReadNotificationIds();

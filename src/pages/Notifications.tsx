@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { openNotificationAction } from "@/lib/notification-navigation";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -101,11 +102,7 @@ export default function Notifications() {
     setReadIds(new Set(readIds).add(notif.id));
 
     if (notif.action_url) {
-      if (notif.action_url.startsWith("http")) {
-        window.location.href = notif.action_url;
-      } else {
-        navigate(notif.action_url);
-      }
+      openNotificationAction(notif.action_url, navigate);
     }
   };
 

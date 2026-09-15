@@ -22,6 +22,7 @@ import NotificationBell from "./NotificationBell";
 import HeaderSearch from "./HeaderSearch";
 import ompathLogo from "@/assets/ompath-logo.webp";
 import { useAuth } from "@/hooks/useAuth";
+import { useSiteSettings } from "@/lib/site-settings";
 
 const YEAR_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 const STORAGE_KEY = "nav_year_filter";
@@ -52,6 +53,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const { founderPageVisible } = useSiteSettings();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
 
@@ -83,8 +85,8 @@ export default function Navbar() {
       { to: "/exams", label: "Timed Weekly Exams", icon: Clock },
       { to: "/contests", label: "Mega Contests", icon: Trophy },
       { to: "/stories", label: "Medical Stories", icon: BookOpen },
-      { to: "/about", label: "About & Medical Sources", icon: Info },
     ];
+    if (founderPageVisible || isAdmin) base.push({ to: "/about", label: isAdmin && !founderPageVisible ? "About Preview (Hidden)" : "About & Medical Sources", icon: Info });
     if (isAdmin) {
       base.push({ to: "/admin", label: "Admin Dashboard", icon: LayoutDashboard });
       base.push({ to: "/admin/notifications", label: "Broadcast Studio", icon: Bell });
@@ -92,7 +94,7 @@ export default function Navbar() {
       base.push({ to: "/admin/contests", label: "Contest Admin", icon: Trophy });
     }
     return base;
-  }, [isAdmin]);
+  }, [isAdmin, founderPageVisible]);
 
   const isExamPage = /^\/exams\/[^/]+\/start/.test(location.pathname);
 
