@@ -54,27 +54,29 @@ jobs:
           cd android
           ./gradlew assembleDebug
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk Ompath-v1.0.17.2.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Ompath-v1.0.17.3.apk
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OmpathStudy-Android-APK-v1.0.17.2
-          path: Ompath-v1.0.17.2.apk
+          name: OmpathStudy-Android-APK-v1.0.17.3
+          path: Ompath-v1.0.17.3.apk
           retention-days: 30
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.17.2-apk
-          name: Ompath Mobile v1.0.17.2
+          tag_name: v1.0.17.3-apk
+          name: Ompath Mobile v1.0.17.3
           body: |
-            ## Ompath Android Native App v1.0.17.2
-            - Android versionCode 19 and versionName 1.0.17.2
+            ## Ompath Android Native App v1.0.17.3
+            - Android versionCode 20 and versionName 1.0.17.3
             - Reveal is visible only to users with an active paid pass when Reveal is configured as paid
+            - Logged-out users cannot retain a cached subscription to reveal answers
+            - Signing in refreshes the account-linked subscription automatically
             - Admin can set Reveal price to 0 to make Reveal free
             - Publishes the installable APK and OTA web bundle
           files: |
-            Ompath-v1.0.17.2.apk
+            Ompath-v1.0.17.3.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
