@@ -55,7 +55,8 @@ export default function Updates() {
     setProgress(0); setPhase("downloading"); setError("");
     try {
       await installAppUpdate(latest, (percent) => {
-        setProgress(Math.max(0, Math.min(100, Math.round(percent))));
+        const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+        setProgress((previous) => Math.max(previous, safePercent));
         if (percent >= 100) setPhase("restarting");
       });
     } catch (err) {

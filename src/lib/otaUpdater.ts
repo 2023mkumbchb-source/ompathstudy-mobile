@@ -51,10 +51,68 @@ export async function installAppUpdate(
   onProgress?: (percent: number) => void,
 ): Promise<never> {
   if (!Capacitor.isNativePlatform()) throw new Error("Updates are installed only inside the Android app.");
-  const listener = await CapacitorUpdater.addListener("download", ({ percent }) => onProgress?.(percent));
+  let highestProgress = 0;
+  const reportProgress = (percent: number) => {
+    const safePercent = Math.min(100, Math.max(0, Math.round(percent)));
+    highestProgress = Math.max(highestProgress, safePercent);
+    onProgress?.(highestProgress);
+  };
+
+  const listener = await CapacitorUpdater.addListener("download", ({ percent, bundle }) => {
+    // The native plugin emits one global stream. Ignore background downloads
+    // for other versions and never let the visible percentage move backwards.
+    if (bundle?.version === latest.version) reportProgress(percent);
+  });
   try {
-    const downloaded = await CapacitorUpdater.download({ url: latest.url, version: latest.version });
-    onProgress?.(100);
+    type LocalBundle = Awaited<ReturnType<typeof CapacitorUpdater.list>>["bundles"][number];
+    let bundles: LocalBundle[] = [];
+    try {
+      bundles = (await CapacitorUpdater.list()).bundles;
+    } catch {
+      // Listing local bundles is an optimisation. A fresh download remains a
+      // safe fallback when an older native plugin cannot provide the list.
+    }
+
+    let downloaded = bundles.find((bundle) =>
+      bundle.version === latest.version && (bundle.status === "success" || bundle.status === "pending")
+    );
+    const backgroundDownloadExists = bundles.some((bundle) =>
+      bundle.version === latest.version && bundle.status === "downloading"
+    );
+
+    if (!downloaded && backgroundDownloadExists) {
+      // initOtaUpdater may already be downloading this exact bundle. Wait for
+      // and reuse it instead of consuming bandwidth with a duplicate request.
+      for (let attempt = 0; attempt < 300; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1000));
+        const refreshed = (await CapacitorUpdater.list()).bundles;
+        downloaded = refreshed.find((bundle) =>
+          bundle.version === latest.version && (bundle.status === "success" || bundle.status === "pending")
+        );
+        if (downloaded) break;
+        if (refreshed.some((bundle) => bundle.version === latest.version && bundle.status === "error")) {
+          throw new Error("The background update failed. Check your connection and try again.");
+        }
+      }
+      if (!downloaded) {
+        throw new Error("The update is still downloading. Keep Ompath open and try again shortly.");
+      }
+    }
+
+    if (!downloaded) {
+      // Recheck after a short hand-off window so an app-start background
+      // download has time to register before a manual download is created.
+      await new Promise((resolve) => window.setTimeout(resolve, 400));
+      const refreshed = await CapacitorUpdater.list().catch(() => ({ bundles: [] as LocalBundle[] }));
+      downloaded = refreshed.bundles.find((bundle) =>
+        bundle.version === latest.version && (bundle.status === "success" || bundle.status === "pending")
+      );
+      if (!downloaded) {
+        downloaded = await CapacitorUpdater.download({ url: latest.url, version: latest.version });
+      }
+    }
+
+    reportProgress(100);
     await CapacitorUpdater.next({ id: downloaded.id });
     localStorage.setItem("ompath_update_installed", latest.version);
     await new Promise((resolve) => window.setTimeout(resolve, 700));
