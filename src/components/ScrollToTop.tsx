@@ -44,7 +44,13 @@ export default function ScrollToTop() {
       return () => cancelAnimationFrame(frame);
     }
 
-    const target = navigationType === "POP" ? readPositions()[currentPath] || 0 : 0;
+    // Article links must always open at the beginning. Restoring a previously
+    // recorded position here made some newly opened notes appear to start near
+    // the footer, especially after canonical-slug redirects.
+    const isArticle = /^\/blog\/[^/]+\/?$/.test(pathname);
+    const target = navigationType === "POP" && !isArticle
+      ? readPositions()[currentPath] || 0
+      : 0;
     const frame = requestAnimationFrame(() => {
       window.scrollTo({ top: target, left: 0, behavior: "auto" });
     });

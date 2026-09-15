@@ -848,7 +848,24 @@ export function getArticleBySlugOrId(slugOrId: string): Promise<Article | null> 
   if (articleDetailCache.has(key)) return Promise.resolve(articleDetailCache.get(key) ?? null);
   const pending = articleRequestCache.get(key);
   if (pending) return pending;
-  const request = fetchArticleBySlugOrId(key).then((article) => {
+  const request = (async () => {
+    // IndexedDB is the fastest and most reliable first paint on mobile. Serve
+    // it immediately, then refresh Supabase in the background while online.
+    const offline = await getArticleOfflineBySlugOrId(key);
+    if (offline) {
+      const hydrated = hydrateLegacySource(offline);
+      if (!isOfflineMode()) {
+        void fetchArticleBySlugOrId(key).then((fresh) => {
+          if (!fresh) return;
+          articleDetailCache.set(key, fresh);
+          articleDetailCache.set(fresh.id.toLowerCase(), fresh);
+          if (fresh.slug) articleDetailCache.set(fresh.slug.toLowerCase(), fresh);
+        }).catch(() => {});
+      }
+      return hydrated;
+    }
+    return fetchArticleBySlugOrId(key);
+  })().then((article) => {
     articleDetailCache.set(key, article);
     if (article) {
       articleDetailCache.set(article.id.toLowerCase(), article);
