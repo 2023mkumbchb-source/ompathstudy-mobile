@@ -21,6 +21,21 @@ export const COURSES = [
   "Other",
 ];
 
+const REGISTRATION_PROFILE_PENDING = "ompath_registration_profile_pending";
+
+/** The study-profile dialog is opt-in from the account-creation flow only. */
+export function markRegistrationProfilePending() {
+  try { localStorage.setItem(REGISTRATION_PROFILE_PENDING, "true"); } catch { /* unavailable storage */ }
+}
+
+function isRegistrationProfilePending() {
+  try { return localStorage.getItem(REGISTRATION_PROFILE_PENDING) === "true"; } catch { return false; }
+}
+
+function clearRegistrationProfilePending() {
+  try { localStorage.removeItem(REGISTRATION_PROFILE_PENDING); } catch { /* unavailable storage */ }
+}
+
 export default function LearnerProfileGate() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [checking, setChecking] = useState(false);
@@ -34,17 +49,31 @@ export default function LearnerProfileGate() {
 
   useEffect(() => {
     if (authLoading || !user || isAdmin) { setOpen(false); return; }
+    // Never turn a failed/offline profile request into a blocking dialog. Existing
+    // learners edit these fields from Account; only a fresh registration sets this flag.
+    if (!navigator.onLine || !isRegistrationProfilePending()) {
+      setOpen(false);
+      setChecking(false);
+      return;
+    }
     let alive = true;
     setChecking(true);
     (supabase as any).from("profiles").select("display_name,university,course,study_year,onboarding_completed").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!alive) return;
+        if (error) { setOpen(false); return; }
         setName(data?.display_name || String(user.user_metadata?.full_name || ""));
         setUniversity((data as any)?.university || "");
         setCourse((data as any)?.course || "MBChB — Medicine & Surgery");
         setYear((data as any)?.study_year ? String((data as any).study_year) : "");
-        setOpen(!(data as any)?.onboarding_completed);
+        if ((data as any)?.onboarding_completed) {
+          clearRegistrationProfilePending();
+          setOpen(false);
+        } else {
+          setOpen(true);
+        }
       })
+      .catch(() => { if (alive) setOpen(false); })
       .finally(() => { if (alive) setChecking(false); });
     return () => { alive = false; };
   }, [user, isAdmin, authLoading]);
@@ -66,6 +95,7 @@ export default function LearnerProfileGate() {
     } as any, { onConflict: "user_id" });
     setSaving(false);
     if (error) { toast({ title: "Profile was not saved", description: error.message, variant: "destructive" }); return; }
+    clearRegistrationProfilePending();
     celebrate();
     setCelebrating(true);
     toast({ title: "Study profile ready", description: "Recommendations will now follow your course and year." });

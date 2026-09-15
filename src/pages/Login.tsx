@@ -8,6 +8,7 @@ import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/hooks/useAuth";
 import { canonicalOrigin, safePostLoginPath, signInWithGoogle } from "@/lib/social-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { markRegistrationProfilePending } from "@/components/LearnerProfileGate";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -56,6 +57,7 @@ export default function Login() {
     try {
       if (mode === "signup") {
         await signUp(email.trim(), readerPassword);
+        markRegistrationProfilePending();
         toast({ title: "Account created", description: "Check your inbox if confirmation is required." });
       } else {
         await signIn(email.trim(), readerPassword);

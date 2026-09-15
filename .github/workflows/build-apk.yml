@@ -57,23 +57,25 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.11.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.12.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmpathStudy-Android-APK
-          path: OmpathStudy-v1.0.11.apk
+          path: OmpathStudy-v1.0.12.apk
           retention-days: 30
 
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.11-apk
-          name: Ompath Study Mobile v1.0.11
+          tag_name: v1.0.12-apk
+          name: Ompath Study Mobile v1.0.12
           body: |
-            ## Ompath Study Android Native App v1.0.11
+            ## Ompath Study Android Native App v1.0.12
+            - Study-profile prompt restricted to successful new registrations
+            - Existing and offline users are never blocked by the profile prompt
             - Offline-first content library with Wi-Fi auto synchronization
             - Packaged anatomy image manifest for instant airplane-mode viewing
             - Failed image tracking and automatic retry on the next synchronization
@@ -99,7 +101,7 @@ jobs:
             - Independent App notification and Email notification delivery switches
             - Responsive live phone preview and professional emoji-free notification format
           files: |
-            OmpathStudy-v1.0.11.apk
+            OmpathStudy-v1.0.12.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
