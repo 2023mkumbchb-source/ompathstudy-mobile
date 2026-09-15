@@ -2,7 +2,9 @@ import { getSetting } from "./store";
 import { isOfflineMode } from "./offlineStore";
 
 export const CURRENT_APP_VERSION = "1.0.15";
-export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/story-weave-box/releases/latest";
+const MOBILE_RELEASES_API = "https://api.github.com/repos/2023mkumbchb-source/ompathstudy-mobile/releases/latest";
+
+export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/ompathstudy-mobile/releases/latest";
 
 export interface AppUpdateInfo {
   updateAvailable: boolean;
@@ -52,7 +54,7 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
     // 2. Fallback: check GitHub releases API
     if (!targetVersion || targetVersion === CURRENT_APP_VERSION) {
       try {
-        const ghRes = await fetch("https://api.github.com/repos/2023mkumbchb-source/story-weave-box/releases/latest", {
+        const ghRes = await fetch(MOBILE_RELEASES_API, {
           headers: { Accept: "application/vnd.github.v3+json" },
         });
         if (ghRes.ok) {
