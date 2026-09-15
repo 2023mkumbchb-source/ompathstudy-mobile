@@ -160,8 +160,10 @@ function Lightbox({ src, alt, onClose }: { src: string; alt?: string; onClose: (
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onNativeBack = (e: Event) => { e.preventDefault(); onClose(); };
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    window.addEventListener("ompath:native-back", onNativeBack);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); window.removeEventListener("ompath:native-back", onNativeBack); };
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-background/95 p-3 backdrop-blur-sm" onClick={onClose}>

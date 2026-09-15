@@ -13,14 +13,17 @@ export default function OfflineImage({
   src,
   alt = "Medical illustration",
   className = "",
+  onError,
   ...props
 }: OfflineImageProps) {
-  const [currentSrc, setCurrentSrc] = useState<string>(src);
+  const [currentSrc, setCurrentSrc] = useState<string>("");
   const [hasError, setHasError] = useState<boolean>(false);
+  const [triedRemote, setTriedRemote] = useState<boolean>(false);
 
   useEffect(() => {
     let alive = true;
     setHasError(false);
+    setTriedRemote(false);
 
     // If already a local blob/data URL, keep it
     if (!src || src.startsWith("blob:") || src.startsWith("data:")) {
@@ -28,27 +31,44 @@ export default function OfflineImage({
       return;
     }
 
-    // Check if image is available in offline cache
-    getCachedImageUrl(src).then((cached) => {
-      if (alive && cached) {
-        setCurrentSrc(cached);
-      } else if (alive) {
-        setCurrentSrc(src);
-        // If online, pre-cache in background for future offline access
-        if (typeof navigator !== "undefined" && navigator.onLine) {
-          void cacheSingleImage(src);
+    const resolve = async () => {
+      const cached = await getCachedImageUrl(src);
+      if (!alive) return;
+      if (cached) { setCurrentSrc(cached); return; }
+
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        const stored = await cacheSingleImage(src);
+        if (!alive) return;
+        if (stored) {
+          const downloaded = await getCachedImageUrl(src);
+          if (alive && downloaded) { setCurrentSrc(downloaded); return; }
         }
+        // Direct remote rendering is the last online fallback.
+        setCurrentSrc(src);
+      } else {
+        setHasError(true);
       }
-    });
+    };
+    void resolve();
 
     return () => {
       alive = false;
     };
   }, [src]);
 
-  const handleError = () => {
-    // If the remote URL failed to load (e.g. offline / disconnected),
-    // try to resolve from local cache one more time
+  const handleError: React.ReactEventHandler<HTMLImageElement> = (event) => {
+    onError?.(event);
+
+    // A stale packaged/cache mapping must not block a valid online image.
+    if (currentSrc !== src && typeof navigator !== "undefined" && navigator.onLine && !triedRemote) {
+      setTriedRemote(true);
+      setHasError(false);
+      setCurrentSrc(src);
+      return;
+    }
+
+    // If the remote URL failed (for example after connectivity dropped),
+    // resolve local storage one final time.
     getCachedImageUrl(src).then((cached) => {
       if (cached && cached !== currentSrc) {
         setCurrentSrc(cached);
@@ -71,6 +91,10 @@ export default function OfflineImage({
         </span>
       </div>
     );
+  }
+
+  if (!currentSrc) {
+    return <div className={`min-h-36 animate-pulse rounded-lg bg-muted/60 ${className}`} aria-label={`Loading ${alt}`} />;
   }
 
   return (

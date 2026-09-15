@@ -602,8 +602,10 @@ function ExamPreviewModal({ article, open, onClose }: { article: any; open: bool
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onNativeBack = (e: Event) => { e.preventDefault(); onClose(); };
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    window.addEventListener("ompath:native-back", onNativeBack);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); window.removeEventListener("ompath:native-back", onNativeBack); };
   }, [open, onClose]);
   if (!open) return null;
   const title = decodeEntities(article?.title || "").replace(/^#+\s*/, "").trim();
@@ -1242,6 +1244,11 @@ export default function BlogPost() {
   const [related, setRelated] = useState<{ articles: any[]; flashcards: any[]; mcqs: any[]; essays: any[] }>({ articles: [], flashcards: [], mcqs: [], essays: [] });
   const [activeSection, setActiveSection] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
+  useEffect(() => {
+    const openPdfPreview = () => setPreviewOpen(true);
+    window.addEventListener("ompath:open-pdf-preview", openPdfPreview);
+    return () => window.removeEventListener("ompath:open-pdf-preview", openPdfPreview);
+  }, []);
 
   const handleBack = () => {
     const fromPath = (location.state as { from?: string } | null)?.from;

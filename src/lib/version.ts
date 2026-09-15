@@ -1,7 +1,7 @@
 import { getSetting } from "./store";
 import { isOfflineMode } from "./offlineStore";
 
-export const CURRENT_APP_VERSION = "1.0.15";
+export const CURRENT_APP_VERSION = "1.0.16";
 const MOBILE_RELEASES_API = "https://api.github.com/repos/2023mkumbchb-source/ompathstudy-mobile/releases/latest";
 
 export const DEFAULT_DOWNLOAD_URL = "https://github.com/2023mkumbchb-source/ompathstudy-mobile/releases/latest";

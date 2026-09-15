@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ompathstudy.app',
-  appName: 'OmpathStudy',
+  appName: 'Ompath',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

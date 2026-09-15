@@ -69,23 +69,32 @@ jobs:
           ./gradlew assembleDebug
 
       - name: Name Installable APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk OmpathStudy-v1.0.15.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Ompath-v1.0.16.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OmpathStudy-Android-APK
-          path: OmpathStudy-v1.0.15.apk
+          path: Ompath-v1.0.16.apk
           retention-days: 30
 
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
-          tag_name: v1.0.15-apk
-          name: Ompath Study Mobile v1.0.15
+          tag_name: v1.0.16-apk
+          name: Ompath Mobile v1.0.16
           body: |
-            ## Ompath Study Android Native App v1.0.15
+            ## Ompath Android Native App v1.0.16
+            - Shorter Ompath app name and refreshed OMPATH header identity
+            - Interactive medical launch experience on every native app opening
+            - Library opens immediately from the synchronized offline catalogue
+            - Anatomy images resolve from packaged/cache storage before the network
+            - Stale image mappings safely fall back to the live image while online
+            - PDF actions open a closeable in-app preview instead of an external blank page
+            - Android Back closes previews and notifications before navigating away
+            - Exit confirmation on the home screen
+            - Native listeners remain stable while the app is idle
             - Corrected and medically structured Systemic Pathology advanced essay archive
             - Removed false blank-page messages and all source-page placeholders
             - Article links consistently open at the title instead of a saved footer position
@@ -125,7 +134,7 @@ jobs:
             - Independent App notification and Email notification delivery switches
             - Responsive live phone preview and professional emoji-free notification format
           files: |
-            OmpathStudy-v1.0.15.apk
+            Ompath-v1.0.16.apk
             OmpathStudy-web-bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -670,7 +670,9 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
 
   // Check local offline summaries immediately
   const offlineList = await getSummariesOffline(year);
-  if (isOfflineMode() && offlineList.length > 0) {
+  // Render the local catalogue immediately even while online. Background sync
+  // refreshes IndexedDB independently, so Library never blocks on mobile data.
+  if (offlineList.length > 0) {
     return offlineList;
   }
 

@@ -88,12 +88,7 @@ export function DeckDownloadButton({
   deck, title, university, passCode, disabled,
 }: { deck: SlideDeck; title: string; university?: string; passCode?: string; disabled?: boolean }) {
   const run = () => {
-    const html = buildDeckHandout(deck, { title, university, passCode });
-    const win = window.open("", "_blank");
-    if (!win) return;
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
+    window.dispatchEvent(new CustomEvent("ompath:open-pdf-preview"));
   };
 
   return (

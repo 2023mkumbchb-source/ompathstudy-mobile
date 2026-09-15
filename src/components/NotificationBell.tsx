@@ -56,6 +56,13 @@ export default function NotificationBell() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!open) return;
+    const onNativeBack = (event: Event) => { event.preventDefault(); setOpen(false); };
+    window.addEventListener("ompath:native-back", onNativeBack);
+    return () => window.removeEventListener("ompath:native-back", onNativeBack);
+  }, [open]);
+
+  useEffect(() => {
     // Initial sync
     setNotifications(getCachedNotifications());
     setReadIds(getReadNotificationIds());

@@ -23,6 +23,7 @@ import { setupNativeNotificationListener } from "@/lib/notifications";
 import { openNotificationAction } from "@/lib/notification-navigation";
 import { useAutoSync } from "@/hooks/useAutoSync";
 import { AdminRoute, SignedInRoute } from "@/components/AccessRoute";
+import MedicalLaunchExperience from "@/components/MedicalLaunchExperience";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -167,6 +168,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <MobileAppBridge />
+            <MedicalLaunchExperience />
             <NotificationBanner />
             <ScrollToTop />
             <ScrollProgressBar />

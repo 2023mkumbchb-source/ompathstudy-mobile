@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
@@ -20,6 +20,8 @@ export const isNativeApp = (): boolean => {
 export function useMobileApp() {
   const navigate = useNavigate();
   const location = useLocation();
+  const pathRef = useRef(location.pathname);
+  pathRef.current = location.pathname;
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -33,9 +35,11 @@ export function useMobileApp() {
 
     // Listen for hardware back button on Android
     const backListener = CapApp.addListener("backButton", () => {
-      if (location.pathname !== "/") {
+      const modalBack = new CustomEvent("ompath:native-back", { cancelable: true });
+      if (!window.dispatchEvent(modalBack)) return;
+      if (pathRef.current !== "/") {
         navigate(-1);
-      } else {
+      } else if (window.confirm("Leave Ompath?")) {
         CapApp.exitApp();
       }
     });
@@ -82,7 +86,7 @@ export function useMobileApp() {
       backListener.then((l) => l.remove()).catch(() => {});
       urlListener.then((l) => l.remove()).catch(() => {});
     };
-  }, [navigate, location.pathname]);
+  }, [navigate]);
 
   return {
     isNative: isNativeApp(),

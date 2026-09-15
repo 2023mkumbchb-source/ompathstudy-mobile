@@ -147,7 +147,7 @@ export default function Navbar() {
             <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-white/10 p-1">
               <img src={ompathLogo} alt="Ompath Study logo" width="32" height="32" className="h-full w-full object-contain" decoding="async" fetchPriority="high" />
             </div>
-            <span className="font-serif">Ompath Study</span>
+            <span className="leading-tight"><span className="block font-serif font-black tracking-wide">OMPATH</span><span className="block text-[9px] font-medium uppercase tracking-[0.16em] text-white/60">Learn · Recall · Practice</span></span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
@@ -200,8 +200,8 @@ export default function Navbar() {
                       <img src={ompathLogo} alt="Ompath Study logo" width="32" height="32" className="h-full w-full object-contain" decoding="async" />
                     </div>
                     <div>
-                      <span className="font-serif text-lg font-bold block leading-tight">Ompath Study</span>
-                      <span className="text-[10px] text-white/60">Medical Study App</span>
+                      <span className="font-serif text-lg font-black block leading-tight tracking-wide">OMPATH</span>
+                      <span className="text-[10px] uppercase tracking-wider text-white/60">Learn · Recall · Practice</span>
                     </div>
                   </div>
                 </div>

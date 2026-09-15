@@ -105,12 +105,12 @@ export default function StudyControls({ resourceType, resourceId, title, compact
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => window.print()}
-          aria-label="Export or print as PDF"
+          onClick={() => window.dispatchEvent(new CustomEvent("ompath:open-pdf-preview"))}
+          aria-label="Open PDF preview"
           className="min-h-[40px] text-xs font-semibold gap-1.5"
         >
           <Printer className="h-4 w-4 text-muted-foreground" />
-          <span>Save PDF</span>
+          <span>PDF Preview</span>
         </Button>
 
         <DropdownMenu>
