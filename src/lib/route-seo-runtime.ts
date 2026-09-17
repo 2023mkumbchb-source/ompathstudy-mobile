@@ -16,7 +16,6 @@ const PRIVATE_PREFIXES = [
 ];
 
 const PUBLIC_PREFIXES = [
-  "/",
   "/year/",
   "/blog",
   "/mcqs",
@@ -27,6 +26,7 @@ const PUBLIC_PREFIXES = [
   "/revision-index",
   "/about",
   "/updates",
+  "/contests",
 ];
 
 const TITLES: Record<string, { title: string; description: string }> = {
@@ -70,6 +70,10 @@ const TITLES: Record<string, { title: string; description: string }> = {
     title: "OmpathStudy Updates",
     description: "Latest OmpathStudy platform updates and new features.",
   },
+  "/contests": {
+    title: "Medical Contests | OmpathStudy",
+    description: "Medical learning contests and academic challenges on OmpathStudy.",
+  },
 };
 
 function cleanPath(pathname: string) {
@@ -86,7 +90,7 @@ function isPrivate(pathname: string) {
 }
 
 function isPublic(pathname: string) {
-  return PUBLIC_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix));
+  return pathname === "/" || PUBLIC_PREFIXES.some((prefix) => matchesPrefix(pathname, prefix));
 }
 
 function upsertMeta(name: string, content: string) {
@@ -142,15 +146,10 @@ function applyRouteSEO() {
   upsertProperty("og:title", document.title);
   upsertProperty("og:type", dynamic && /^\/(blog|essays|stories)\//.test(path) ? "article" : "website");
 
-  // Filter/query URLs use the clean path as their canonical URL.
-  // Search and authenticated pages are explicitly excluded from indexing.
-  if (window.location.search) {
-    upsertCanonical(canonical);
-  }
+  if (window.location.search) upsertCanonical(canonical);
 }
 
 applyRouteSEO();
-
 window.addEventListener("popstate", applyRouteSEO);
 
 const originalPushState = history.pushState;
