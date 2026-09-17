@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./lib/route-seo-runtime";
 import { HelmetProvider } from "react-helmet-async";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase-config";
 
@@ -13,11 +14,9 @@ const tryReloadOnce = (reason: string) => {
   try {
     const KEY = "__chunk_reload_at__";
     const last = Number(sessionStorage.getItem(KEY) || "0");
-    if (Date.now() - last < 15000) return; // avoid loops
+    if (Date.now() - last < 15000) return;
     sessionStorage.setItem(KEY, String(Date.now()));
     console.warn("[ompath] reloading after chunk error:", reason);
-    // Drop stale application-shell caches but preserve the separately managed
-    // offline medical-image library across OTA upgrades and app restarts.
     const doReload = () => window.location.reload();
     if ("caches" in window) {
       caches.keys().then((keys) => Promise.all(
@@ -50,12 +49,9 @@ window.addEventListener("unhandledrejection", (e) => {
   }
 });
 
-// Register service worker for offline caching
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").then(() => {
-      // Pre-warm offline cache: fetch core lists in the background so they're
-      // available even when the user is offline on first navigation.
       const SUPA = SUPABASE_URL;
       const KEY = SUPABASE_PUBLISHABLE_KEY;
       if (!SUPA || !KEY) return;
@@ -66,7 +62,6 @@ if ("serviceWorker" in navigator) {
         `${SUPA}/rest/v1/flashcard_sets?select=id,title,category,slug,created_at,updated_at&published=eq.true&deleted_at=is.null&order=created_at.desc&limit=50`,
         `${SUPA}/rest/v1/stories?select=id,title,category,created_at&published=eq.true&deleted_at=is.null&order=created_at.desc&limit=50`,
       ];
-      // Delay so it doesn't compete with the initial render
       const warmCache = () => endpoints.forEach((url) => fetch(url, { headers }).catch(() => {}));
       if ("requestIdleCallback" in window) window.requestIdleCallback(warmCache, { timeout: 10000 });
       else setTimeout(warmCache, 8000);
