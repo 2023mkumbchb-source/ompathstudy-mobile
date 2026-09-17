@@ -5,11 +5,17 @@ on:
     branches: [ main, android-apk ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 35
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -43,6 +49,8 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_jOXeiFMWJj1z_M-zShimXA_cG9f2QxL' }}
       - name: Sync Capacitor Android
         run: npx cap sync android
+      - name: Make Gradle executable
+        run: chmod +x android/gradlew
       - name: Package Silent OTA Web Bundle
         run: |
           cd dist
@@ -66,18 +74,18 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Android release signing secrets are not configured; building a debug APK. Configure the four ANDROID_KEYSTORE_* secrets to remove the debug/unknown-source warning and preserve upgrade signing."
+            echo "::warning::Android release signing secrets are not configured; building a debug APK. Configure the four ANDROID_KEYSTORE_* secrets to produce a persistent signed release APK."
           fi
       - name: Build signed Android release APK
         if: steps.signing.outputs.configured == 'true'
         run: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon --stacktrace
       - name: Build Android debug APK fallback
         if: steps.signing.outputs.configured != 'true'
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon --stacktrace
       - name: Read Android version
         shell: bash
         run: |
@@ -106,7 +114,6 @@ jobs:
           retention-days: 30
       - name: Create / Update GitHub Release
         uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-apk'
         with:
           tag_name: v${{ env.VERSION_NAME }}-apk
           name: Ompath Mobile v${{ env.VERSION_NAME }}
@@ -123,7 +130,7 @@ jobs:
             - Admin can set Reveal price to 0 to make Reveal free
             - Publishes the installable APK and OTA web bundle
             - Publishes OmpathStudy.apk as the stable latest-download asset used by the website
-            - APK uses the persistent release keystore when ANDROID_KEYSTORE_* secrets are configured
+            - Uses the persistent release keystore when ANDROID_KEYSTORE_* secrets are configured
           files: |
             Ompath-v${{ env.VERSION_NAME }}.apk
             OmpathStudy.apk
