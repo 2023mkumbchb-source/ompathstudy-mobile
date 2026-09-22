@@ -256,7 +256,7 @@ export default function Account() {
                   value={profileDraft.display_name}
                   onChange={(e) => setProfileDraft((d) => ({ ...d, display_name: e.target.value }))}
                   required
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 />
               </div>
               <div>
@@ -266,7 +266,7 @@ export default function Account() {
                   value={profileDraft.university}
                   onChange={(e) => setProfileDraft((d) => ({ ...d, university: e.target.value }))}
                   required
-                  className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  className="min-h-11 w-full border border-border bg-background px-3 text-sm text-foreground"
                 >
                   <option value="">Select university</option>{UNIVERSITIES.map((x) => <option key={x}>{x}</option>)}
                 </select>
@@ -278,7 +278,7 @@ export default function Account() {
                   value={profileDraft.course}
                   onChange={(e) => setProfileDraft((d) => ({ ...d, course: e.target.value }))}
                   required
-                  className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  className="min-h-11 w-full border border-border bg-background px-3 text-sm text-foreground"
                 >
                   <option value="">Select course</option>{COURSES.map((x) => <option key={x}>{x}</option>)}
                 </select>
@@ -290,16 +290,16 @@ export default function Account() {
                   value={profileDraft.study_year}
                   onChange={(e) => setProfileDraft((d) => ({ ...d, study_year: e.target.value }))}
                   required
-                  className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+                  className="min-h-11 w-full border border-border bg-background px-3 text-sm text-foreground"
                 >
                   <option value="">Select year</option>{[1, 2, 3, 4, 5, 6].map((x) => <option key={x} value={x}>Year {x}</option>)}
                 </select>
               </div>
               <div className="flex gap-2 pt-1">
-                <button type="submit" disabled={savingProfile} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
+                <button type="submit" disabled={savingProfile} className="inline-flex items-center gap-1.5 border bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
                   {savingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Save
                 </button>
-                <button type="button" onClick={cancelEditProfile} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground">
+                <button type="button" onClick={cancelEditProfile} className="inline-flex items-center gap-1.5 border border-border px-3 py-2 text-xs font-semibold text-foreground">
                   <X className="h-3.5 w-3.5" /> Cancel
                 </button>
               </div>
@@ -314,7 +314,7 @@ export default function Account() {
           ) : (
             <div className="mt-3">
               <p className="text-sm text-muted-foreground">You haven't set up a study profile yet.</p>
-              <button type="button" onClick={startEditProfile} className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">
+              <button type="button" onClick={startEditProfile} className="mt-2 inline-flex items-center gap-1.5 border bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">
                 <GraduationCap className="h-3.5 w-3.5" /> Set up study profile
               </button>
             </div>
@@ -355,7 +355,7 @@ export default function Account() {
           <button
             type="button"
             onClick={testMobileAlert}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
+            className="inline-flex items-center gap-1.5 border border-border bg-muted/40 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted"
           >
             <Volume2 className="h-3.5 w-3.5 text-primary" /> Test
           </button>
@@ -448,33 +448,33 @@ export default function Account() {
           </p>
           {adminStats && (
             <div className="mb-3 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-muted/50 p-3">
+              <div className="border bg-muted/50 p-3">
                 <p className="font-serif text-xl font-bold text-foreground">{adminStats.articles}</p>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">published articles</p>
               </div>
-              <div className="rounded-xl bg-muted/50 p-3">
+              <div className="border bg-muted/50 p-3">
                 <p className="font-serif text-xl font-bold text-foreground">{adminStats.students}</p>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">student profiles</p>
               </div>
             </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Link to="/admin" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+            <Link to="/admin" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <LayoutDashboard className="h-3.5 w-3.5 text-primary" /> Dashboard
             </Link>
-            <Link to="/admin/notifications" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40 bg-primary/5 border-primary/20">
+            <Link to="/admin/notifications" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40 bg-primary/5 border-primary/20">
               <Bell className="h-3.5 w-3.5 text-primary" /> Broadcast Studio
             </Link>
-            <Link to="/admin/editor" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+            <Link to="/admin/editor" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <FileEdit className="h-3.5 w-3.5 text-primary" /> Editor
             </Link>
-            <Link to="/admin/categories" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+            <Link to="/admin/categories" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <FolderTree className="h-3.5 w-3.5 text-primary" /> Categories
             </Link>
-            <Link to="/admin/study-system" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+            <Link to="/admin/study-system" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <Database className="h-3.5 w-3.5 text-primary" /> Study System
             </Link>
-            <Link to="/admin/payments" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
+            <Link to="/admin/payments" className="flex items-center gap-2 border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/40">
               <CreditCard className="h-3.5 w-3.5 text-primary" /> Payments
             </Link>
           </div>
@@ -506,13 +506,13 @@ export default function Account() {
               <input
                 value={newCode}
                 onChange={(e) => setNewCode(normalizePassCode(e.target.value))}
-                className="flex-1 rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm font-bold text-foreground outline-none focus:border-primary"
+                className="flex-1 border border-border bg-background px-3 py-2 font-mono text-sm font-bold text-foreground outline-none focus:border-primary"
               />
               <button
                 type="button"
                 onClick={rename}
                 disabled={busy || !newCode || newCode === info.code}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 border bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
               >
                 <Check className="h-3.5 w-3.5" /> Save
               </button>
@@ -536,13 +536,13 @@ export default function Account() {
               value={codeInput}
               onChange={(e) => setCodeInput(normalizePassCode(e.target.value))}
               placeholder="OM-XXXXXXXX"
-              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-primary"
+              className="flex-1 border border-border bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-primary"
             />
             <button
               type="button"
               onClick={link}
               disabled={busy || !codeInput}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 border bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
             >
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Link
             </button>
