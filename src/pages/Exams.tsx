@@ -209,7 +209,7 @@ export default function Exams() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mx-auto mt-7 max-w-lg rounded-2xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-4 sm:p-5"
+            className="mx-auto mt-7 max-w-lg border-y border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-4 sm:p-5"
           >
             <div className="flex items-start gap-3">
               <div className="rounded-full bg-rose-100 dark:bg-rose-900/40 p-2 shrink-0 mt-0.5">
@@ -282,7 +282,7 @@ export default function Exams() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="rounded-2xl border border-border bg-card p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-2"
+          className="border-y border-border bg-card p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-2"
         >
           <div className="rounded-full bg-rose-500/10 p-3 shrink-0">
             <Heart className="h-5 w-5 text-rose-500" />
