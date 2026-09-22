@@ -69,7 +69,7 @@ export default function Flashcards() {
   if (loading) {
     return (
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-12">
-        <div className="mb-7">
+        <div className="mb-7 border-b border-border pb-6">
           <div className="h-9 w-36 animate-pulse rounded-lg bg-muted" />
           <div className="mt-2 h-4 w-60 animate-pulse rounded bg-muted" />
         </div>
@@ -89,7 +89,7 @@ export default function Flashcards() {
   return (
     <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-12">
       <div className="mb-7">
-        <h1 className="mb-1 font-serif text-3xl font-bold text-foreground sm:text-4xl">Flashcards</h1>
+        <p className="study-kicker">Practice · Rapid recall</p>\n        <h1 className="mt-1 mb-1 font-serif text-3xl font-bold text-foreground sm:text-4xl">Flashcards</h1>
         <p className="text-sm text-muted-foreground sm:text-base">
           {selectedYear === "All" ? "Interactive study sets generated from notes" : `${selectedYear} flashcard sets`}
         </p>
@@ -112,12 +112,12 @@ export default function Flashcards() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="divide-y divide-border border-y border-border">
             {filtered.slice(0, visibleCount).map((s) => (
               <div key={s.id}>
                 <Link
                   to={buildFlashcardPath(s)}
-                  className="group relative block h-full rounded-xl border border-border bg-card p-5 sm:p-6 transition-shadow hover:[box-shadow:var(--shadow-card-hover)]"
+                  className="study-resource-row group relative block h-full border-0 p-4 sm:p-5"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
                   {visitedIds.has(s.id) && (
@@ -128,7 +128,7 @@ export default function Flashcards() {
                       </span>
                     </div>
                   )}
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-accent/20 text-accent sm:mb-4 sm:h-10 sm:w-10">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-primary/15 bg-primary/5 text-primary">
                     <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
                   </div>
                   {s.category && s.category !== "Uncategorized" && (
