@@ -76,7 +76,7 @@ export default function CategoryTabs({
       <div className="relative sm:hidden" ref={dropdownRef}>
         <button
           onClick={() => setMobileOpen((o) => !o)}
-          className={`flex items-center gap-2 border px-4 py-2.5 text-sm font-medium transition-all shadow-sm ${
+          className={`flex items-center gap-2 border px-4 py-2.5 text-sm font-medium transition-colors shadow-sm ${
             selected
               ? "border-primary bg-primary text-primary-foreground"
               : "border-border bg-card text-foreground"
@@ -105,7 +105,7 @@ export default function CategoryTabs({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -6, scale: 0.96 }}
               transition={{ duration: 0.14, ease: "easeOut" }}
-              className="absolute left-0 right-0 z-50 mt-2 border-y border-border bg-card shadow-md overflow-hidden"
+              className="absolute left-0 right-0 z-50 mt-2 border-y border-border bg-card shadow-sm overflow-hidden"
             >
               {/* All */}
               <button
