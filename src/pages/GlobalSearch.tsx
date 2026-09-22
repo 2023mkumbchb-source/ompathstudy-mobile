@@ -46,13 +46,13 @@ export default function GlobalSearch() {
         <meta name="robots" content="noindex,follow" />
       </Helmet>
 
-      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 overflow-x-auto text-xs text-muted-foreground">
         <Link to="/" className="hover:text-primary">Home</Link> ›{" "}
         <span className="text-foreground">Search</span>
       </nav>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="font-serif text-3xl font-bold text-foreground">Search the study library</h1>
+        <div><p className="study-kicker">Study library</p><h1 className="font-serif text-3xl font-bold text-foreground">Search the study library</h1></div>
         {isOffline && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
             ⚡ Instant Offline Search (551 Notes &amp; 197 MCQs)
@@ -168,14 +168,14 @@ export default function GlobalSearch() {
             if (!rows.length) return null;
             return (
               <section key={group}>
-                <h2 className="mb-3 font-serif text-xl font-bold text-foreground">{group}</h2>
+                <div className="study-section-heading mb-3"><h2 className="font-serif text-xl font-bold text-foreground">{group}</h2><span className="study-type-badge">{group}</span></div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {rows.map((h) => (
                     <Link
                       key={`${h.kind}-${h.id}`}
                       to={h.href}
                       onClick={() => void logSearch(q, hits.length, { type: h.kind, id: h.id })}
-                      className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+                      className="study-resource-row rounded-none border-x-0 p-4"
                     >
                       <div className="flex gap-3">
                         <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
