@@ -104,7 +104,7 @@ export default function ContestSetup() {
         <ArrowLeft className="h-4 w-4" /> Contest administration
       </Link>
 
-      <header className="mt-6 overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-6 sm:p-8">
+      <header className="mt-6 overflow-hidden border-y border border-border bg-gradient-to-br from-primary/10 via-card to-card p-6 sm:p-8">
         <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-primary"><Trophy className="h-4 w-4" /> Contest setup</p>
         <h1 className="mt-3 font-serif text-3xl font-bold sm:text-4xl">Build a contest between universities</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -118,7 +118,7 @@ export default function ContestSetup() {
             setContestId(created.id);
             return `Sample contest published at /contests/${created.slug} with five questions and five universities.`;
           })}
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          className="mt-6 inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
           {busy === "sample" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Publish a working sample contest
         </button>
@@ -186,7 +186,7 @@ export default function ContestSetup() {
             setDraft(emptyDraft);
             return `Contest created at /contests/${created.slug}. Add a round and questions below.`;
           })}
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          className="mt-5 inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
           {busy === "create" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create contest
         </button>
@@ -225,7 +225,7 @@ export default function ContestSetup() {
           </div>
           <div className="grid gap-4 border p-4 md:grid-cols-[1fr,auto]">
             <label className="text-sm font-semibold"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Contest share image</span><input type="url" value={contest.shareImageUrl || ""} onChange={(e) => setContests((items) => items.map((item) => item.id === contest.id ? { ...item, shareImageUrl: e.target.value } : item))} placeholder="Paste a public HTTPS image URL" className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" /></label>
-            <button disabled={busy === "share-image"} onClick={() => void run("share-image", async () => { await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: contest.shareImageUrl, published: contest.published }); setContests(await loadAdminContests()); return "Share image saved."; })} className="self-end rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Save image</button>
+            <button disabled={busy === "share-image"} onClick={() => void run("share-image", async () => { await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: contest.shareImageUrl, published: contest.published }); setContests(await loadAdminContests()); return "Share image saved."; })} className="self-end border bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Save image</button>
             <label className="border border-dashed p-4 text-sm font-semibold md:col-span-2"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Upload poster from your device</span><span className="mt-1 block text-xs font-normal text-muted-foreground">JPG, PNG or WebP · maximum 5 MB · recommended 1200 × 630 px</span><input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; void run("poster-upload", async () => { const url = await uploadContestPoster(contest.id, file); await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: url, published: contest.published }); setContests(await loadAdminContests()); return "Poster uploaded and set as the contest share image."; }); }} /></label>
             {contest.shareImageUrl && <img src={contest.shareImageUrl} alt="Contest share preview" className="max-h-48 w-full border object-cover md:col-span-2" />}
             <div className="flex flex-wrap gap-2 md:col-span-2"><a href={`https://wa.me/?text=${encodeURIComponent(contest.title + "\nhttps://www.ompathstudy.com/contests/" + contest.slug + "/briefing")}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border px-4 py-2 text-sm font-bold"><Link2 className="h-4 w-4" /> Share on WhatsApp</a><button onClick={() => void navigator.clipboard.writeText(`https://www.ompathstudy.com/contests/${contest.slug}/briefing`)} className="border px-4 py-2 text-sm font-bold">Copy contest link</button></div>
@@ -242,7 +242,7 @@ export default function ContestSetup() {
         <div className="mt-4 space-y-3">
           {rounds.length ? rounds.map((round) => (
             <div key={round.id} className="flex flex-wrap items-center gap-3 border p-4">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-sm font-bold">{round.round_number}</span>
+              <span className="flex h-9 w-9 items-center justify-center border bg-muted text-sm font-bold">{round.round_number}</span>
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{round.title}</p>
                 <p className="text-xs text-muted-foreground">{round.question_count} questions · {Math.round(round.duration_seconds / 60)} min · {round.status}</p>
@@ -265,7 +265,7 @@ export default function ContestSetup() {
             await createContestRound(contestId, roundTitle, Math.max(60, roundMinutes * 60));
             await refreshRounds();
             return `${roundTitle} added.`;
-          })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
+          })} className="inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
             <Plus className="h-4 w-4" /> Add round
           </button>
         </div>
@@ -297,7 +297,7 @@ export default function ContestSetup() {
             const imported = await importExamPaperToContestRound(targetRound, selectedExamId);
             await refreshRounds();
             return `${imported.title} is ready in the contest round with ${imported.count} questions.`;
-          })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
+          })} className="inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
             {busy === "exam-import" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Use selected exam
           </button>
           <span className="text-xs text-muted-foreground">{filteredExamPapers.length} matching paper{filteredExamPapers.length === 1 ? "" : "s"} from {examPapers.length} available</span>
@@ -322,7 +322,7 @@ export default function ContestSetup() {
             const count = await importContestQuestions(targetRound, parsed);
             await refreshRounds();
             return `${count} question${count === 1 ? "" : "s"} imported. Answer keys were stored privately.`;
-          })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
+          })} className="inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
             <CheckCircle2 className="h-4 w-4" /> Import into the round
           </button>
         </div>
@@ -376,7 +376,7 @@ export default function ContestSetup() {
             setUniversities(await loadAllContestUniversities());
             setNewUniversity({ name: "", abbreviation: "" });
             return "University added and available for registration.";
-          })} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
+          })} className="inline-flex items-center gap-2 border bg-primary px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-50">
             <Plus className="h-4 w-4" /> Add university
           </button>
         </div>
@@ -399,7 +399,7 @@ export default function ContestSetup() {
                 await configureContestRound({ roundId: round.id, status: scheduleStatus, startsAt: round.starts_at, endsAt: round.ends_at, durationSeconds: round.duration_seconds, tabSwitchLimit: 3, focusLossLimit: 3, autoEliminate: true, universityAId: round.university_a_id, universityBId: round.university_b_id });
                 await refreshRounds();
                 return `${round.title} schedule saved successfully.`;
-              })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
+              })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center border bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
                 {busy === round.id + "schedule" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />} Save date &amp; time
               </button>
               <button disabled={!round.starts_at || busy === round.id + "notify"} onClick={() => void run(round.id + "notify", async () => { const result = await announceContestSchedule(round.id); return result.emailConfigured ? `Notice sent in-app to ${result.recipients} users; ${result.delivered} emails delivered.` : `In-app notice sent to ${result.recipients} users. Configure Resend to enable email delivery.`; })} className="mt-3 inline-flex min-h-11 w-full items-center justify-center border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-40 sm:ml-3 sm:w-auto"><BellRing className="mr-2 h-4 w-4" /> Notify all users</button>
