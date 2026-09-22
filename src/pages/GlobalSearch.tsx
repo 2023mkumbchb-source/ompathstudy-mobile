@@ -110,7 +110,7 @@ export default function GlobalSearch() {
             <button
               type="button"
               onClick={() => { setYear(""); setContentType(""); }}
-              className="min-h-[40px] rounded-lg px-2 text-xs font-semibold text-muted-foreground hover:text-primary"
+              className="min-h-[40px] rounded-md px-2 text-xs font-semibold text-muted-foreground hover:text-primary"
             >
               Clear filters
             </button>
@@ -140,8 +140,8 @@ export default function GlobalSearch() {
             <div key={g}>
               <Skeleton className="mb-3 h-6 w-40" />
               <div className="grid gap-2 sm:grid-cols-2">
-                <Skeleton className="h-20 rounded-xl" />
-                <Skeleton className="h-20 rounded-xl" />
+                <Skeleton className="h-20 rounded-md" />
+                <Skeleton className="h-20 rounded-md" />
               </div>
             </div>
           ))}
