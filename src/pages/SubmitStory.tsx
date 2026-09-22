@@ -160,7 +160,7 @@ export default function SubmitStory() {
           </p>
         </div>
 
-        <div className="space-y-4 rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <div className="space-y-4 border-y border-border bg-card p-6 sm:p-8">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">Story Title *</label>
             <Input
