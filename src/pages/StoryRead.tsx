@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useState, useEffect } from "react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Loader2, ArrowLeft, Clock, BookOpen, Share2 } from "lucide-react";
@@ -205,7 +206,7 @@ export default function StoryRead() {
       if (imgMatch) {
         flushList(i);
         elements.push(
-          <figure key={i} className="my-6 overflow-hidden rounded-xl border border-border">
+          <figure key={i} className="my-6 overflow-hidden rounded-md border border-border">
             <img src={imgMatch[2]} alt={imgMatch[1] || "Story image"} loading="lazy" className="w-full object-cover" />
             {imgMatch[1] && <figcaption className="px-4 py-2 text-center text-xs text-muted-foreground">{imgMatch[1]}</figcaption>}
           </figure>
@@ -235,7 +236,7 @@ export default function StoryRead() {
     <>
       {/* Reading progress bar */}
       <div
-        className="fixed left-0 top-0 z-50 h-0.5 bg-primary transition-all duration-150"
+        className="fixed left-0 top-0 z-50 h-0.5 bg-primary transition-colors duration-150"
         style={{ width: `${scrollProgress}%` }}
       />
 
@@ -324,7 +325,7 @@ export default function StoryRead() {
 
         {/* Cover image */}
         {story.cover_image_url && (
-          <figure className="mb-8 overflow-hidden rounded-2xl border border-border shadow-sm">
+          <figure className="mb-8 overflow-hidden rounded-md border border-border shadow-sm">
             <img
               src={story.cover_image_url}
               alt={story.title}
