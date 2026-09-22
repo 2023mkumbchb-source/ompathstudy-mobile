@@ -25,6 +25,7 @@ import { useAutoSync } from "@/hooks/useAutoSync";
 import { AdminRoute, SignedInRoute } from "@/components/AccessRoute";
 import MedicalLaunchExperience from "@/components/MedicalLaunchExperience";
 import { initOtaUpdater } from "@/lib/otaUpdater";
+import { toast } from "sonner";
 import "@/styles/workspace.css";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -165,7 +166,9 @@ function MobileAppBridge() {
     setupNativeNotificationListener((url) => {
       openNotificationAction(url, navigate);
     });
-    void initOtaUpdater();
+    void initOtaUpdater((message) => {
+      toast.info(message, { duration: 5000 });
+    });
   }, [navigate]);
 
   return null;
