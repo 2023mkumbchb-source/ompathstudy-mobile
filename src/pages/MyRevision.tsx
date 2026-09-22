@@ -143,7 +143,7 @@ export default function MyRevision() {
   if (authLoading || loading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 px-5 py-10">
-        <Skeleton className="h-40 w-full rounded-3xl" />
+        <Skeleton className="h-40 w-full rounded-md" />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 border-y" />)}
         </div>
@@ -179,7 +179,7 @@ export default function MyRevision() {
         <span className="text-foreground">My Revision</span>
       </nav>
 
-      <div className="rounded-3xl bg-[hsl(174,62%,20%)] p-6 text-white sm:p-8">
+      <div className="rounded-md bg-[hsl(174,62%,20%)] p-6 text-white sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-bold uppercase tracking-widest text-white/60">Personal study space</p>
           <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium text-white">
