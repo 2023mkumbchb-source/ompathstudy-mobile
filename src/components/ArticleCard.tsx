@@ -52,7 +52,7 @@ export default function ArticleCard({ article }: { article: Article }) {
     <Link
       to={buildBlogPath(article)}
       state={{ from: fromPath }}
-      className="group block overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)] sm:rounded-2xl"
+      className="group block overflow-hidden border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)] sm:rounded-2xl"
     >
       {/* Mobile: compact row layout. Desktop: side-by-side */}
       <article className="flex gap-3 p-3 sm:grid sm:min-h-[180px] sm:gap-0 sm:p-0 md:grid-cols-[200px_1fr]">
