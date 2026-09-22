@@ -52,12 +52,12 @@ export default function ArticleCard({ article }: { article: Article }) {
     <Link
       to={buildBlogPath(article)}
       state={{ from: fromPath }}
-      className="group block overflow-hidden border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)] sm:border-y"
+      className="group block overflow-hidden border border-border bg-card transition-colors hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)] sm:border-y"
     >
       {/* Mobile: compact row layout. Desktop: side-by-side */}
       <article className="flex gap-3 p-3 sm:grid sm:min-h-[180px] sm:gap-0 sm:p-0 md:grid-cols-[200px_1fr]">
         {/* Thumbnail */}
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted sm:h-full sm:w-full sm:rounded-none sm:border-b sm:border-border md:border-b-0 md:border-r">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted sm:h-full sm:w-full sm:rounded-none sm:border-b sm:border-border md:border-b-0 md:border-r">
           <img
             src={cover}
             alt={`${unit || "Medical"} study illustration`}
