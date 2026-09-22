@@ -77,7 +77,7 @@ export default function About() {
   return (
     <div className="min-h-dvh bg-muted/20">
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/10 via-background to-background">
+      <section className="relative overflow-hidden border-b border-border bg-primary/5">
         <div className="absolute inset-0 opacity-[0.06] pointer-events-none" aria-hidden>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary))_0,transparent_45%)]" />
         </div>
@@ -90,7 +90,7 @@ export default function About() {
           >
             <div className="relative">
               <div className="absolute -inset-3 rounded-3xl bg-primary/20 blur-2xl" aria-hidden />
-              <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 overflow-hidden rounded-3xl border-4 border-card shadow-2xl ring-1 ring-primary/20">
+              <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 overflow-hidden rounded-3xl border-4 border-card shadow-lg ring-1 ring-primary/20">
                 <img
                   src={portrait}
                   alt={`${aboutProfile.name} — Founder of Ompath Study`}
@@ -166,7 +166,7 @@ export default function About() {
             { icon: Code2, title: "Web Development", body: "I design and build modern, fast, SEO-friendly websites for businesses and creators." },
             { icon: Sparkles, title: "Building", body: "I love turning ideas into shipped products — listings, learning tools, marketplaces." },
           ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl border border-border bg-card p-5">
+            <div key={title} className="border-y border-border bg-card p-5">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Icon className="h-5 w-5" />
               </div>
@@ -187,7 +187,7 @@ export default function About() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PROJECTS.map((p) => (
               <a key={p.domain} href={p.href} target="_blank" rel="noopener noreferrer"
-                className="group flex h-full flex-col rounded-2xl border border-border bg-background p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
+                className="group flex h-full flex-col border-y border-border bg-background p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
                 <div className="mb-2 inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                   {p.tag}
                 </div>
