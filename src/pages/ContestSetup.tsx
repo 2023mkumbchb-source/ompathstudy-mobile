@@ -124,23 +124,23 @@ export default function ContestSetup() {
         </button>
       </header>
 
-      {message && <p className="mt-5 rounded-xl border border-primary/30 bg-primary/10 p-4 text-sm">{message}</p>}
-      {error && <p className="mt-5 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">{error}</p>}
+      {message && <p className="mt-5 border border-primary/30 bg-primary/10 p-4 text-sm">{message}</p>}
+      {error && <p className="mt-5 border border-destructive/40 bg-destructive/10 p-4 text-sm">{error}</p>}
 
-      <section className="mt-8 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-8 border-y border-border bg-card p-6">
         <h2 className="text-lg font-bold">1. Create a new contest</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-semibold">Title
-            <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Inter-University Anatomy Challenge 2026" className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Inter-University Anatomy Challenge 2026" className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Competition path
-            <input value={draft.format} onChange={(e) => setDraft({ ...draft, format: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={draft.format} onChange={(e) => setDraft({ ...draft, format: e.target.value })} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold sm:col-span-2">Subtitle
-            <input value={draft.subtitle} onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })} placeholder="A national knowledge arena for medical students." className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={draft.subtitle} onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })} placeholder="A national knowledge arena for medical students." className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Subjects (comma separated)
-            <input value={draft.subjects} onChange={(e) => setDraft({ ...draft, subjects: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={draft.subjects} onChange={(e) => setDraft({ ...draft, subjects: e.target.value })} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <div className="text-sm font-semibold">Eligible years
             <div className="mt-2 flex flex-wrap gap-2">
@@ -148,7 +148,7 @@ export default function ContestSetup() {
                 const on = draft.years.includes(year);
                 return (
                   <button key={year} type="button" onClick={() => setDraft({ ...draft, years: on ? draft.years.filter((item) => item !== year) : [...draft.years, year] })}
-                    className={`rounded-lg border px-3 py-2 text-xs font-bold ${on ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"}`}>
+                    className={`border px-3 py-2 text-xs font-bold ${on ? "border-primary bg-primary/10 text-primary" : "text-muted-foreground"}`}>
                     Year {year}
                   </button>
                 );
@@ -156,16 +156,16 @@ export default function ContestSetup() {
             </div>
           </div>
           <label className="text-sm font-semibold">Registration opens
-            <input type="datetime-local" value={draft.registrationOpensAt} onChange={(e) => setDraft({ ...draft, registrationOpensAt: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input type="datetime-local" value={draft.registrationOpensAt} onChange={(e) => setDraft({ ...draft, registrationOpensAt: e.target.value })} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Registration closes
-            <input type="datetime-local" value={draft.registrationClosesAt} onChange={(e) => setDraft({ ...draft, registrationClosesAt: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input type="datetime-local" value={draft.registrationClosesAt} onChange={(e) => setDraft({ ...draft, registrationClosesAt: e.target.value })} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Contest starts
-            <input type="datetime-local" value={draft.startsAt} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input type="datetime-local" value={draft.startsAt} onChange={(e) => setDraft({ ...draft, startsAt: e.target.value })} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold sm:col-span-2">Share image URL
-            <input type="url" value={draft.shareImageUrl} onChange={(e) => setDraft({ ...draft, shareImageUrl: e.target.value })} placeholder="https://.../contest-poster.jpg" className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input type="url" value={draft.shareImageUrl} onChange={(e) => setDraft({ ...draft, shareImageUrl: e.target.value })} placeholder="https://.../contest-poster.jpg" className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="flex items-end gap-3 text-sm font-semibold">
             <input type="checkbox" checked={creating} onChange={(e) => setCreating(e.target.checked)} className="h-4 w-4" /> Publish immediately
@@ -192,9 +192,9 @@ export default function ContestSetup() {
         </button>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="text-lg font-bold">2. Choose the contest you are working on</h2>
-        <select value={contestId} onChange={(e) => setContestId(e.target.value)} className="mt-4 w-full max-w-xl rounded-lg border bg-background px-3 py-2.5 text-sm">
+        <select value={contestId} onChange={(e) => setContestId(e.target.value)} className="mt-4 w-full max-w-xl border bg-background px-3 py-2.5 text-sm">
           {contests.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.stage}{item.published ? "" : " · unpublished"}</option>)}
         </select>
         {contest && (
@@ -209,7 +209,7 @@ export default function ContestSetup() {
               });
               setContests(await loadAdminContests());
               return contest.published ? "Contest hidden from the public page." : "Contest is now visible on the public contest page.";
-            })} className="rounded-lg border px-4 py-2.5 text-sm font-bold">
+            })} className="border px-4 py-2.5 text-sm font-bold">
               {contest.published ? "Unpublish" : "Publish to the site"}
             </button>
             {(["concept", "registration", "live", "completed"] as ContestStage[]).map((stage) => (
@@ -217,18 +217,18 @@ export default function ContestSetup() {
                 await updateContestStage(contest.id, stage);
                 setContests(await loadAdminContests());
                 return `Contest stage set to ${stage}.`;
-              })} className={`rounded-lg border px-4 py-2.5 text-sm font-bold capitalize disabled:opacity-40 ${contest.stage === stage ? "border-primary bg-primary/10 text-primary" : ""}`}>
+              })} className={`border px-4 py-2.5 text-sm font-bold capitalize disabled:opacity-40 ${contest.stage === stage ? "border-primary bg-primary/10 text-primary" : ""}`}>
                 {stage}
               </button>
             ))}
             <Link to={`/contests/${contest.slug}/briefing`} className="text-sm font-bold text-primary hover:underline">Open public page →</Link>
           </div>
-          <div className="grid gap-4 rounded-xl border p-4 md:grid-cols-[1fr,auto]">
-            <label className="text-sm font-semibold"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Contest share image</span><input type="url" value={contest.shareImageUrl || ""} onChange={(e) => setContests((items) => items.map((item) => item.id === contest.id ? { ...item, shareImageUrl: e.target.value } : item))} placeholder="Paste a public HTTPS image URL" className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" /></label>
+          <div className="grid gap-4 border p-4 md:grid-cols-[1fr,auto]">
+            <label className="text-sm font-semibold"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Contest share image</span><input type="url" value={contest.shareImageUrl || ""} onChange={(e) => setContests((items) => items.map((item) => item.id === contest.id ? { ...item, shareImageUrl: e.target.value } : item))} placeholder="Paste a public HTTPS image URL" className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal" /></label>
             <button disabled={busy === "share-image"} onClick={() => void run("share-image", async () => { await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: contest.shareImageUrl, published: contest.published }); setContests(await loadAdminContests()); return "Share image saved."; })} className="self-end rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Save image</button>
-            <label className="rounded-lg border border-dashed p-4 text-sm font-semibold md:col-span-2"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Upload poster from your device</span><span className="mt-1 block text-xs font-normal text-muted-foreground">JPG, PNG or WebP · maximum 5 MB · recommended 1200 × 630 px</span><input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; void run("poster-upload", async () => { const url = await uploadContestPoster(contest.id, file); await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: url, published: contest.published }); setContests(await loadAdminContests()); return "Poster uploaded and set as the contest share image."; }); }} /></label>
-            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt="Contest share preview" className="max-h-48 w-full rounded-lg border object-cover md:col-span-2" />}
-            <div className="flex flex-wrap gap-2 md:col-span-2"><a href={`https://wa.me/?text=${encodeURIComponent(contest.title + "\nhttps://www.ompathstudy.com/contests/" + contest.slug + "/briefing")}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold"><Link2 className="h-4 w-4" /> Share on WhatsApp</a><button onClick={() => void navigator.clipboard.writeText(`https://www.ompathstudy.com/contests/${contest.slug}/briefing`)} className="rounded-lg border px-4 py-2 text-sm font-bold">Copy contest link</button></div>
+            <label className="border border-dashed p-4 text-sm font-semibold md:col-span-2"><span className="flex items-center gap-2"><Image className="h-4 w-4 text-primary" /> Upload poster from your device</span><span className="mt-1 block text-xs font-normal text-muted-foreground">JPG, PNG or WebP · maximum 5 MB · recommended 1200 × 630 px</span><input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={(e) => { const file = e.target.files?.[0]; if (!file) return; void run("poster-upload", async () => { const url = await uploadContestPoster(contest.id, file); await updateContestDetails(contest.id, { title: contest.title, subtitle: contest.subtitle, subjects: contest.subjects, years: contest.years, format: contest.format, registrationOpensAt: contest.registrationOpensAt, registrationClosesAt: contest.registrationClosesAt, startsAt: contest.startsAt, shareImageUrl: url, published: contest.published }); setContests(await loadAdminContests()); return "Poster uploaded and set as the contest share image."; }); }} /></label>
+            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt="Contest share preview" className="max-h-48 w-full border object-cover md:col-span-2" />}
+            <div className="flex flex-wrap gap-2 md:col-span-2"><a href={`https://wa.me/?text=${encodeURIComponent(contest.title + "\nhttps://www.ompathstudy.com/contests/" + contest.slug + "/briefing")}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border px-4 py-2 text-sm font-bold"><Link2 className="h-4 w-4" /> Share on WhatsApp</a><button onClick={() => void navigator.clipboard.writeText(`https://www.ompathstudy.com/contests/${contest.slug}/briefing`)} className="border px-4 py-2 text-sm font-bold">Copy contest link</button></div>
           </div>
           </div>
         )}
@@ -237,11 +237,11 @@ export default function ContestSetup() {
         </p>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="text-lg font-bold">3. Rounds</h2>
         <div className="mt-4 space-y-3">
           {rounds.length ? rounds.map((round) => (
-            <div key={round.id} className="flex flex-wrap items-center gap-3 rounded-xl border p-4">
+            <div key={round.id} className="flex flex-wrap items-center gap-3 border p-4">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-sm font-bold">{round.round_number}</span>
               <div className="min-w-0 flex-1">
                 <p className="font-bold">{round.title}</p>
@@ -250,16 +250,16 @@ export default function ContestSetup() {
               </div>
               <button disabled={busy === round.id} onClick={() => void run(round.id, async () => {
                 await deleteContestRound(round.id); await refreshRounds(); return `${round.title} removed.`;
-              })} className="rounded-lg border p-2 text-muted-foreground" aria-label={`Delete ${round.title}`}><Trash2 className="h-4 w-4" /></button>
+              })} className="border p-2 text-muted-foreground" aria-label={`Delete ${round.title}`}><Trash2 className="h-4 w-4" /></button>
             </div>
-          )) : <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">No rounds yet.</p>}
+          )) : <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">No rounds yet.</p>}
         </div>
         <div className="mt-5 flex flex-wrap items-end gap-3">
           <label className="text-sm font-semibold">Round title
-            <input value={roundTitle} onChange={(e) => setRoundTitle(e.target.value)} className="mt-2 block rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={roundTitle} onChange={(e) => setRoundTitle(e.target.value)} className="mt-2 block border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Minutes
-            <input type="number" min={1} max={240} value={roundMinutes} onChange={(e) => setRoundMinutes(Number(e.target.value))} className="mt-2 block w-24 rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input type="number" min={1} max={240} value={roundMinutes} onChange={(e) => setRoundMinutes(Number(e.target.value))} className="mt-2 block w-24 border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <button disabled={!contestId || busy === "round"} onClick={() => void run("round", async () => {
             await createContestRound(contestId, roundTitle, Math.max(60, roundMinutes * 60));
@@ -271,23 +271,23 @@ export default function ContestSetup() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="flex items-center gap-2 text-lg font-bold"><FileQuestion className="h-5 w-5 text-primary" /> 4. Select an exam from your library</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Search all published MCQ papers, choose one, and copy it into the selected contest round. Importing replaces that round's current questions; the answer keys remain private.
         </p>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="text-sm font-semibold">Round to fill
-            <select value={targetRound} onChange={(e) => setTargetRound(e.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-2.5 text-sm font-normal">
+            <select value={targetRound} onChange={(e) => setTargetRound(e.target.value)} className="mt-2 w-full border bg-background px-3 py-2.5 text-sm font-normal">
               {rounds.map((round) => <option key={round.id} value={round.id}>{round.title} · {round.question_count} questions · {round.status}</option>)}
             </select>
           </label>
           <label className="text-sm font-semibold">Find an exam
-            <span className="relative mt-2 block"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={examSearch} onChange={(e) => setExamSearch(e.target.value)} placeholder="Search by title or subject" className="w-full rounded-lg border bg-background py-2.5 pl-9 pr-3 text-sm font-normal" /></span>
+            <span className="relative mt-2 block"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input value={examSearch} onChange={(e) => setExamSearch(e.target.value)} placeholder="Search by title or subject" className="w-full border bg-background py-2.5 pl-9 pr-3 text-sm font-normal" /></span>
           </label>
         </div>
         <label className="mt-4 block text-sm font-semibold">Exam paper
-          <select value={selectedExamId} onChange={(e) => setSelectedExamId(e.target.value)} className="mt-2 w-full rounded-lg border bg-background px-3 py-3 text-sm font-normal">
+          <select value={selectedExamId} onChange={(e) => setSelectedExamId(e.target.value)} className="mt-2 w-full border bg-background px-3 py-3 text-sm font-normal">
             {!filteredExamPapers.length && <option value="">No matching exam papers</option>}
             {filteredExamPapers.map((paper) => <option key={paper.id} value={paper.id}>{paper.title} · {paper.question_count} questions · {paper.category}</option>)}
           </select>
@@ -304,20 +304,20 @@ export default function ContestSetup() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="flex items-center gap-2 text-lg font-bold"><ClipboardPaste className="h-5 w-5 text-primary" /> 5. Or paste a new paper</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Paste numbered questions with lettered choices. Mark the correct choice with an asterisk or add an <strong>Answer: B</strong> line. Explanations are optional and stay private.
         </p>
         <label className="mt-4 block text-sm font-semibold">Round to fill
-          <select value={targetRound} onChange={(e) => setTargetRound(e.target.value)} className="mt-2 w-full max-w-xl rounded-lg border bg-background px-3 py-2.5 text-sm font-normal">
+          <select value={targetRound} onChange={(e) => setTargetRound(e.target.value)} className="mt-2 w-full max-w-xl border bg-background px-3 py-2.5 text-sm font-normal">
             {rounds.map((round) => <option key={round.id} value={round.id}>{round.title} · {round.question_count} questions · {round.status}</option>)}
           </select>
         </label>
-        <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={14} spellCheck={false} className="mt-4 w-full rounded-xl border bg-background p-4 font-mono text-xs" />
+        <textarea value={paste} onChange={(e) => setPaste(e.target.value)} rows={14} spellCheck={false} className="mt-4 w-full border bg-background p-4 font-mono text-xs" />
         <div className="mt-4 flex flex-wrap gap-3">
           <button onClick={() => { const result = parseContestQuestions(paste); setParsed(result.questions); setWarnings(result.warnings); setMessage(`${result.questions.length} question${result.questions.length === 1 ? "" : "s"} recognised.`); setError(""); }}
-            className="rounded-xl border px-5 py-3 text-sm font-bold">Check the paste</button>
+            className="border px-5 py-3 text-sm font-bold">Check the paste</button>
           <button disabled={!parsed.length || !targetRound || busy === "import"} onClick={() => void run("import", async () => {
             const count = await importContestQuestions(targetRound, parsed);
             await refreshRounds();
@@ -327,14 +327,14 @@ export default function ContestSetup() {
           </button>
         </div>
         {warnings.length > 0 && (
-          <ul className="mt-4 space-y-1 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs">
+          <ul className="mt-4 space-y-1 border border-amber-500/30 bg-amber-500/10 p-4 text-xs">
             {warnings.map((warning) => <li key={warning}>{warning}</li>)}
           </ul>
         )}
         {parsed.length > 0 && (
           <ol className="mt-5 space-y-3">
             {parsed.map((question, index) => (
-              <li key={index} className="rounded-xl border p-4">
+              <li key={index} className="border p-4">
                 <p className="text-sm font-bold">{index + 1}. {question.stem}</p>
                 <div className="mt-2 grid gap-1 text-sm">
                   {question.options.map((option, optionIndex) => (
@@ -349,11 +349,11 @@ export default function ContestSetup() {
         )}
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="flex items-center gap-2 text-lg font-bold"><Building2 className="h-5 w-5 text-primary" /> 6. Competing universities</h2>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           {universities.map((university) => (
-            <label key={university.id} className="flex items-center gap-3 rounded-xl border p-3 text-sm">
+            <label key={university.id} className="flex items-center gap-3 border p-3 text-sm">
               <input type="checkbox" checked={university.active} onChange={(e) => void run(university.id, async () => {
                 await setContestUniversityActive(university.id, e.target.checked);
                 setUniversities(await loadAllContestUniversities());
@@ -366,10 +366,10 @@ export default function ContestSetup() {
         </div>
         <div className="mt-5 flex flex-wrap items-end gap-3">
           <label className="text-sm font-semibold">University name
-            <input value={newUniversity.name} onChange={(e) => setNewUniversity({ ...newUniversity, name: e.target.value })} className="mt-2 block w-64 rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={newUniversity.name} onChange={(e) => setNewUniversity({ ...newUniversity, name: e.target.value })} className="mt-2 block w-64 border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <label className="text-sm font-semibold">Short form
-            <input value={newUniversity.abbreviation} onChange={(e) => setNewUniversity({ ...newUniversity, abbreviation: e.target.value })} className="mt-2 block w-28 rounded-lg border bg-background px-3 py-2.5 text-sm font-normal" />
+            <input value={newUniversity.abbreviation} onChange={(e) => setNewUniversity({ ...newUniversity, abbreviation: e.target.value })} className="mt-2 block w-28 border bg-background px-3 py-2.5 text-sm font-normal" />
           </label>
           <button disabled={busy === "university"} onClick={() => void run("university", async () => {
             await addContestUniversity(newUniversity.name, newUniversity.abbreviation);
@@ -382,15 +382,15 @@ export default function ContestSetup() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+      <section className="mt-6 border-y border-border bg-card p-6">
         <h2 className="text-lg font-bold">7. Schedule and open the round</h2>
         <p className="mt-2 text-sm text-muted-foreground">Choose the date and time, save the schedule, then leave the round in Lobby until you are ready to start it.</p>
         <div className="mt-4 space-y-3">
           {rounds.map((round) => (
-            <div key={round.id} className="rounded-xl border p-4">
+            <div key={round.id} className="border p-4">
               <div><p className="font-bold">{round.title}</p><p className="text-xs text-muted-foreground">{round.question_count} questions · currently {round.status}</p></div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">University A<select value={round.university_a_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_a_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal"><option value="">Select first university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-xs font-bold">University B<select value={round.university_b_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_b_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal"><option value="">Select second university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => { if (item.id !== round.id) return item; const start = toIso(e.target.value); return { ...item, starts_at: start, ends_at: start ? new Date(new Date(start).getTime() + item.duration_seconds * 1000).toISOString() : null }; }))} className="mt-1 min-h-11 w-full rounded-lg border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (calculated from duration)<input type="datetime-local" value={toLocal(round.ends_at)} readOnly className="mt-1 min-h-11 w-full rounded-lg border bg-muted px-3 py-2 font-normal" /></label></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">University A<select value={round.university_a_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_a_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full border bg-background px-3 py-2 font-normal"><option value="">Select first university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="text-xs font-bold">University B<select value={round.university_b_id || ""} onChange={(e) => setRounds((items) => items.map((item) => item.id === round.id ? { ...item, university_b_id: e.target.value || null } : item))} className="mt-1 min-h-11 w-full border bg-background px-3 py-2 font-normal"><option value="">Select second university</option>{universities.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold">Starts (East Africa Time)<input type="datetime-local" value={toLocal(round.starts_at)} onChange={(e) => setRounds((items) => items.map((item) => { if (item.id !== round.id) return item; const start = toIso(e.target.value); return { ...item, starts_at: start, ends_at: start ? new Date(new Date(start).getTime() + item.duration_seconds * 1000).toISOString() : null }; }))} className="mt-1 min-h-11 w-full border bg-background px-3 py-2 font-normal" /></label><label className="text-xs font-bold">Ends (calculated from duration)<input type="datetime-local" value={toLocal(round.ends_at)} readOnly className="mt-1 min-h-11 w-full border bg-muted px-3 py-2 font-normal" /></label></div>
               <button disabled={!round.starts_at || !round.ends_at || busy === round.id + "schedule"} onClick={() => void run(round.id + "schedule", async () => {
                 if (!round.starts_at || !round.ends_at) throw new Error("Select both the starting and ending date and time.");
                 if (new Date(round.ends_at) <= new Date(round.starts_at)) throw new Error("The ending time must be after the starting time.");
@@ -402,7 +402,7 @@ export default function ContestSetup() {
               })} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-40 sm:w-auto">
                 {busy === round.id + "schedule" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />} Save date &amp; time
               </button>
-              <button disabled={!round.starts_at || busy === round.id + "notify"} onClick={() => void run(round.id + "notify", async () => { const result = await announceContestSchedule(round.id); return result.emailConfigured ? `Notice sent in-app to ${result.recipients} users; ${result.delivered} emails delivered.` : `In-app notice sent to ${result.recipients} users. Configure Resend to enable email delivery.`; })} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-40 sm:ml-3 sm:w-auto"><BellRing className="mr-2 h-4 w-4" /> Notify all users</button>
+              <button disabled={!round.starts_at || busy === round.id + "notify"} onClick={() => void run(round.id + "notify", async () => { const result = await announceContestSchedule(round.id); return result.emailConfigured ? `Notice sent in-app to ${result.recipients} users; ${result.delivered} emails delivered.` : `In-app notice sent to ${result.recipients} users. Configure Resend to enable email delivery.`; })} className="mt-3 inline-flex min-h-11 w-full items-center justify-center border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary disabled:opacity-40 sm:ml-3 sm:w-auto"><BellRing className="mr-2 h-4 w-4" /> Notify all users</button>
               <div className="mt-4 flex flex-wrap gap-3">
               {(["lobby", "live", "closed"] as ContestRound["status"][]).map((status) => (
                 <button key={status} disabled={busy === round.id + status} onClick={() => void run(round.id + status, async () => {
@@ -417,7 +417,7 @@ export default function ContestSetup() {
                   });
                   await refreshRounds();
                   return `${round.title} is now ${status}.`;
-                })} className={`min-h-11 flex-1 rounded-lg border px-4 py-2 text-sm font-bold capitalize disabled:opacity-40 sm:flex-none ${round.status === status ? "border-primary bg-primary/10 text-primary" : ""}`}>
+                })} className={`min-h-11 flex-1 border px-4 py-2 text-sm font-bold capitalize disabled:opacity-40 sm:flex-none ${round.status === status ? "border-primary bg-primary/10 text-primary" : ""}`}>
                   {status}
                 </button>
               ))}
