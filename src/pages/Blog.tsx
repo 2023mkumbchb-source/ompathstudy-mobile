@@ -488,7 +488,7 @@ export default function Blog() {
         </div>
         <div className="space-y-3">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="flex gap-4 rounded-xl border border-border bg-card p-4">
+            <div key={i} className="flex gap-4 border border-border bg-card p-4">
               <div className="h-5 w-5 animate-pulse rounded bg-muted shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
@@ -635,7 +635,7 @@ export default function Blog() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.3 }}
-          className={`relative mt-5 flex max-w-2xl items-center overflow-hidden rounded-xl border bg-background shadow-sm transition-all duration-300 ${searchFocused ? "border-primary ring-2 ring-primary/15 shadow-md" : "border-border"}`}
+          className={`relative mt-5 flex max-w-2xl items-center overflow-hidden border bg-background shadow-sm transition-all duration-300 ${searchFocused ? "border-primary ring-2 ring-primary/15 shadow-md" : "border-border"}`}
         >
           <Search className="ml-3 h-4 w-4 shrink-0 text-muted-foreground" />
           <input
@@ -687,7 +687,7 @@ export default function Blog() {
                 whileHover={cardHover}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setYear(y)}
-                className="group relative overflow-hidden rounded-xl border border-border bg-card text-left transition-all duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]"
+                className="group relative overflow-hidden border border-border bg-card text-left transition-all duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]"
               >
                 {/* Gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -720,7 +720,7 @@ export default function Blog() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="mb-7 rounded-2xl border border-border bg-card p-4 shadow-sm"
+          className="mb-7 border-y border-border bg-card p-4 shadow-sm"
         >
           <div className="mb-3 flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-primary" />
@@ -789,7 +789,7 @@ export default function Blog() {
                 whileHover={cardHover}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSemester(opt.value)}
-                className="rounded-2xl border border-border bg-card p-5 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]"
+                className="border-y border-border bg-card p-5 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]"
               >
                 <span className="font-serif text-lg font-bold text-foreground sm:text-xl">{opt.label}</span>
                 <p className="mt-1 text-xs text-muted-foreground">{year3SemesterCounts[opt.value] ?? 0} notes</p>
@@ -867,7 +867,7 @@ export default function Blog() {
           <div className="mb-6 flex flex-wrap gap-1.5">
             <button
               onClick={() => setUnit(null)}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+              className="border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
             >
               ← All units
             </button>
@@ -916,7 +916,7 @@ export default function Blog() {
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             {filtered.length} {filtered.length === 1 ? "note" : "notes"}
           </p>
-          <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border p-0.5">
+          <div className="flex flex-wrap items-center gap-1 border border-border p-0.5">
             <select
               value={kindFilter}
               onChange={(e) => setKindFilter(e.target.value as any)}
@@ -969,7 +969,7 @@ export default function Blog() {
           {(search || selectedUnit || kindFilter !== "all") && (
             <button
               onClick={() => { setSearch(""); setUnit(null); setKindFilter("all"); }}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:opacity-90 hover:shadow-md"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:opacity-90 hover:bg-muted/40"
             >
               Reset filters <ArrowRight className="h-3.5 w-3.5" />
             </button>
@@ -1001,7 +1001,7 @@ export default function Blog() {
                     ))}
                   </div>
                 ) : (
-                  <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                  <div className="overflow-hidden border border-border bg-card shadow-sm">
                     {group.articles.slice(0, showCount).map((a, i) => (
                       <NoteRow key={a.id} article={a} index={i} />
                     ))}
@@ -1039,7 +1039,7 @@ export default function Blog() {
             ))}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <div className="overflow-hidden border border-border bg-card shadow-sm">
             {filtered.slice(0, visibleCount).map((a, i) => (
               <NoteRow key={a.id} article={a} index={i} />
             ))}
@@ -1048,7 +1048,7 @@ export default function Blog() {
         {filtered.length > visibleCount && (
             <button
               onClick={() => setVisibleCount(prev => prev + LOAD_MORE_STEP)}
-              className="mx-auto mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-2.5 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-muted hover:shadow-sm"
+              className="mx-auto mt-4 flex items-center gap-2 border border-border bg-card px-6 py-2.5 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-muted hover:shadow-sm"
             >
               Load more ({filtered.length - visibleCount} remaining)
               <ChevronDown className="h-4 w-4" />
