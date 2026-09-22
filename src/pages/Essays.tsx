@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Loader2, FileText, ChevronRight, ChevronDown } from "lucide-react";
@@ -95,7 +96,7 @@ export default function Essays() {
                 >
                   <Link
                     to={`/essays/${e.slug || e.id}`}
-                    className="flex items-center justify-between border-y border-border bg-card p-4 sm:p-5 transition-shadow hover:shadow-md"
+                    className="flex items-center justify-between border-y border-border bg-card p-4 sm:p-5 transition-shadow hover:shadow-sm"
                   >
                     <div className="min-w-0 flex-1">
                       <h3 className="font-serif text-sm font-bold text-foreground truncate sm:text-base">{e.title}</h3>
