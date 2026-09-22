@@ -37,7 +37,7 @@ export default function Contests() {
   return (
     <div className="min-h-dvh bg-[#071315] text-white">
       <section className="relative overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(39,196,180,0.18),transparent_38%),radial-gradient(circle_at_20%_70%,rgba(249,115,82,0.10),transparent_34%)]" />
+        <div className="absolute inset-0 bg-[#071315]" />
         <div className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-teal-300/20 bg-teal-300/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-teal-200">
@@ -60,7 +60,7 @@ export default function Contests() {
       <main className="mx-auto max-w-6xl space-y-16 px-5 py-12 sm:py-16">
         <section id="format" className="grid gap-5 md:grid-cols-3">
           {features.map(({ icon: Icon, title, copy }, index) => (
-            <motion.article key={title} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.08 }} className="rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+            <motion.article key={title} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.08 }} className="border-y border-white/10 bg-white/[0.025] p-6">
               <Icon className="h-6 w-6 text-teal-300" />
               <h2 className="mt-5 text-lg font-bold">{title}</h2>
               <p className="mt-2 text-sm leading-relaxed text-white/55">{copy}</p>
@@ -69,7 +69,7 @@ export default function Contests() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.35fr,0.65fr]">
-          <article className="overflow-hidden rounded-2xl border border-white/10 bg-[#0b1d20]">
+          <article className="overflow-hidden border-y border-white/10 bg-[#0b1d20]">
             <div className="border-b border-white/10 p-6 sm:p-8">
               <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-teal-300">
                 <Trophy className="h-4 w-4" /> Flagship competition
@@ -96,12 +96,12 @@ export default function Contests() {
             </div>
           </article>
 
-          <aside className="rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+          <aside className="border-y border-white/10 bg-white/[0.025] p-6">
             <div className="flex items-center gap-2"><Users className="h-5 w-5 text-amber-300" /><h2 className="font-bold">University table</h2></div>
             <p className="mt-2 text-sm text-white/45">{universities.length ? `${universities.length} institutions are listed for future onboarding.` : "The inaugural season starts with a clean record."}</p>
             <ol className="mt-6 space-y-3">
               {UNIVERSITY_LEADERS.map((team) => (
-                <li key={team.position} className="flex items-center gap-3 rounded-xl border border-white/10 p-3">
+                <li key={team.position} className="flex items-center gap-3 border border-white/10 p-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 text-sm font-bold text-white/45">{team.position}</span>
                   <span className="min-w-0 flex-1 text-sm text-white/65">{team.name}</span>
                   <span className="text-sm font-bold text-teal-300">{team.points}</span>
@@ -114,7 +114,7 @@ export default function Contests() {
         {contests.length > 0 && <section>
           <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-300">Available contests</p><h2 className="mt-2 font-serif text-3xl font-bold">Choose a competition</h2></div><span className="text-sm text-white/45">{contests.length} published</span></div>
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {contests.map((item) => <article key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+            {contests.map((item) => <article key={item.id} className="border-y border-white/10 bg-white/[0.025] p-6">
               <div className="flex items-center justify-between gap-3"><span className="rounded-full border border-teal-300/20 bg-teal-300/10 px-3 py-1 text-xs font-bold capitalize text-teal-200">{item.stage}</span><span className="text-xs text-white/35">{item.subjects.join(" · ")}</span></div>
               <h3 className="mt-5 text-xl font-bold">{item.title}</h3><p className="mt-2 text-sm leading-relaxed text-white/50">{item.subtitle}</p>
               <div className="mt-6 flex flex-wrap gap-4"><Link to={`/contests/${item.slug}/briefing`} className="text-sm font-bold text-teal-300 hover:text-teal-200">Open contest →</Link>{item.stage === "registration" && <Link to={`/contests/${item.slug}/register`} className="text-sm font-bold text-white/65 hover:text-white">Register</Link>}{item.stage === "live" && <Link to={`/contests/${item.slug}/lobby`} className="text-sm font-bold text-white/65 hover:text-white">Enter lobby</Link>}</div>
@@ -122,7 +122,7 @@ export default function Contests() {
           </div>
         </section>}
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-6 sm:p-8">
+        <section className="border-y border-white/10 bg-white/[0.025] p-6 sm:p-8">
           <div className="flex items-center gap-3"><ShieldCheck className="h-6 w-6 text-teal-300" /><h2 className="font-serif text-2xl font-bold">Fair-play foundation</h2></div>
           <div className="mt-6 grid gap-3 md:grid-cols-2">
             {CONTEST_RULES.map((rule, index) => <p key={rule} className="flex gap-3 text-sm leading-relaxed text-white/60"><span className="text-teal-300">{String(index + 1).padStart(2, "0")}</span>{rule}</p>)}
