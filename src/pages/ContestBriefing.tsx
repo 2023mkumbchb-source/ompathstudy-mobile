@@ -69,7 +69,7 @@ export default function ContestBriefing() {
             <p className="mt-7 text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Participant briefing</p>
             <h1 className="mt-3 max-w-3xl font-serif text-3xl font-bold sm:text-5xl">{contest.title}</h1>
             <p className="mt-4 max-w-2xl leading-relaxed text-white/55">{contest.subtitle || "Review the contest requirements before registration and entry."}</p>
-            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt={`${contest.title} poster`} className="mt-6 max-h-80 w-full rounded-xl border border-white/10 object-cover" />}
+            {contest.shareImageUrl && <img src={contest.shareImageUrl} alt={`${contest.title} poster`} className="mt-6 max-h-80 w-full rounded-md border border-white/10 object-cover" />}
             <ShareButtons url={`https://www.ompathstudy.com/contests/${contest.slug}/briefing`} title={contest.title} description={contest.subtitle} className="mt-5" />
             {nextRound?.starts_at && nextRound.status !== "live" && <ContestCountdown startsAt={nextRound.starts_at} className="mt-6 border-y border-teal-300/20 bg-teal-300/[0.07] p-4" />}
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Questions</p><p className="mt-1 font-bold">{nextRound?.question_count || "Pending"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Duration</p><p className="mt-1 font-bold">{nextRound ? `${Math.round(nextRound.duration_seconds / 60)} min` : "Pending"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Eligible years</p><p className="mt-1 font-bold">{contest.years.join(", ") || "All"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Subject</p><p className="mt-1 truncate font-bold">{contest.subjects.join(", ") || "Medical"}</p></div></div>
@@ -97,9 +97,9 @@ export default function ContestBriefing() {
               <span className="text-sm leading-relaxed text-white/65">I understand how integrity events will be recorded and reviewed during an official contest.</span>
             </label>
 
-            {accepted ? <Link to={contest.stage === "registration" ? `/contests/${contest.slug}/register` : `/contests/${contest.slug}/lobby`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] transition hover:bg-teal-200">
+            {accepted ? <Link to={contest.stage === "registration" ? `/contests/${contest.slug}/register` : `/contests/${contest.slug}/lobby`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] transition hover:bg-teal-200">
               <CheckCircle2 className="h-4 w-4" /> {contest.stage === "registration" ? "Continue to registration" : "Enter official lobby"}
-            </Link> : <button disabled className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] opacity-30">
+            </Link> : <button disabled className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-md bg-teal-300 px-5 py-3.5 text-sm font-bold text-[#071315] opacity-30">
               <CheckCircle2 className="h-4 w-4" /> Accept the instructions to continue
             </button>}
             <p className="mt-3 text-center text-xs text-white/30">Monitoring begins only after you enter an active protected round.</p>
