@@ -25,6 +25,7 @@ import { useAutoSync } from "@/hooks/useAutoSync";
 import { AdminRoute, SignedInRoute } from "@/components/AccessRoute";
 import MedicalLaunchExperience from "@/components/MedicalLaunchExperience";
 import { initOtaUpdater } from "@/lib/otaUpdater";
+import "@/styles/workspace.css";
 
 const Index = lazy(() => import("./pages/Index"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -93,7 +94,7 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   return (
     <RouteErrorBoundary key={location.pathname}>
-      <main className="min-h-[65vh]">
+      <main className="study-shell min-h-[65vh]">
         <Suspense fallback={<RouteLoader />}>
           <Routes location={location}>
             <Route path="/" element={<Index />} />
