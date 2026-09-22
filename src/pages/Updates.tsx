@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Capacitor } from "@capacitor/core";
@@ -66,7 +67,7 @@ export default function Updates() {
   };
 
   const native = Capacitor.isNativePlatform();
-  return <main className="mx-auto min-h-[70vh] max-w-xl px-4 py-8">
+  return <main className="study-shell mx-auto min-h-[70vh] max-w-xl px-4 py-8">
     <Helmet><title>App Updates | Ompath Study</title><meta name="robots" content="noindex" /></Helmet>
     <div className="rounded-md border border-border bg-card p-6 shadow-sm">
       <div className="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10 text-primary"><RefreshCw className="h-7 w-7" /></div>
