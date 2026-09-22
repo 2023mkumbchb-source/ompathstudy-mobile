@@ -107,7 +107,7 @@ function FlashcardStudyInner({ set }: { set: FlashcardSet }) {
 
       {/* Article-style hero */}
       <header className="mb-8 -mx-5 sm:mx-0">
-        <div className="relative overflow-hidden sm:rounded-2xl bg-neutral-900 shadow-lg ring-1 ring-black/5">
+        <div className="relative overflow-hidden border-y border-border bg-neutral-900 shadow-sm ring-1 ring-black/5 sm:rounded-none">
           {heroImage ? (
             <div className="relative aspect-[4/5] sm:aspect-[16/10] w-full">
               <div aria-hidden className="absolute inset-0 scale-110 bg-cover bg-center blur-2xl opacity-70" style={{ backgroundImage: `url(${heroImage})` }} />
@@ -125,9 +125,9 @@ function FlashcardStudyInner({ set }: { set: FlashcardSet }) {
               </div>
             </div>
           ) : (
-            <div className="px-5 py-10 sm:px-10 sm:py-14 bg-gradient-to-br from-primary/15 via-background to-primary/5">
+            <div className="border-y border-border bg-background px-5 py-10 sm:px-10 sm:py-12">
               {unitName && unitName !== "Uncategorized" && (
-                <span className="inline-flex items-center gap-1.5 mb-3 rounded-full bg-primary/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+                <span className="study-kicker mb-3">
                   <Layers className="h-3 w-3" /> {unitName}
                 </span>
               )}
