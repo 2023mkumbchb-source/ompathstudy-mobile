@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, BookOpen, Search, X, PenLine, Clock, ChevronRight } from "lucide-react";
@@ -197,7 +198,7 @@ export default function Stories() {
         </div>
         <Link
           to="/submit-story"
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
         >
           <PenLine className="h-4 w-4" /> Write
         </Link>
@@ -206,7 +207,7 @@ export default function Stories() {
       {/* Search */}
       <div className="mb-8">
         <div
-          className={`relative flex items-center rounded-xl border bg-background transition-all ${
+          className={`relative flex items-center rounded-md border bg-background transition-colors ${
             searchFocused ? "border-primary ring-2 ring-primary/20" : "border-border"
           }`}
         >
@@ -237,7 +238,7 @@ export default function Stories() {
 
       {/* Empty state */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-16 text-center">
+        <div className="rounded-md border border-border bg-card p-16 text-center">
           <BookOpen className="mx-auto mb-4 h-10 w-10 text-muted-foreground opacity-20" />
           <p className="font-semibold text-foreground">
             {stories.length === 0 ? "No stories yet" : "No stories match your search"}
