@@ -4,7 +4,7 @@ import { Loader2, BookOpen, Search, X, PenLine, Clock, ChevronRight } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { buildStoryPath, updateMetaTags, SITE_URL } from "@/lib/seo";
-import { getStoriesOffline, saveStoriesOffline } from "@/lib/offlineStore";
+import { getStoriesOffline } from "@/lib/offlineStore";
 
 interface Story {
   id: string;
@@ -156,14 +156,13 @@ export default function Stories() {
     });
     supabase
       .from("stories")
-      .select("*")
+      .select("id,title,category,published,created_at,cover_image_url,meta_title,meta_description,og_image_url,slug")
       .eq("published", true)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (!error && data) {
-          setStories((data as unknown as Story[]).filter(hasStoryContent));
-          void saveStoriesOffline(data as unknown as import("@/lib/store").Story[]);
+          setStories((data as unknown as Story[]));
         }
         setLoading(false);
       });
