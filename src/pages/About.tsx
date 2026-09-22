@@ -89,8 +89,8 @@ export default function About() {
             className="mx-auto"
           >
             <div className="relative">
-              <div className="absolute -inset-3 rounded-3xl bg-primary/20 blur-2xl" aria-hidden />
-              <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 overflow-hidden rounded-3xl border-4 border-card shadow-lg ring-1 ring-primary/20">
+              <div className="absolute -inset-3 rounded-md bg-primary/20 blur-2xl" aria-hidden />
+              <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72 overflow-hidden rounded-md border-4 border-card shadow-sm ring-1 ring-primary/20">
                 <img
                   src={portrait}
                   alt={`${aboutProfile.name} — Founder of Ompath Study`}
@@ -125,7 +125,7 @@ export default function About() {
 
             <div className="mt-7 flex flex-wrap gap-3">
               <a href={`https://wa.me/${whatsappHref}`} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:opacity-90">
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition hover:opacity-90">
                 <MessageCircle className="h-4 w-4" /> WhatsApp Me
               </a>
               <a href={`mailto:${aboutProfile.email}`}
@@ -167,7 +167,7 @@ export default function About() {
             { icon: Sparkles, title: "Building", body: "I love turning ideas into shipped products — listings, learning tools, marketplaces." },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="border-y border-border bg-card p-5">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="font-serif text-lg font-bold text-foreground">{title}</h3>
@@ -187,14 +187,14 @@ export default function About() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PROJECTS.map((p) => (
               <a key={p.domain} href={p.href} target="_blank" rel="noopener noreferrer"
-                className="group flex h-full flex-col border-y border-border bg-background p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg">
+                className="group flex h-full flex-col border-y border-border bg-background p-6 transition-colors hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm">
                 <div className="mb-2 inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                   {p.tag}
                 </div>
                 <h3 className="font-serif text-xl font-bold text-foreground">{p.name}</h3>
                 <p className="text-xs font-mono text-muted-foreground">{p.domain}</p>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">{p.blurb}</p>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-all">
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:gap-2.5 transition-colors">
                   Visit <ExternalLink className="h-3.5 w-3.5" />
                 </span>
               </a>
@@ -212,7 +212,7 @@ export default function About() {
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <a href="https://wa.me/254115475543?text=Hi%20Abongo%2C%20I%27d%20like%20a%20website%20built." target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition hover:opacity-90">
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-sm shadow-primary/20 transition hover:opacity-90">
             <MessageCircle className="h-4 w-4" /> Start a Project
           </a>
           <Link to="/" className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-7 py-3 text-sm font-bold text-foreground hover:border-primary hover:text-primary transition">
