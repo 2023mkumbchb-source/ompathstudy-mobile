@@ -254,14 +254,44 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
   let mode: "mcq" | "essay" | null = null;
   let skipAnswer = false;
 
-  const flush = () => { if (cur) { mcqs.push(cur); cur = null; } };
+  const flush = () => {
+    if (cur) {
+      mcqs.push(cur);
+      cur = null;
+    }
+  };
+
+  const isQuestionHeaderOnly = (text: string) =>
+    /^(?:Q(?:uestion)?\s*)\d+[a-z]?\s*$/i.test(text);
+
+  const looksLikeMcqAhead = (index: number) => {
+    let markers = 0;
+    for (let j = index; j < Math.min(lines.length, index + 6); j++) {
+      const line = cleanDisplayText(lines[j] || "");
+      if (!line) continue;
+      markers += countOptionMarkers(spaceOptionMarkers(line));
+      if (markers >= 2) return true;
+      if (/^(?:Q(?:uestion)?\s*)?\d+[a-z]?[.)]?\s*/i.test(line) && j > index) break;
+    }
+    return false;
+  };
 
   for (let i = 0; i < lines.length; i++) {
     const t = cleanDisplayText(lines[i]);
     if (!t) continue;
 
-    if (/\b(section\s+a|multiple\s+choice|\bmcqs?\b)\b/i.test(t)) { flush(); mode = "mcq"; skipAnswer = false; continue; }
-    if (/\b(section\s+b|section\s+c|essay\s+questions?|short\s+answer|long\s+answer|answer\s+any)\b/i.test(t)) { flush(); mode = "essay"; skipAnswer = false; continue; }
+    if (/\b(section\s+a|multiple\s+choice|\bmcqs?\b)\b/i.test(t)) {
+      flush();
+      mode = "mcq";
+      skipAnswer = false;
+      continue;
+    }
+    if (/\b(section\s+b|section\s+c|essay\s+questions?|short\s+answer|long\s+answer|answer\s+any)\b/i.test(t)) {
+      flush();
+      mode = "essay";
+      skipAnswer = false;
+      continue;
+    }
 
     if (/^(?:✅\s*)?(answer|model answer|explanation|correct answer|rationale)\s*[:：]/i.test(t)) {
       skipAnswer = true;
@@ -269,14 +299,48 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
       continue;
     }
     if (skipAnswer) {
-      if (isQuestionLike(t)) skipAnswer = false;
+      if (isQuestionLike(t) || isQuestionHeaderOnly(t)) skipAnswer = false;
       else continue;
     }
 
     const split = splitStemAndOptions(t);
 
-    // Numbered question stem
-    const qMatch = t.match(/^(?:Q(?:uestion)?\s*)?(\d+[a-z]?)[.)]\s*[-–]?\s*(.+)$/i) || t.match(/^Question\s+(\d+[a-z]?)[\s:.-]+(.+)$/i);
+    // Some imported papers put the question number on its own line:
+    // "Question 1" followed by the stem on the next line. Treat that as a
+    // real question header instead of losing the entire paper.
+    if (isQuestionHeaderOnly(t)) {
+      flush();
+      let j = i + 1;
+      while (j < lines.length && !cleanDisplayText(lines[j])) j++;
+      const next = cleanDisplayText(lines[j] || "");
+      if (!next || /^(?:answer|model answer|explanation|rationale)\b/i.test(next)) continue;
+
+      const stem = next;
+      const inline = splitStemAndOptions(stem);
+      const mcq = inline || mode === "mcq" || looksLikeMcqAhead(j + 1);
+
+      if (inline) {
+        mcqCount++;
+        cur = { n: String(mcqCount), stem: cleanDisplayText(inline.stem), opts: inline.opts };
+      } else if (mcq) {
+        mcqCount++;
+        cur = { n: String(mcqCount), stem: cleanDisplayText(stem), opts: [] };
+      } else {
+        essayCount++;
+        essays.push({ n: String(essayCount), text: cleanDisplayText(stem) });
+      }
+
+      // Consume the standalone stem; option lines remain for the normal
+      // collector on the following iterations.
+      i = j;
+      continue;
+    }
+
+    // Numbered question stem, including "1. Stem" and "Question 1: Stem".
+    const qMatch =
+      t.match(/^(?:Q(?:uestion)?\s*)?(\d+[a-z]?)[.)]\s*[-–]?\s*(.+)$/i) ||
+      t.match(/^Question\s+(\d+[a-z]?)\s*[:.-]\s+(.+)$/i);
+
     if (qMatch) {
       flush();
       const stem = qMatch[2].trim();
@@ -284,11 +348,11 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
       if (stemSplit) {
         mcqCount++;
         cur = { n: String(mcqCount), stem: cleanDisplayText(stemSplit.stem), opts: stemSplit.opts };
-        flush();
         continue;
       }
+
       const nextHasOptions = splitOptionRun(lines[i + 1] || "").length > 0;
-      if (mode === "mcq" || nextHasOptions || (/[?]/.test(stem) && mode !== "essay")) {
+      if (mode === "mcq" || nextHasOptions || looksLikeMcqAhead(i + 1) || (/[?]/.test(stem) && mode !== "essay")) {
         mcqCount++;
         cur = { n: String(mcqCount), stem: cleanDisplayText(stem), opts: [] };
       } else {
@@ -306,7 +370,7 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
       continue;
     }
 
-    // Options line while collecting an MCQ
+    // Options line while collecting an MCQ.
     if (cur) {
       const opts = splitOptionRun(t);
       if (opts.length > 0) {
@@ -314,20 +378,20 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
         continue;
       }
       if (cur.opts.length === 0) {
-        // continuation of stem
         cur.stem += " " + cleanDisplayText(t);
         continue;
       }
       flush();
     }
   }
+
   flush();
+
   return {
     mcqs: mcqs.filter((q) => q.stem && q.opts.length >= 2),
     essays: essays.filter((q) => q.text && !/^(?:answer|explanation|rationale)\b/i.test(q.text)),
   };
 }
-
 /* ─── Helpers ─── */
 export function splitInlineTable(s: string): string[] {
   if (!s.includes("|---") && !s.includes("| ---") && !s.includes("|:--") && !s.includes("| :--")) return [];
