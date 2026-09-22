@@ -345,7 +345,7 @@ export default function Notifications() {
               <div
                 key={item.id}
                 onClick={() => handleSelect(item)}
-                className={`group relative cursor-pointer border-y p-4 transition-all ${
+                className={`group relative cursor-pointer border-y p-4 transition-colors ${
                   isUnread
                     ? "border-primary/30 bg-primary/5 hover:border-primary/50 shadow-xs"
                     : "border-border bg-card hover:bg-muted/30"
@@ -354,7 +354,7 @@ export default function Notifications() {
                 <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-xs ${badge.iconBg}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-white shadow-xs ${badge.iconBg}`}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
