@@ -1122,7 +1122,7 @@ export default function AdminEditor() {
 
         <div className="mx-auto max-w-5xl px-2 py-3 space-y-3">
           {/* Mode selector */}
-          <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 overflow-x-auto">
+          <div className="flex items-center gap-0.5 border bg-muted p-0.5 overflow-x-auto">
             {(["articles", "mcqs", "stories"] as const).map((m) => (
               <button key={m} onClick={() => { setEditorMode(m); setCurrentIndex(0); setIsAddMode(false); }}
                 className={cn("flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all whitespace-nowrap capitalize",
@@ -1135,7 +1135,7 @@ export default function AdminEditor() {
           {/* Year & Filter */}
           {editorMode !== "stories" && (
             <div className="space-y-2">
-              <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 overflow-x-auto">
+              <div className="flex items-center gap-0.5 border bg-muted p-0.5 overflow-x-auto">
                 {YEARS.map((yr) => (
                   <button key={yr} onClick={() => { setSelectedYear(yr); setSelectedUnit(""); setCurrentIndex(0); setIsAddMode(false); }}
                     className={cn("flex-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-all whitespace-nowrap",
@@ -1246,7 +1246,7 @@ export default function AdminEditor() {
 
           {/* No items */}
           {!isAddMode && currentItems.length === 0 && (
-            <div className="rounded-lg border border-dashed border-border p-6 text-center">
+            <div className="border border-dashed border-border p-6 text-center">
               <p className="text-muted-foreground text-sm">
                 {editorMode === "stories" ? "No stories found." : `No ${editorMode} for Year ${selectedYear}${selectedUnit ? ` — ${getCategoryDisplayName(selectedUnit)}` : ""}.`}
               </p>
@@ -1261,7 +1261,7 @@ export default function AdminEditor() {
           {editorMode === "mcqs" && currentMcqSummary && !isAddMode && (
             <div className="space-y-3">
               {/* Editable header */}
-              <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+              <div className="border border-border bg-card p-3 space-y-2">
                 <Input
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
@@ -1293,7 +1293,7 @@ export default function AdminEditor() {
                   <label className="text-[10px] font-medium text-muted-foreground mb-0.5 block">Thumbnail / OG Image URL</label>
                   <Input value={editOgImage} onChange={(e) => setEditOgImage(e.target.value)} placeholder="https://..." className="text-xs h-7" />
                 </div>
-                <div className="rounded-lg border border-border bg-muted/30 p-2 flex items-center gap-3">
+                <div className="border border-border bg-muted/30 p-2 flex items-center gap-3">
                   {editOgImage ? (
                     <img src={editOgImage} alt="MCQ thumbnail" className="h-12 w-20 rounded-md border border-border object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
                   ) : (
@@ -1322,7 +1322,7 @@ export default function AdminEditor() {
                 content={(currentMcqSummary as any).original_notes || ""}
               />
 
-              <div className="rounded-xl border border-border bg-card p-3">
+              <div className="border border-border bg-card p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                   <div className="min-w-0 flex-1">
                     <h3 className="font-serif text-sm font-bold text-foreground truncate">{currentMcqSummary.title}</h3>
@@ -1350,7 +1350,7 @@ export default function AdminEditor() {
                 </div>
                 <div className="max-h-[55vh] overflow-y-auto space-y-2">
                   {editMcqQuestions.map((q: any, i: number) => (
-                    <div key={i} className="rounded-lg border border-border p-2 space-y-1.5">
+                    <div key={i} className="border border-border p-2 space-y-1.5">
                       <div className="flex items-start gap-1.5">
                         <span className="text-[10px] font-bold text-muted-foreground pt-1.5">{i + 1}.</span>
                         <Textarea value={q.question || ""}
@@ -1411,7 +1411,7 @@ export default function AdminEditor() {
                 </div>
               </div>
               {editor && (
-                <div className="rounded-xl border border-border bg-background overflow-hidden">
+                <div className="border border-border bg-background overflow-hidden">
                   <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-muted/30 px-1.5 py-1">
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold"><Bold className={iconSize} /></ToolbarBtn>
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")} title="Italic"><Italic className={iconSize} /></ToolbarBtn>
@@ -1474,7 +1474,7 @@ export default function AdminEditor() {
               )}
 
               {/* Google Preview + AI Button */}
-              <div className="rounded-lg border border-border bg-muted/30 p-2 space-y-1">
+              <div className="border border-border bg-muted/30 p-2 space-y-1">
                 <div className="flex items-center justify-between">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Google Preview</p>
                   <Button variant="outline" size="sm" onClick={handleAiMeta} disabled={aiMetaLoading} className="gap-1 text-[10px] h-6 px-2">
@@ -1515,7 +1515,7 @@ export default function AdminEditor() {
               </div>
 
               {/* Thumbnail preview + publish time */}
-              <div className="rounded-lg border border-border bg-muted/30 p-2 flex items-center gap-3">
+              <div className="border border-border bg-muted/30 p-2 flex items-center gap-3">
                 {(editOgImage || (fullArticle && extractFirstImageFromContent(fullArticle.content || ""))) ? (
                   <img
                     src={editOgImage || extractFirstImageFromContent(fullArticle?.content || "") || ""}
@@ -1552,7 +1552,7 @@ export default function AdminEditor() {
               />
 
               {/* Question papers / spot banks edit as exact markdown so images and answers survive saving */}
-              <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-2 py-1.5">
+              <div className="flex items-center justify-between gap-2 border border-border bg-muted/30 px-2 py-1.5">
                 <span className="text-[10px] leading-4 text-muted-foreground">
                   {rawMode
                     ? "Exact mode: images, questions and answers are saved exactly as typed (no AI reformatting)."
@@ -1580,7 +1580,7 @@ export default function AdminEditor() {
                   className="min-h-[420px] font-mono text-[12px] leading-5"
                 />
               ) : editor ? (
-                <div className="rounded-xl border border-border bg-background overflow-hidden">
+                <div className="border border-border bg-background overflow-hidden">
                   <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-muted/30 px-1.5 py-1">
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold"><Bold className={iconSize} /></ToolbarBtn>
                     <ToolbarBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")} title="Italic"><Italic className={iconSize} /></ToolbarBtn>
