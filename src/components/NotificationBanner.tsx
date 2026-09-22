@@ -104,7 +104,7 @@ export default function NotificationBanner() {
     >
       <div
         onClick={handleOpen}
-        className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/15 bg-slate-950/90 p-3.5 shadow-2xl backdrop-blur-xl transition-all hover:border-white/30 hover:bg-slate-900/95"
+        className="group relative cursor-pointer overflow-hidden border-y border-white/15 bg-slate-950/90 p-3.5 shadow-lg backdrop-blur-xl transition-all hover:border-white/30 hover:bg-slate-900/95"
       >
         {/* Subtle accent glow */}
         <div className="absolute inset-x-0 -top-px h-0.5 bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
