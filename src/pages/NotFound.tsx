@@ -36,7 +36,7 @@ export default function NotFound() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       <div className="text-center max-w-md">
-        <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Search className="h-10 w-10" />
         </div>
         <h1 className="mb-2 font-serif text-4xl font-bold text-foreground">404</h1>
