@@ -227,7 +227,7 @@ export default function Exams() {
       </section>
 
       {/* ── Exam list — 100% original logic, only subtitle text changed ── */}
-      <section className="mx-auto max-w-5xl space-y-4 px-4 py-8">
+      <section className="mx-auto max-w-5xl space-y-5 px-5 py-8 sm:py-10">
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -247,12 +247,12 @@ export default function Exams() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.04 }}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
+                className="border-y border-border bg-background p-5 sm:p-6"
               >
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="mb-1 text-xs font-medium text-primary">Unit: {unitName}</p>
-                    <h2 className="font-serif text-lg font-bold text-foreground">{exam.title}</h2>
+                    <p className="study-kicker mb-1">Assessment · {mcqMode ? "MCQ practice" : "Timed exam"}</p>\n                    <p className="mb-1 text-xs font-medium text-primary">Unit: {unitName}</p>
+                    <h2 className="font-serif text-xl font-bold text-foreground">{exam.title}</h2>
                     {/* CHANGED: removed "Section B SAQs · Section C LAQ" — MCQs only */}
                     <p className="mt-1 text-xs text-muted-foreground">
                       {mcqMode ? "Practice MCQs" : "Timed assessment"} · Section A
