@@ -133,7 +133,7 @@ export default function CategoryManager() {
         </div>
 
         <div className="mx-auto max-w-3xl px-3 py-4 space-y-6">
-          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div className="border border-border bg-card p-4 space-y-3">
             <h2 className="text-sm font-bold flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" /> AI Category Sorter
             </h2>
@@ -188,7 +188,7 @@ export default function CategoryManager() {
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{year}</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {cats.sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
-                      <span key={cat.id} className="rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs flex items-center gap-1.5">
+                      <span key={cat.id} className="border border-border bg-muted/50 px-2.5 py-1 text-xs flex items-center gap-1.5">
                         {cat.name.replace(/^Year \d+:\s*/, "")}
                         <button onClick={() => handleDelete(cat.id)} className="text-muted-foreground hover:text-destructive transition-colors">
                           <Trash2 className="h-3 w-3" />
