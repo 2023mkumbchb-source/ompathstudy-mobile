@@ -80,7 +80,7 @@ export default function StudySystemAdmin() {
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {metrics.map((m) => (
-          <div key={m.label} className="rounded-2xl border border-border bg-card p-4">
+          <div key={m.label} className="border-y border-border bg-card p-4">
             <m.icon className="h-5 w-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-2xl font-bold">{m.value}</p>
             <p className="text-xs text-muted-foreground">{m.label}</p>
@@ -91,7 +91,7 @@ export default function StudySystemAdmin() {
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section>
           <h2 className="mb-3 font-serif text-xl font-bold">Recent content reports</h2>
-          <div className="rounded-2xl border border-border bg-card p-2">
+          <div className="border-y border-border bg-card p-2">
             {reports.length ? (
               reports.map((r) => (
                 <div key={r.id} className="flex items-center justify-between border-b border-border p-3 last:border-0">
@@ -110,7 +110,7 @@ export default function StudySystemAdmin() {
 
         <section>
           <h2 className="mb-3 font-serif text-xl font-bold">Recent searches</h2>
-          <div className="rounded-2xl border border-border bg-card p-2">
+          <div className="border-y border-border bg-card p-2">
             {queries.length ? (
               queries.map((q, i) => (
                 <div key={`${q.created_at}-${i}`} className="flex items-center gap-3 border-b border-border p-3 last:border-0">
