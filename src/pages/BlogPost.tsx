@@ -1719,7 +1719,7 @@ export default function BlogPost() {
             <ArrowLeft className="h-3.5 w-3.5" />
           </button>
           <ChevronRight className="h-3 w-3 shrink-0" />
-          <Link to="/blog" className="shrink-0 hover:text-foreground transition-colors">Study Notes</Link>
+          <Link to="/blog" className="study-kicker shrink-0 hover:text-foreground transition-colors">Study Notes</Link>
           {yearName && (
             <>
               <ChevronRight className="h-3 w-3 shrink-0" />
@@ -1806,14 +1806,14 @@ export default function BlogPost() {
 
       {/* Main layout */}
       <div className="mx-auto max-w-6xl px-3 py-5 sm:px-5 sm:py-8">
-        <div className={slideDeck ? "" : toc.length > 0 ? "lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10" : "max-w-3xl mx-auto"}>
+        <div className={slideDeck ? "" : toc.length > 0 ? "lg:grid lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-10" : "study-reading mx-auto"}>
           {!slideDeck && toc.length > 0 && (
             <aside className="hidden lg:block">
               <SidebarToc items={toc} activeId={activeSection} />
             </aside>
           )}
 
-          <article id="section-top" className={slideDeck ? "min-w-0" : "min-w-0 rounded-2xl border border-border/70 bg-card px-4 py-5 shadow-sm sm:px-8 sm:py-8 lg:max-w-[72ch] lg:px-10"}>
+          <article id="section-top" className={slideDeck ? "min-w-0" : "study-reading min-w-0 px-1 py-4 sm:px-3 sm:py-6 lg:max-w-[72ch]"}>
             <Countdown data={(article as any).countdown} />
             <PasswordGate
               enabled={(article as any).password_protected}
