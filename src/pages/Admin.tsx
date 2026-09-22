@@ -1085,7 +1085,7 @@ function RawContentTab({ geminiKey }: { geminiKey: string }) {
               <span className="text-xs text-muted-foreground">{progress.current}/{progress.total}</span>
             </div>
             <div className="h-2 w-full rounded-full bg-amber-200 overflow-hidden">
-              <div className="h-full rounded-full bg-amber-600 transition-all duration-300" style={{ width: `${(progress.current / progress.total) * 100}%` }} />
+              <div className="h-full rounded-full bg-amber-600 transition-colors duration-200" style={{ width: `${(progress.current / progress.total) * 100}%` }} />
             </div>
           </div>
         )}
@@ -1475,7 +1475,7 @@ function ArticlesList({
                 <span className="text-xs text-muted-foreground">{batchProgress.current}/{batchProgress.total}</span>
               </div>
               <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
-                <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }} />
+                <div className="h-full rounded-full bg-primary transition-colors duration-200" style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }} />
               </div>
             </div>
           )}
