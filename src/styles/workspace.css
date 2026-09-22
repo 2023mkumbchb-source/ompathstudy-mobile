@@ -1,0 +1,157 @@
+/* OmpathStudy workspace layer
+   Shared visual language for the whole student-facing application.
+   Deliberately additive: existing Tailwind/component contracts remain intact. */
+
+:root {
+  --study-page: 42 28% 98%;
+  --study-surface: 0 0% 100%;
+  --study-ink: 220 22% 17%;
+  --study-muted: 220 10% 47%;
+  --study-line: 220 16% 88%;
+  --study-teal: 174 62% 38%;
+}
+
+html, body { background: hsl(var(--study-page)); }
+
+.study-shell {
+  min-height: 65vh;
+  background: hsl(var(--study-page));
+}
+
+.study-shell > * {
+  scroll-margin-top: 5.5rem;
+}
+
+/* Academic page rhythm */
+.study-shell h1, .study-shell h2, .study-shell h3 {
+  text-wrap: balance;
+}
+.study-shell h1, .study-shell h2 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: hsl(var(--study-ink));
+}
+.study-shell p, .study-shell li {
+  color: hsl(var(--study-muted));
+}
+
+/* Keep meaningful study surfaces crisp rather than SaaS-card heavy. */
+.study-surface {
+  background: hsl(var(--study-surface));
+  border: 1px solid hsl(var(--study-line));
+  box-shadow: 0 1px 2px hsl(var(--study-ink) / .035);
+}
+.study-surface:hover {
+  border-color: hsl(var(--primary) / .35);
+}
+
+/* Reusable academic labels */
+.study-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  color: hsl(var(--primary));
+  font: 700 .68rem/1 'Source Sans 3', system-ui, sans-serif;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.study-type-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: .25rem .55rem;
+  border: 1px solid hsl(var(--primary) / .22);
+  border-radius: .35rem;
+  background: hsl(var(--primary) / .07);
+  color: hsl(var(--primary));
+  font: 700 .65rem/1 'Source Sans 3', system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.study-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid hsl(var(--study-line));
+  padding-bottom: .65rem;
+}
+.study-section-heading h2,
+.study-section-heading h3 { margin: 0; }
+
+/* Dense resource rows: optimized for scanning a library. */
+.study-resource-row {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  min-height: 4.25rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid hsl(var(--study-line));
+  background: hsl(var(--study-surface));
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.study-resource-row:hover {
+  background: hsl(var(--primary) / .035);
+  border-color: hsl(var(--primary) / .22);
+}
+.study-resource-row:last-child { border-bottom: 0; }
+
+/* Loading / empty / error states share the same quiet treatment. */
+.study-state {
+  min-height: 9rem;
+  display: grid;
+  place-items: center;
+  border: 1px dashed hsl(var(--study-line));
+  background: hsl(var(--study-surface));
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.study-state-title {
+  color: hsl(var(--study-ink));
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 700;
+}
+.study-state-copy {
+  max-width: 42rem;
+  margin: .35rem auto 0;
+  color: hsl(var(--study-muted));
+  font-size: .9rem;
+}
+
+/* Reading pages should feel like textbooks, not dashboard cards. */
+.study-reading {
+  max-width: 72ch;
+}
+.study-reading .article-reader {
+  max-width: 72ch;
+}
+
+/* Tables remain readable on phones without changing their data contract. */
+.study-shell table { min-width: 34rem; }
+.study-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Focus is visible everywhere, including custom links/buttons. */
+.study-shell :where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* The fixed mobile navigation needs content clearance. */
+@media (max-width: 767px) {
+  .study-shell { padding-bottom: 4.5rem; }
+  .study-shell .container { padding-inline: 1rem; }
+  .study-shell h1 { line-height: 1.08; }
+  .study-resource-row { min-height: 4.5rem; padding: .75rem; }
+}
+
+/* Respect reduced motion globally. */
+@media (prefers-reduced-motion: reduce) {
+  .study-shell *, .study-shell *::before, .study-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
