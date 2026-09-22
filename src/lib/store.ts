@@ -667,25 +667,14 @@ export async function getPublishedArticles(): Promise<Article[]> {
 }
 
 export async function getPublishedArticleSummaries(year?: string): Promise<Article[]> {
-  const allCached = getCachedSummaries();
-  if (allCached && allCached.length > 0) {
-    if (!year) return allCached;
-    const filtered = allCached.filter((a) => {
-      const cat = a.category || "";
-      if (year === "Year 2") {
-        return cat.startsWith("Year 2:") || /aponeurosis/i.test(`${a.title} ${cat}`);
-      }
-      return cat.startsWith(`${year}:`);
-    });
-    if (filtered.length > 0) return filtered;
-  }
-
-  // Check local offline summaries immediately
-  const offlineList = await getSummariesOffline(year);
-  // Render the local catalogue immediately even while online. Background sync
-  // refreshes IndexedDB independently, so Library never blocks on mobile data.
-  if (offlineList.length > 0) {
-    return offlineList;
+  // ONLINE IS ALWAYS SOURCE OF TRUTH.
+  // The IndexedDB/session cache is only a fallback for genuine offline mode.
+  // Previously we returned a 5-minute/session/IndexedDB snapshot even while
+  // online, which meant Supabase Dashboard edits could exist in production but
+  // the public Blog/Library kept showing the old catalogue.
+  if (isOfflineMode()) {
+    const offlineList = await getSummariesOffline(year);
+    if (offlineList.length > 0) return offlineList;
   }
 
   try {
@@ -714,23 +703,17 @@ export async function getPublishedArticleSummaries(year?: string): Promise<Artic
 
     if (result.length > 0) {
       void saveSummariesOffline(result);
-      if (!year) {
-        setCachedSummaries(result);
-      }
+      if (!year) setCachedSummaries(result);
       return result;
     }
 
-    if (offlineList.length > 0) return offlineList;
+    // A successful empty remote response is authoritative. Do not silently
+    // replace it with an older local snapshot while online.
     return result;
   } catch (err) {
     console.warn(`[store] Remote fetch for year "${year || "all"}" failed, using offline fallback:`, err);
+    const offlineList = await getSummariesOffline(year);
     if (offlineList.length > 0) return offlineList;
-    const allOffline = await getSummariesOffline();
-    if (allOffline.length > 0) {
-      if (!year) return allOffline;
-      const matched = allOffline.filter((a) => (a.category || "").startsWith(`${year}:`));
-      if (matched.length > 0) return matched;
-    }
     return [];
   }
 }
@@ -875,28 +858,28 @@ const articleRequestCache = new Map<string, Promise<Article | null>>();
 export function getArticleBySlugOrId(slugOrId: string): Promise<Article | null> {
   const key = decodeURIComponent(String(slugOrId || "")).trim().toLowerCase();
   if (!key) return Promise.resolve(null);
-  if (articleDetailCache.has(key)) return Promise.resolve(articleDetailCache.get(key) ?? null);
+
+  // Do not serve an old article snapshot while online. A Supabase Dashboard
+  // edit must be visible on the next navigation/reload from the live site.
+  // IndexedDB remains the fallback when the device is actually offline.
+  if (isOfflineMode() && articleDetailCache.has(key)) {
+    return Promise.resolve(articleDetailCache.get(key) ?? null);
+  }
+
   const pending = articleRequestCache.get(key);
   if (pending) return pending;
+
   const request = (async () => {
-    // IndexedDB is the fastest and most reliable first paint on mobile. Serve
-    // it immediately, then refresh Supabase in the background while online.
-    const offline = await getArticleOfflineBySlugOrId(key);
-    if (offline) {
-      const hydrated = sanitizePublicArticle(hydrateLegacySource(offline));
-      if (!isOfflineMode()) {
-        void fetchArticleBySlugOrId(key).then((fresh) => {
-          if (!fresh) return;
-          const sanitizedFresh = sanitizePublicArticle(fresh);
-          articleDetailCache.set(key, sanitizedFresh);
-          articleDetailCache.set(fresh.id.toLowerCase(), sanitizedFresh);
-          if (fresh.slug) articleDetailCache.set(fresh.slug.toLowerCase(), sanitizedFresh);
-        }).catch(() => {});
-      }
-      return hydrated;
+    if (isOfflineMode()) {
+      const offline = await getArticleOfflineBySlugOrId(key);
+      if (offline) return sanitizePublicArticle(hydrateLegacySource(offline));
+      return null;
     }
+
     return fetchArticleBySlugOrId(key).then(sanitizePublicArticle);
   })().then((article) => {
+    // Keep an in-memory copy only for deduplicating/continuing an active
+    // request. It is never preferred over Supabase while online.
     articleDetailCache.set(key, article);
     if (article) {
       articleDetailCache.set(article.id.toLowerCase(), article);
@@ -904,6 +887,7 @@ export function getArticleBySlugOrId(slugOrId: string): Promise<Article | null> 
     }
     return article;
   }).finally(() => articleRequestCache.delete(key));
+
   articleRequestCache.set(key, request);
   return request;
 }
