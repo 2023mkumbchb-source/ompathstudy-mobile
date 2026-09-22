@@ -100,12 +100,12 @@ function ReadingProgress() {
   return (
     <>
       <div className="fixed left-0 right-0 top-0 z-50 h-[3px]">
-        <div className={`h-full bg-gradient-to-r ${colors.bar} transition-all duration-150`} style={{ width: `${pct}%` }} />
+        <div className={`h-full bg-gradient-to-r ${colors.bar} transition-colors duration-150`} style={{ width: `${pct}%` }} />
       </div>
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className={`fixed bottom-6 right-4 z-40 inline-flex items-center justify-center rounded-full border border-border text-white shadow-lg transition-all ${colors.bg} ${expanded ? "h-9 px-3 text-xs font-semibold" : "h-3.5 w-3.5"}`}
+        className={`fixed bottom-6 right-4 z-40 inline-flex items-center justify-center rounded-full border border-border text-white shadow-sm transition-colors ${colors.bg} ${expanded ? "h-9 px-3 text-xs font-semibold" : "h-3.5 w-3.5"}`}
         aria-label="Reading progress"
       >
         <span className={`${expanded ? "opacity-100" : "sr-only"}`}>{rounded}%</span>
@@ -138,7 +138,7 @@ function TableBlock({ lines }: { lines: string[] }) {
   if (!rows.length) return null;
 
   return (
-    <div className="not-prose my-6 overflow-hidden border-y border-border bg-card sm:rounded-lg sm:border">
+    <div className="not-prose my-6 overflow-hidden border-y border-border bg-card sm:rounded-md sm:border">
       <div className="overflow-x-auto">
       <table className="article-data-table min-w-full border-collapse text-sm"
 style={{ minWidth: colCount <= 2 ? "420px" : "560px" }} data-columns={colCount}>
@@ -182,7 +182,7 @@ function FlowBlock({ lines }: { lines: string[] }) {
   const compact = lines.map((l) => l.trim()).filter(Boolean);
   if (!compact.length) return null;
   return (
-    <div className="not-prose my-5 overflow-hidden rounded-lg border border-border bg-card">
+    <div className="not-prose my-5 overflow-hidden rounded-md border border-border bg-card">
       <div className="max-h-[70vh] overflow-x-auto px-4 py-4 sm:px-5">
         <div className="min-w-max space-y-2 text-center font-mono text-[13px] leading-6 text-foreground/90 sm:text-sm">
           {compact.map((line, i) => {
@@ -209,7 +209,7 @@ function PracticeQuestion({ number, question, answer }: { number: string; questi
   const access = useAccess();
   const locked = !access.canReveal;
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className="rounded-md border border-border bg-card overflow-hidden">
       <button onClick={() => locked ? openSubscribePrompt("Subscribe or restore your pass to reveal this answer.") : setOpen(o => !o)} className={`w-full flex items-start gap-3 px-4 py-4 sm:px-5 sm:py-4 text-left transition-colors ${locked ? "hover:bg-muted/30" : "hover:bg-muted/30"}`}>
         <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mt-0.5">{number}</span>
         <span className="flex-1 text-sm sm:text-[15px] font-medium text-foreground leading-relaxed"><Inline text={question} /></span>
@@ -235,14 +235,14 @@ function EssayQuestion({ number, question, answer }: { number: string; question:
   const access = useAccess();
   const locked = !access.canReveal;
   return (
-    <article className="rounded-xl border border-border bg-card p-4 sm:p-5">
+    <article className="rounded-md border border-border bg-card p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mt-0.5">{number}</span>
         <h3 className="flex-1 text-sm sm:text-[15px] font-semibold text-foreground leading-relaxed"><Inline text={question} /></h3>
       </div>
       {answer && (
         <div className="mt-3">
-          <button type="button" onClick={() => locked ? openSubscribePrompt("Subscribe or restore your pass to reveal this model answer.") : setOpen((value) => !value)} className="flex w-full items-center justify-between rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-left text-sm font-semibold text-primary">
+          <button type="button" onClick={() => locked ? openSubscribePrompt("Subscribe or restore your pass to reveal this model answer.") : setOpen((value) => !value)} className="flex w-full items-center justify-between rounded-md border border-primary/25 bg-primary/5 px-3 py-2 text-left text-sm font-semibold text-primary">
             <span className="inline-flex items-center gap-2">{locked ? <Lock className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{locked ? "Model answer — subscribers" : open ? "Hide model answer" : "Reveal model answer"}</span>
             {!locked && <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />}
           </button>
@@ -302,7 +302,7 @@ function McqAnswerBlock({ raw, articleId, questionKey }: { raw: string; articleI
   const explanation = formatSequence(cleanDisplayText(explanationRaw));
   if (!answerLine && !explanation) return null;
   return (
-    <div id={articleId && questionKey ? `answer-${articleId}-${questionKey}` : undefined} className="not-prose my-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 overflow-hidden">
+    <div id={articleId && questionKey ? `answer-${articleId}-${questionKey}` : undefined} className="not-prose my-4 rounded-md border border-emerald-500/30 bg-emerald-500/5 overflow-hidden">
       <button
         type="button"
         onClick={() => locked ? openSubscribePrompt("Subscribe or restore your pass to reveal this verified answer.") : setOpen((o) => !o)}
@@ -345,7 +345,7 @@ function InlineAnswerBlock({ raw }: { raw: string }) {
     .filter(Boolean);
   if (!cleaned.length) return null;
   return (
-    <div className="not-prose my-4 overflow-hidden rounded-xl border border-primary/25 bg-primary/5">
+    <div className="not-prose my-4 overflow-hidden rounded-md border border-primary/25 bg-primary/5">
       <button type="button" onClick={() => locked ? openSubscribePrompt("Subscribe or restore your pass to reveal this answer.") : setOpen((value) => !value)} className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-primary">
         <span className="inline-flex items-center gap-2">{locked ? <Lock className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{locked ? "Reveal — subscribers" : open ? "Hide answer" : "Reveal answer"}</span>
         {!locked && <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />}
@@ -366,7 +366,7 @@ function RelatedArticleCard({ article, compact = false }: { article: any; compac
   return (
     <Link
       to={buildBlogPath(article)}
-      className={`${compact ? "w-[82vw] max-w-[340px] sm:w-80" : "w-full"} group grid shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/40 sm:grid-cols-[132px_1fr]`}
+      className={`${compact ? "w-[82vw] max-w-[340px] sm:w-80" : "w-full"} group grid shrink-0 snap-start overflow-hidden rounded-md border border-border bg-card transition-colors hover:border-primary/40 sm:grid-cols-[132px_1fr]`}
     >
       <div className="aspect-[4/3] bg-muted sm:aspect-auto">
         {image ? (
@@ -477,7 +477,7 @@ function ClassicHeroInner({
 
   return (
     <header className="mb-8">
-      <div className="relative overflow-hidden rounded-xl border border-border bg-muted">
+      <div className="relative overflow-hidden rounded-md border border-border bg-muted">
         <img
           src={heroImage}
           alt={title}
@@ -568,7 +568,7 @@ function SourceAttribution({ article }: { article: any }) {
   if (chips.length === 0 && tags.length === 0 && !looksExamLike) return null;
   const sourceLine = "Prepared as an international medical revision resource. Original paper provenance is preserved within the document where available.";
   return (
-    <div className="mb-5 rounded-lg border border-border/70 bg-muted/30 p-3.5">
+    <div className="mb-5 rounded-md border border-border/70 bg-muted/30 p-3.5">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Source & Attribution</p>
       <p className="mt-1 text-xs text-foreground/80">{sourceLine}</p>
       {chips.length > 0 && (
@@ -617,7 +617,7 @@ function ExamPreviewModal({ article, open, onClose }: { article: any; open: bool
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/70 backdrop-blur-sm p-2 sm:p-6 overflow-y-auto" onClick={onClose}>
-      <div className="relative w-full max-w-3xl my-4 rounded-xl bg-white text-neutral-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-3xl my-4 rounded-md bg-white text-neutral-900 shadow-sm" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="sticky top-2 float-right z-10 mr-2 mt-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white shadow hover:bg-neutral-700"
@@ -695,7 +695,7 @@ function ExamPreviewBall({ onOpen }: { onOpen: () => void }) {
       onClick={onOpen}
       aria-label="Preview exam paper"
       title="Preview exam paper"
-      className="fixed top-[4.5rem] right-4 z-30 flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-semibold text-foreground shadow-md backdrop-blur-md transition-colors hover:border-primary/40 hover:text-primary sm:right-6"
+      className="fixed top-[4.5rem] right-4 z-30 flex items-center gap-1.5 rounded-full border border-border bg-background/90 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md transition-colors hover:border-primary/40 hover:text-primary sm:right-6"
     >
       <ListChecks className="h-3.5 w-3.5" />
       <span className="hidden sm:inline">Preview</span>
@@ -886,7 +886,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
       const src = imageMatch[2]?.trim();
         if (src) {
         els.push(
-          <figure key={`img-${i}`} className="my-7 overflow-hidden rounded-lg border border-border bg-muted/20">
+          <figure key={`img-${i}`} className="my-7 overflow-hidden rounded-md border border-border bg-muted/20">
             <OfflineImage src={src} alt={alt} loading="lazy" decoding="async" className="w-full object-contain" />
             {alt && <figcaption className="border-t border-border px-4 py-2 text-sm leading-relaxed text-muted-foreground">{alt}</figcaption>}
           </figure>
@@ -925,7 +925,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
         els.push(
           <dl
             key={`meta-card-${i}`}
-            className="my-6 grid grid-cols-1 gap-x-6 gap-y-3 rounded-xl border border-primary/20 bg-primary/[0.04] p-5 sm:grid-cols-2"
+            className="my-6 grid grid-cols-1 gap-x-6 gap-y-3 rounded-md border border-primary/20 bg-primary/[0.04] p-5 sm:grid-cols-2"
           >
             {rows.map((r, n) => (
               <div key={`meta-row-${i}-${n}`} className="min-w-0">
@@ -1069,7 +1069,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
       // page reads as revision points instead of a wall of chipped rows.
       flushList(); underSubheading = false;
       els.push(
-        <div key={`subq-${i}`} className="not-prose my-2.5 grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3 rounded-lg border border-border/70 bg-card px-3 py-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto]">
+        <div key={`subq-${i}`} className="not-prose my-2.5 grid grid-cols-[2rem_minmax(0,1fr)] items-start gap-x-3 rounded-md border border-border/70 bg-card px-3 py-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto]">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">{label}</span>
           <p className="min-w-0 pt-1 text-[15px] font-medium leading-relaxed text-foreground"><Inline text={subText} /></p>
           {marksMatch && <span className="col-start-2 mt-1 whitespace-nowrap text-xs font-semibold text-muted-foreground sm:col-start-3 sm:row-start-1 sm:mt-1.5">{marksMatch[1]}</span>}
@@ -1109,7 +1109,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
       flushList(); underSubheading = false;
       if (inPractice) pqs.push({ number: qa[1], question: qa[2], answer: qa[3] });
       else els.push(
-        <div key={`qa-${i}`} className="mb-3 rounded-lg border border-border p-4">
+        <div key={`qa-${i}`} className="mb-3 rounded-md border border-border p-4">
           <p className="text-sm font-medium text-foreground">{qa[1]}. <Inline text={qa[2]} /></p>
           <p className="mt-1.5 text-sm text-primary font-medium">→ <Inline text={qa[3]} /></p>
         </div>
@@ -1169,7 +1169,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
       if (t.startsWith("⚠️") || t.startsWith("⚠")) {
         flushList();
         els.push(
-          <div key={`warn-${i}`} className="my-3 flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
+          <div key={`warn-${i}`} className="my-3 flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
             <span className="text-amber-500 text-sm shrink-0">⚠️</span>
             <p className="text-sm leading-relaxed text-foreground/85"><Inline text={t.replace(/^⚠️?\s*/, "")} /></p>
           </div>
@@ -1185,7 +1185,7 @@ const ArticleContent = memo(function ArticleContent({ content, articleId, catego
 
     if (t.startsWith("⚠️") || t.startsWith("⚠")) {
       els.push(
-        <div key={`wp-${i}`} className="my-3 flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
+        <div key={`wp-${i}`} className="my-3 flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2.5">
           <span className="text-amber-500 text-sm shrink-0">⚠️</span>
           <p className="text-sm leading-relaxed text-foreground/85"><Inline text={t.replace(/^⚠️?\s*/, "")} /></p>
         </div>
@@ -1898,7 +1898,7 @@ export default function BlogPost() {
             </div>
 
             {(essaySaqs.length > 0 || essayLaqs.length > 0) && (
-              <section className="mt-12 rounded-xl border border-border bg-card p-5 sm:p-6">
+              <section className="mt-12 rounded-md border border-border bg-card p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <HelpCircle className="h-4 w-4 text-primary" />
                   <h2 className="font-serif text-xl font-bold text-foreground">Practice Essay Questions</h2>
@@ -1937,7 +1937,7 @@ export default function BlogPost() {
             )}
 
             {hasRelated && (
-              <div className="mt-12 rounded-lg border border-border p-5">
+              <div className="mt-12 rounded-md border border-border p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="h-4 w-4 text-primary" />
                   <h3 className="font-semibold text-foreground">Continue Learning</h3>
@@ -1948,7 +1948,7 @@ export default function BlogPost() {
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Flashcards</p>
                       <div className="space-y-1.5">
                         {related.flashcards.map((f: any) => (
-                          <Link key={f.id} to={buildFlashcardPath(f)} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/30 transition-colors">
+                          <Link key={f.id} to={buildFlashcardPath(f)} className="flex items-center gap-3 rounded-md border border-border p-3 hover:border-primary/40 hover:bg-muted/30 transition-colors">
                             <GraduationCap className="h-4 w-4 text-primary shrink-0" />
                             <span className="truncate text-sm font-medium text-foreground">{f.title}</span>
                             <span className="ml-auto text-xs text-muted-foreground">{(f.cards as any[])?.length || 0} cards</span>
@@ -1962,7 +1962,7 @@ export default function BlogPost() {
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">MCQ Quizzes</p>
                       <div className="space-y-1.5">
                         {related.mcqs.map((m: any) => (
-                          <Link key={m.id} to={buildMcqPath(m)} className="flex items-center gap-3 rounded-lg border border-border p-3 hover:border-primary/40 hover:bg-muted/30 transition-colors">
+                          <Link key={m.id} to={buildMcqPath(m)} className="flex items-center gap-3 rounded-md border border-border p-3 hover:border-primary/40 hover:bg-muted/30 transition-colors">
                             <ListChecks className="h-4 w-4 text-primary shrink-0" />
                             <span className="truncate text-sm font-medium text-foreground">{m.title}</span>
                             <span className="ml-auto text-xs text-muted-foreground">{(m.questions as any[])?.length || 0} Qs</span>
