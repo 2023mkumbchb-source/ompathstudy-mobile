@@ -64,7 +64,7 @@ export default function GlobalSearch() {
       </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
-        <div className="flex overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="flex overflow-hidden border border-border bg-card shadow-sm">
           <label htmlFor="global-search-input" className="sr-only">Search the study library</label>
           <Search className="ml-4 mt-3.5 h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <input
@@ -89,7 +89,7 @@ export default function GlobalSearch() {
             id="global-search-year"
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="min-h-[40px] rounded-lg border border-border bg-card px-3 text-sm text-foreground"
+            className="min-h-[40px] border border-border bg-card px-3 text-sm text-foreground"
           >
             <option value="">All years</option>
             {YEARS.map((y) => <option key={y} value={String(y)}>Year {y}</option>)}
@@ -100,7 +100,7 @@ export default function GlobalSearch() {
             id="global-search-type"
             value={contentType}
             onChange={(e) => setContentType(e.target.value)}
-            className="min-h-[40px] rounded-lg border border-border bg-card px-3 text-sm text-foreground"
+            className="min-h-[40px] border border-border bg-card px-3 text-sm text-foreground"
           >
             <option value="">All content types</option>
             {CONTENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -147,7 +147,7 @@ export default function GlobalSearch() {
           ))}
         </div>
       ) : searched && hits.length === 0 ? (
-        <div className="mt-10 rounded-xl border border-dashed border-border p-8 text-center">
+        <div className="mt-10 border border-dashed border-border p-8 text-center">
           <p className="text-muted-foreground">No results for "{q}"{hasFilters ? " with the current filters" : ""}.</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Try a broader medical term, a course code, or{" "}
@@ -192,7 +192,7 @@ export default function GlobalSearch() {
           })}
         </div>
       ) : (
-        <div className="mt-10 rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
+        <div className="mt-10 border border-dashed border-border p-8 text-center text-muted-foreground">
           Search across every unit, note, CAT, past paper, MCQ bank and flashcard deck at once.
         </div>
       )}
