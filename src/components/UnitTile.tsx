@@ -23,7 +23,7 @@ export default function UnitTile({
   return (
     <button
       onClick={onClick}
-      className={`group flex h-full min-w-0 w-full flex-col overflow-hidden border bg-card text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 ${
+      className={`group flex h-full min-w-0 w-full flex-col overflow-hidden border bg-card text-left shadow-sm transition-colors duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 ${
         active ? "border-primary ring-2 ring-primary/20" : "border-border"
       }`}
     >
