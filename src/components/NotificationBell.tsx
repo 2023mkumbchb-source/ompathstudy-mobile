@@ -142,7 +142,7 @@ export default function NotificationBell() {
         <div className="border-b border-border p-4 bg-muted/40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-8 w-8 items-center justify-center border bg-primary/10 text-primary">
                 <Bell className="h-4 w-4" />
               </div>
               <div>
@@ -168,7 +168,7 @@ export default function NotificationBell() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="mt-3 flex gap-1 rounded-lg bg-muted p-1 text-xs font-medium">
+          <div className="mt-3 flex gap-1 border bg-muted p-1 text-xs font-medium">
             <button
               onClick={() => setActiveTab("all")}
               className={`flex-1 rounded-md py-1 transition-all ${
@@ -223,7 +223,7 @@ export default function NotificationBell() {
                 <div
                   key={item.id}
                   onClick={() => handleSelect(item)}
-                  className={`group relative cursor-pointer rounded-xl border p-3.5 transition-all ${
+                  className={`group relative cursor-pointer border p-3.5 transition-all ${
                     isUnread
                       ? "border-primary/30 bg-primary/5 hover:border-primary/50 hover:bg-primary/10 shadow-sm"
                       : "border-border/60 bg-card hover:border-border hover:bg-muted/50"
@@ -231,7 +231,7 @@ export default function NotificationBell() {
                 >
                   <div className="flex items-start gap-3">
                     {/* Icon container */}
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background border border-border shadow-xs">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border bg-background border border-border shadow-xs">
                       {getIcon(item.type)}
                     </div>
 
