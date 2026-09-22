@@ -48,13 +48,13 @@ export default function SiteFooter() {
               Concise, evidence-based study notes and MCQs for medical students — Years 1 through 6.
             </p>
             <div className="mt-4 flex items-center gap-2">
-              <a href="tel:+254115475543" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="Call us">
+              <a href="tel:+254115475543" className="flex h-9 w-9 items-center justify-center border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="Call us">
                 <Phone className="h-4 w-4" />
               </a>
-              <a href="https://wa.me/254115475543" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="WhatsApp">
+              <a href="https://wa.me/254115475543" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="WhatsApp">
                 <MessageCircle className="h-4 w-4" />
               </a>
-              <a href="mailto:hello@ompathstudy.com" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="Email us">
+              <a href="mailto:hello@ompathstudy.com" className="flex h-9 w-9 items-center justify-center border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors" aria-label="Email us">
                 <Mail className="h-4 w-4" />
               </a>
             </div>
@@ -125,7 +125,7 @@ function InstallAppButton() {
   return (
     <button
       onClick={handleInstall}
-      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
+      className="inline-flex items-center gap-1.5 border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
       aria-label="Install app"
     >
       <Download className="h-3.5 w-3.5" />
