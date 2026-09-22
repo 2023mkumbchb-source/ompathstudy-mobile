@@ -13,10 +13,10 @@ type ArticleSummary = { id: string; title: string; slug: string | null; category
 
 function ResourceList({ items, byId, empty }: { items: { resource_id: string; status?: string }[]; byId: Map<string, ArticleSummary>; empty: string }) {
   if (!items.length) {
-    return <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{empty}</p>;
+    return <p className="study-state">{empty}</p>;
   }
   return (
-    <div className="space-y-2">
+    <div className="divide-y divide-border border-y border-border">
       {items.slice(0, 12).map((p, i) => {
         const a = byId.get(p.resource_id);
         if (!a) return null;
@@ -24,7 +24,7 @@ function ResourceList({ items, byId, empty }: { items: { resource_id: string; st
           <Link
             key={`${p.resource_id}-${i}`}
             to={buildBlogPath(a)}
-            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40"
+            className="study-resource-row"
           >
             <BookOpen className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
             <span className="min-w-0 flex-1">
