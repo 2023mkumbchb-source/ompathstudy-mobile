@@ -5,15 +5,12 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategoryDisplayName, getYearFromCategory } from "@/lib/store";
 import { updateMetaTags } from "@/lib/seo";
-import { hasEssayContent } from "@/lib/content-policy";
 
 interface Essay {
   id: string;
   slug: string;
   title: string;
   category: string;
-  short_answer_questions: { question: string; answer: string }[];
-  long_answer_questions: { question: string; answer: string }[];
   created_at: string;
   article_id: string | null;
 }
@@ -37,12 +34,12 @@ export default function Essays() {
   useEffect(() => {
     supabase
       .from("essays")
-      .select("*")
+      .select("id,slug,title,category,created_at,article_id")
       .eq("published", true)
       .is("deleted_at", null)
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
-        setEssays(((data || []) as unknown as Essay[]).filter(hasEssayContent));
+        setEssays((data || []) as unknown as Essay[]);
         setLoading(false);
       });
   }, []);
@@ -106,7 +103,7 @@ export default function Essays() {
                         {e.category !== "Uncategorized" && (
                           <span className="text-primary">{getCategoryDisplayName(e.category)} · </span>
                         )}
-                        {e.short_answer_questions.length} SAQs · {e.long_answer_questions.length} LAQs
+                        SAQs & LAQs
                       </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
