@@ -60,7 +60,7 @@ export default function ArticleMcqOption({ articleId, questionKey, questionText,
   const isChosen = isCorrect || isWrong;
   return <button type="button" onClick={choose} disabled={!correctLabel || Boolean(selection?.solved) || isWrong}
     aria-pressed={isChosen}
-    className={`not-prose !my-1 flex min-h-12 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left align-middle transition-colors ${
+    className={`not-prose !my-1 flex min-h-12 w-full items-center gap-3 border px-3 py-2.5 text-left align-middle transition-colors ${
       isCorrect ? "border-emerald-500 bg-emerald-500/10" : isWrong ? "border-rose-400/60 bg-rose-500/5" : !access.canReveal ? "border-border/60 bg-muted/20 opacity-75" : "border-border/70 bg-card hover:border-primary/50"
     } disabled:cursor-default`}>
     <span className={`flex h-7 w-7 shrink-0 items-center justify-center self-center rounded-md text-[11px] font-bold ${isCorrect ? "bg-emerald-600 text-white" : isWrong ? "bg-rose-500 text-white" : "bg-primary/10 text-primary"}`}>
