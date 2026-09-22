@@ -33,7 +33,12 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Test Mobile Application
         run: npm test
-      - name: Refresh Complete Offline Content Seed
+      # The committed offline seed is reused for ordinary APK builds.
+      # Refreshing the complete content catalogue on every push caused a
+      # potentially very large Supabase egress spike. Run this workflow
+      # manually when a new offline seed is intentionally required.
+      - name: Refresh Complete Offline Content Seed (manual only)
+        if: github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           for attempt in 1 2 3; do
