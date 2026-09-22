@@ -45,7 +45,7 @@ export default function ContestLobby() {
   return <div className="min-h-dvh bg-[#071315] px-3 py-5 text-white sm:px-5 sm:py-10">
     <div className="mx-auto max-w-4xl">
       <nav className="flex items-center justify-between gap-3"><Link to="/contests" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white"><ArrowLeft className="h-4 w-4" /> Contests</Link>{registration && <Link to={`/contests/${slug}/progress`} className="inline-flex text-sm font-bold text-teal-300 hover:text-teal-200">My progress</Link>}</nav>
-      <header className="mt-5 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_80%_0%,rgba(45,212,191,0.13),transparent_35%),rgba(255,255,255,0.035)] p-5 sm:mt-7 sm:p-8">
+      <header className="mt-5 border-y border-white/10 bg-white/[0.025] p-5 sm:mt-7 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-300">Secure participant lobby</p>
         <h1 className="mt-3 break-words font-serif text-2xl font-bold leading-tight sm:text-4xl">{contest.title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">Admission, round timing and system readiness appear here. Monitoring does not begin in the lobby, and microphone access is not requested.</p>
@@ -54,7 +54,7 @@ export default function ContestLobby() {
       {error && <p className="mt-5 rounded-xl border border-red-300/20 bg-red-300/10 p-4 text-sm text-red-200">{error}</p>}
 
       <section className="mt-4 grid gap-4 sm:mt-6 md:grid-cols-[0.8fr,1.2fr] md:gap-5">
-        <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 sm:p-6">
+        <article className="border-y border-white/10 bg-white/[0.025] p-5 sm:p-6">
           <h2 className="flex items-center gap-2 font-bold"><ShieldCheck className="h-5 w-5 text-teal-300" /> Admission status</h2>
           {!registration ? <div className="mt-5"><LockKeyhole className="h-8 w-8 text-amber-300" /><p className="mt-3 font-bold">Not registered</p><p className="mt-2 text-sm text-white/50">Register first to begin institutional verification.</p><Link to={`/contests/${slug}/register`} className="mt-5 inline-flex rounded-lg bg-teal-300 px-4 py-2.5 text-sm font-bold text-[#071315]">Open registration</Link></div>
             : verified ? <div className="mt-5"><CheckCircle2 className="h-8 w-8 text-teal-300" /><p className="mt-3 font-bold text-teal-200">Entry verified</p><p className="mt-2 text-sm text-white/50">You can enter when a moderator opens the live round.</p></div>
