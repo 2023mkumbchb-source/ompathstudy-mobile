@@ -4,6 +4,9 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
+  // GitHub Pages serves this project from /ompathstudy-mobile/.
+  // Keep local/Vercel-style builds at / while the Pages build uses the repo base path.
+  base: process.env.GITHUB_ACTIONS ? "/ompathstudy-mobile/" : "/",
   server: {
     host: "::",
     port: 8080,
