@@ -104,7 +104,7 @@ export default function LearnerProfileGate() {
 
   return <div className="fixed inset-0 z-[200] grid place-items-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
     {celebrating ? (
-      <div className="w-full max-w-md animate-in fade-in zoom-in-95 rounded-3xl border border-border bg-card p-8 text-center shadow-2xl duration-300">
+      <div className="w-full max-w-md animate-in fade-in zoom-in-95 rounded-3xl border border-border bg-card p-8 text-center shadow-lg duration-300">
         <div className="mx-auto flex h-16 w-16 animate-in zoom-in spin-in-6 items-center justify-center rounded-full bg-primary/10 text-primary duration-500">
           <Sparkles className="h-8 w-8" />
         </div>
@@ -112,22 +112,22 @@ export default function LearnerProfileGate() {
         <p className="mt-1.5 text-sm text-muted-foreground">Personalising your revision now…</p>
       </div>
     ) : (
-    <form onSubmit={save} className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-2xl sm:p-8">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><GraduationCap /></div>
+    <form onSubmit={save} className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lg sm:p-8">
+      <div className="flex h-12 w-12 items-center justify-center border-y bg-primary/10 text-primary"><GraduationCap /></div>
       <h1 className="mt-4 font-serif text-2xl font-bold">Tell us what you study</h1>
       <p className="mt-2 text-sm text-muted-foreground">This lets OmpathStudy identify untouched units and recommend topics from answers you miss.</p>
       <label className="mt-5 block text-sm font-semibold" htmlFor="profile-name">Your name</label>
       <Input id="profile-name" value={name} onChange={e => setName(e.target.value)} required className="mt-1" />
       <label className="mt-4 block text-sm font-semibold" htmlFor="profile-university">University</label>
-      <select id="profile-university" value={university} onChange={e => setUniversity(e.target.value)} required className="mt-1 min-h-11 w-full rounded-lg border border-border bg-background px-3">
+      <select id="profile-university" value={university} onChange={e => setUniversity(e.target.value)} required className="mt-1 min-h-11 w-full border border-border bg-background px-3">
         <option value="">Select university</option>{UNIVERSITIES.map(x => <option key={x}>{x}</option>)}
       </select>
       <label className="mt-4 block text-sm font-semibold" htmlFor="profile-course">Course</label>
-      <select id="profile-course" value={course} onChange={e => setCourse(e.target.value)} required className="mt-1 min-h-11 w-full rounded-lg border border-border bg-background px-3">
+      <select id="profile-course" value={course} onChange={e => setCourse(e.target.value)} required className="mt-1 min-h-11 w-full border border-border bg-background px-3">
         <option value="">Select course</option>{COURSES.map(x => <option key={x}>{x}</option>)}
       </select>
       <label className="mt-4 block text-sm font-semibold" htmlFor="profile-year">Current year</label>
-      <select id="profile-year" value={year} onChange={e => setYear(e.target.value)} required className="mt-1 min-h-11 w-full rounded-lg border border-border bg-background px-3">
+      <select id="profile-year" value={year} onChange={e => setYear(e.target.value)} required className="mt-1 min-h-11 w-full border border-border bg-background px-3">
         <option value="">Select year</option>{[1,2,3,4,5,6].map(x => <option key={x} value={x}>Year {x}</option>)}
       </select>
       <Button type="submit" disabled={saving} className="mt-6 min-h-11 w-full">{saving ? <Loader2 className="animate-spin" /> : "Start personalised revision"}</Button>
