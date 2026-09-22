@@ -168,14 +168,14 @@ export default function FlashcardViewer({ cards, title, setId }: Props) {
     <div className="mx-auto w-full max-w-4xl px-2">
       <h2 className="mb-2 text-center font-serif text-2xl sm:text-3xl font-bold text-foreground leading-tight">{title}</h2>
       <p className="mb-5 sm:mb-7 text-center text-xs sm:text-sm text-muted-foreground">
-        Card {current + 1} of {order.length} · Tap card or button to reveal answer
+        Card {current + 1} of {order.length} · Reveal the answer when ready
       </p>
 
       <div
         className="mx-auto mb-6 sm:mb-8 w-full max-w-3xl cursor-pointer select-none"
         onClick={() => setShowAnswer((s) => !s)}
       >
-        <div className="rounded-2xl border border-border bg-card p-6 sm:p-10" style={{ boxShadow: "var(--shadow-elevated)" }}>
+        <div className="study-surface border-y p-6 sm:p-10" style={{ boxShadow: "var(--shadow-elevated)" }}>
           <div className="mb-4 flex items-center justify-center">
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Question</span>
           </div>
