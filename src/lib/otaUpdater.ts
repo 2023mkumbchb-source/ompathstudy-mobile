@@ -128,7 +128,7 @@ export async function installAppUpdate(
  * 1. Signals native plugin that app rendered successfully
  * 2. Silently checks if a new web bundle is available and installs it in background
  */
-export async function initOtaUpdater(): Promise<void> {
+export async function initOtaUpdater(onStatus?: (message: string, progress?: number) => void): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
@@ -147,13 +147,13 @@ export async function initOtaUpdater(): Promise<void> {
             bundleInfo.url &&
             current?.bundle?.version !== bundleInfo.version
           ) {
-            console.log(`[OTA] Downloading live update bundle v${bundleInfo.version}...`);
+            onStatus?.("Updating Ompath — small update, this shouldn’t take long…", 0);\n            console.log(`[OTA] Downloading live update bundle v${bundleInfo.version}...`);
             const downloaded = await CapacitorUpdater.download({
               url: bundleInfo.url,
               version: bundleInfo.version,
             });
 
-            // Set bundle to activate on next backgrounding or launch
+            onStatus?.("Update downloaded. Applying it now…", 100);\n\n            // Set bundle to activate on next backgrounding or launch
             await CapacitorUpdater.next({ id: downloaded.id });
             console.log(`[OTA] Live update v${bundleInfo.version} ready for next launch!`);
           }
