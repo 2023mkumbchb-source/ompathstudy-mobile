@@ -29,7 +29,7 @@ function FeaturedCard({ story }: { story: Story }) {
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
       <Link
         to={buildStoryPath(story)}
-        className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-lg sm:flex-row"
+        className="group relative flex flex-col overflow-hidden border-y border-border bg-background transition-colors hover:bg-primary/5 sm:flex-row"
       >
         {/* Image */}
         <div className="relative h-52 shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-72">
@@ -46,7 +46,7 @@ function FeaturedCard({ story }: { story: Story }) {
             </div>
           )}
           {/* Featured badge */}
-          <span className="absolute left-3 top-3 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow">
+          <span className="absolute left-3 top-3 rounded-sm bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow">
             Featured
           </span>
         </div>
