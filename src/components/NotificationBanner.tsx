@@ -96,7 +96,7 @@ export default function NotificationBanner() {
   return (
     <div
       aria-live="polite"
-      className={`fixed top-3 left-1/2 -translate-x-1/2 z-[100] w-[94%] max-w-md transition-all duration-300 ease-out ${
+      className={`fixed top-3 left-1/2 -translate-x-1/2 z-[100] w-[94%] max-w-md transition-colors duration-300 ease-out ${
         visible
           ? "translate-y-0 opacity-100 scale-100 pointer-events-auto"
           : "-translate-y-10 opacity-0 scale-95 pointer-events-none"
@@ -104,7 +104,7 @@ export default function NotificationBanner() {
     >
       <div
         onClick={handleOpen}
-        className="group relative cursor-pointer overflow-hidden border-y border-white/15 bg-slate-950/90 p-3.5 shadow-lg backdrop-blur-xl transition-all hover:border-white/30 hover:bg-slate-900/95"
+        className="group relative cursor-pointer overflow-hidden border-y border-white/15 bg-slate-950/90 p-3.5 shadow-sm backdrop-blur-xl transition-colors hover:border-white/30 hover:bg-slate-900/95"
       >
         {/* Subtle accent glow */}
         <div className="absolute inset-x-0 -top-px h-0.5 bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
@@ -112,7 +112,7 @@ export default function NotificationBanner() {
         <div className="flex items-start gap-3">
           {/* Notification Icon (WhatsApp style rounded badge) */}
           <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-md ${badge.iconBg}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md shadow-sm ${badge.iconBg}`}
           >
             <Icon className="h-5 w-5" />
           </div>
@@ -153,7 +153,7 @@ export default function NotificationBanner() {
           <button
             onClick={handleDismiss}
             aria-label="Dismiss notification"
-            className="shrink-0 rounded-lg p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+            className="shrink-0 rounded-md p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
