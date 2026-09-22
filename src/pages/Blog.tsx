@@ -502,11 +502,11 @@ export default function Blog() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10">
       <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Desktop-only sidebar */}
         <aside className="hidden lg:block">
-          <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto border-y border-border bg-background p-4">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Browse</p>
             <button
               onClick={() => { setYear("All"); setUnit(null); }}
@@ -575,7 +575,7 @@ export default function Blog() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-6 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-card to-primary/10 shadow-sm"
+        className="mb-7 overflow-hidden border-y border-border bg-background"
       >
         <div className="relative px-5 py-6 sm:px-7 sm:py-7">
           <div className="pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full bg-primary/[0.07] blur-2xl" />
@@ -588,13 +588,13 @@ export default function Blog() {
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Year {yearRoute}
           </button>
         )}
-        <div className="relative flex flex-wrap items-end justify-between gap-4">
+        <div className="relative flex flex-wrap items-end justify-between gap-5">
           <div>
             <motion.p
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.05, duration: 0.3 }}
-              className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary"
+              className="study-kicker"
             >
               {selectedYear === "All" ? "MBChB study library" : selectedYear}
             </motion.p>
