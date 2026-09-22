@@ -608,7 +608,7 @@ function ExamPreviewModal({ article, open, onClose }: { article: any; open: bool
     window.addEventListener("ompath:native-back", onNativeBack);
     return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); window.removeEventListener("ompath:native-back", onNativeBack); };
   }, [open, onClose]);
-  if (!open) return null;
+  if (!open || (data.mcqs.length === 0 && data.essays.length === 0)) return null;
   const title = decodeEntities(article?.title || "").replace(/^#+\s*/, "").trim();
   const examType = inferExamType(article);
   const examYear = (article?.exam_year || "").trim();
@@ -1704,7 +1704,13 @@ export default function BlogPost() {
   return (
     <>
       <ReadingProgress />
-      <ExamPreviewBall onOpen={() => setPreviewOpen(true)} />
+      {(() => {
+        const previewData = extractExamQuestions(article.content || "");
+        const hasStructuredExamPreview = previewData.mcqs.length > 0 || previewData.essays.length > 0;
+        return (slideDeck || hasStructuredExamPreview)
+          ? <ExamPreviewBall onOpen={() => setPreviewOpen(true)} />
+          : null;
+      })()}
 
       {/* Breadcrumbs */}
       <div className="border-b border-border bg-muted/30">
