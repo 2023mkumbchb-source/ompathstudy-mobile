@@ -179,23 +179,23 @@ export default function YearHub() {
         <meta name="twitter:description" content={description} />
       </Helmet>
 
-      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 overflow-x-auto text-xs text-muted-foreground">
         <Link to="/" className="hover:text-primary">Home</Link> ›{" "}
         <span className="text-foreground">{yearLabel}</span>
       </nav>
 
-      <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Study navigation</p>
+      <div className="study-surface border-x-0 border-t-0 bg-transparent px-0 pb-6 pt-2 sm:pb-7">
+        <p className="study-kicker">Study workspace</p>
         <h1 className="mt-1 font-serif text-3xl font-bold text-foreground">{yearLabel}</h1>
         <p className="mt-2 text-sm text-muted-foreground">Choose a section below to continue with {yearLabel} content only.</p>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-7 grid gap-0 divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         {sections.map((section) => (
           <Link
             key={section.title}
             to={section.to}
-            className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:bg-primary/5"
+            className="group bg-background p-5 transition-colors hover:bg-primary/5 sm:p-6"
           >
             <div className="mb-3 flex items-center gap-2">
               <section.icon className="h-4 w-4 text-primary" />
