@@ -169,13 +169,13 @@ export default function SupplementaryRevision() {
       <title>Exam Revision Index 2026 | Ompath Study</title>
       <meta name="description" content="A focused revision schedule for microbiology, parasitology, virology, mycology, general and systemic pathology, and haematology before 1 September 2026." />
     </Helmet>
-    <div className="bg-gradient-to-b from-primary/10 via-background to-background">
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
+    <div className="border-b border-border bg-background">
+      <section className="mx-auto max-w-6xl px-5 py-9 sm:py-12">
         <div className="max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary"><Target className="h-4 w-4" /> Supplementary exam sprint</span>
+          <span className="study-kicker"><Target className="h-4 w-4" /> Supplementary exam sprint</span>
           <h1 className="mt-4 font-serif text-3xl font-bold leading-tight sm:text-5xl">Your focused revision plan to 1 September</h1>
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Seven examinable areas, correctly separated by year and taught in three passes: understand, retrieve, then perform under time.</p>
-          <div className="mt-6 rounded-2xl border bg-card p-4 shadow-sm">
+          <div className="mt-6 border-y border-border bg-background p-4">
             <div className="flex items-center justify-between text-sm font-semibold"><span>{done.length} of {plan.length} days completed</span><span>{progress}%</span></div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} /></div>
           </div>
@@ -183,10 +183,10 @@ export default function SupplementaryRevision() {
       </section>
     </div>
 
-    <div className="mx-auto max-w-6xl space-y-12 px-4 pb-16">
+    <div className="mx-auto max-w-6xl space-y-12 px-5 pb-16">
       {!resourcesLoading && !resourceError && startHere.length > 0 && <section aria-labelledby="start-here-heading">
         <div className="mb-4"><p className="text-xs font-bold uppercase tracking-wider text-primary">Claude + Codex consolidated</p><h2 id="start-here-heading" className="font-serif text-2xl font-bold">Start here by subject</h2><p className="mt-1 text-sm text-muted-foreground">Open a core note first, then move to the answer-ready practice listed for that unit.</p></div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{startHere.map(({ group, resources, answerReady }) => <div key={group} className="rounded-2xl border bg-card p-4"><div className="mb-3 flex items-start justify-between gap-2"><h3 className="text-sm font-bold leading-5">{group}</h3><span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-700">{answerReady} answer-ready</span></div><div className="space-y-1">{resources.map((resource) => <Link key={resource.id} to={resource.path} className="flex items-start gap-2 rounded-lg p-2 text-sm hover:bg-muted"><BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span className="line-clamp-2 font-medium">{resource.title}</span></Link>)}</div></div>)}</div>
+        <div className="grid gap-0 divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">{startHere.map(({ group, resources, answerReady }) => <div key={group} className="rounded-2xl border bg-card p-4"><div className="mb-3 flex items-start justify-between gap-2"><h3 className="text-sm font-bold leading-5">{group}</h3><span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-bold text-emerald-700">{answerReady} answer-ready</span></div><div className="space-y-1">{resources.map((resource) => <Link key={resource.id} to={resource.path} className="flex items-start gap-2 rounded-lg p-2 text-sm hover:bg-muted"><BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span className="line-clamp-2 font-medium">{resource.title}</span></Link>)}</div></div>)}</div>
       </section>}
       <section id="all-resources" className="scroll-mt-24">
         <div className="mb-2 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wider text-primary">Complete live library</p><h2 className="font-serif text-2xl font-bold">All revision resources, arranged by unit</h2></div><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{allResources.length} resources</span></div>
