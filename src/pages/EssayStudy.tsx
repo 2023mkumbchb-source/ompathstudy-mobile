@@ -146,7 +146,7 @@ export default function EssayStudy() {
           </h2>
           <div className="space-y-2">
             {essay.short_answer_questions.map((q, i) => (
-              <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
+              <div key={i} className="overflow-hidden border border-border bg-card">
                 <button onClick={() => toggleSaq(i)} className="flex w-full items-start justify-between gap-3 p-4 text-left">
                   <div className="flex min-w-0 flex-1 items-start gap-2">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
@@ -178,7 +178,7 @@ export default function EssayStudy() {
           </h2>
           <div className="space-y-2">
             {essay.long_answer_questions.map((q, i) => (
-              <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
+              <div key={i} className="overflow-hidden border border-border bg-card">
                 <button onClick={() => toggleLaq(i)} className="flex w-full items-start justify-between gap-3 p-4 text-left">
                   <div className="flex min-w-0 flex-1 items-start gap-2">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent-foreground">{i + 1}</span>
