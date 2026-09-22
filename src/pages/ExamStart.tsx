@@ -403,7 +403,7 @@ export default function ExamStart() {
           <Link to="/exams"><ArrowLeft className="h-4 w-4" /> Back to Exams</Link>
         </Button>
 
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-accent/10 p-6 sm:p-8">
+        <div className="rounded-md border border-border bg-gradient-to-br from-primary/10 via-card to-accent/10 p-6 sm:p-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
             <Trophy className="h-3.5 w-3.5" /> Ready to start
           </div>
@@ -411,7 +411,7 @@ export default function ExamStart() {
           <p className="mt-2 text-sm text-muted-foreground">Unit: {unitName}</p>
 
           <div className="mt-5">
-            <div className="rounded-xl border border-border bg-card p-3 inline-block">
+            <div className="rounded-md border border-border bg-card p-3 inline-block">
               <p className="text-xs text-muted-foreground">Section A — MCQs</p>
               <p className="text-sm font-semibold text-foreground">{exam.questions.length} questions · {totalMinutes} minutes</p>
             </div>
@@ -423,7 +423,7 @@ export default function ExamStart() {
             </div>
           )}
 
-          <div className="mt-5 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          <div className="mt-5 rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
             <p className="mb-2 flex items-center gap-2 text-foreground"><Shield className="h-4 w-4 text-primary" /> Exam rules</p>
             <ul className="list-disc space-y-1 pl-5">
               <li>Exam opens in full-screen mode.</li>
@@ -444,13 +444,13 @@ export default function ExamStart() {
               </p>
             </div>
           ) : (
-            <div className="mt-6 space-y-4 rounded-xl border border-primary/30 bg-primary/5 p-5">
+            <div className="mt-6 space-y-4 rounded-md border border-primary/30 bg-primary/5 p-5">
               <h3 className="flex items-center gap-2 font-serif text-base font-bold text-foreground">
                 <GraduationCap className="h-5 w-5 text-primary" /> Student Information
               </h3>
 
               {wasRestored && (
-                <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+                <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
                   Welcome back! Your details were saved from your last exam. Update if needed.
                 </div>
               )}
@@ -478,7 +478,7 @@ export default function ExamStart() {
                         updateField("university", e.target.value);
                       }
                     }}
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                   >
                     <option value="">Select university...</option>
                     {allUniversities.map((u) => (
@@ -531,7 +531,7 @@ export default function ExamStart() {
                         updateField("course", e.target.value);
                       }
                     }}
-                    className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                   >
                     <option value="">Select your course...</option>
                     {allCourses.map((c) => (
