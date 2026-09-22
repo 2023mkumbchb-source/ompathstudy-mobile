@@ -95,7 +95,7 @@ export default function Essays() {
                 >
                   <Link
                     to={`/essays/${e.slug || e.id}`}
-                    className="flex items-center justify-between rounded-2xl border border-border bg-card p-4 sm:p-5 transition-shadow hover:shadow-md"
+                    className="flex items-center justify-between border-y border-border bg-card p-4 sm:p-5 transition-shadow hover:shadow-md"
                   >
                     <div className="min-w-0 flex-1">
                       <h3 className="font-serif text-sm font-bold text-foreground truncate sm:text-base">{e.title}</h3>
@@ -114,7 +114,7 @@ export default function Essays() {
             {filtered.length > visibleCount && (
               <button
                 onClick={() => setVisibleCount(prev => prev + LOAD_MORE_STEP)}
-                className="mx-auto mt-6 flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                className="mx-auto mt-6 flex items-center gap-2 border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 Load more ({filtered.length - visibleCount} remaining)
                 <ChevronDown className="h-4 w-4" />
