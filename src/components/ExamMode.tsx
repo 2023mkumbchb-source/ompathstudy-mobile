@@ -337,7 +337,7 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-xl"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="rounded-full bg-destructive/10 p-2">
@@ -378,7 +378,7 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-xl"
           >
             <h3 className="font-serif text-base font-bold text-foreground mb-2">Submit Exam?</h3>
             {unanswered > 0 && (
@@ -439,7 +439,7 @@ export default function ExamMode({
           )}
 
           {studentInfo && (
-            <div className="rounded-xl border border-border bg-card p-4 text-sm">
+            <div className="border-y border-border bg-card p-4 text-sm">
               <p className="text-foreground font-medium">{studentInfo.name}</p>
               <p className="text-muted-foreground text-xs">
                 {studentInfo.university} · {studentInfo.course}
@@ -450,7 +450,7 @@ export default function ExamMode({
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-2xl border ${grade.bg} p-5 text-center`}
+            className={`border-y ${grade.bg} p-5 text-center`}
           >
             <div className="text-4xl mb-2">{grade.icon}</div>
             <h2 className="font-serif text-xl sm:text-2xl font-bold text-foreground mb-1">
@@ -498,7 +498,7 @@ export default function ExamMode({
               return (
                 <div
                   key={qi}
-                  className={`rounded-xl border p-3 ${
+                  className={`border-y p-3 ${
                     !wasAnswered
                       ? "border-muted bg-muted/30"
                       : isCorrect
@@ -545,7 +545,7 @@ export default function ExamMode({
                       return (
                         <div
                           key={oi}
-                          className={`flex items-start gap-1.5 rounded-lg border p-2 text-xs sm:text-sm ${style}`}
+                          className={`flex items-start gap-1.5 border p-2 text-xs sm:text-sm ${style}`}
                         >
                           <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] font-bold mt-0.5">
                             {String.fromCharCode(65 + oi)}
