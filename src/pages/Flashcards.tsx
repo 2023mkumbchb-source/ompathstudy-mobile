@@ -75,7 +75,7 @@ export default function Flashcards() {
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <div key={i} className="border border-border bg-card p-6 space-y-3">
               <div className="h-10 w-10 animate-pulse rounded-lg bg-muted" />
               <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
               <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
@@ -106,7 +106,7 @@ export default function Flashcards() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
+        <div className="border border-border bg-card p-12 text-center">
           <GraduationCap className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
           <p className="text-muted-foreground">No flashcard sets found for this selection.</p>
         </div>
@@ -150,7 +150,7 @@ export default function Flashcards() {
           {filtered.length > visibleCount && (
             <button
               onClick={() => setVisibleCount(prev => prev + LOAD_MORE_STEP)}
-              className="mx-auto mt-6 flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+              className="mx-auto mt-6 flex items-center gap-2 border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
               Load more ({filtered.length - visibleCount} remaining)
               <ChevronDown className="h-4 w-4" />
