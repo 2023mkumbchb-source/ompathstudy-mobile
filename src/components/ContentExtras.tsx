@@ -49,7 +49,7 @@ export function Countdown({ data }: { data: ExtrasData["countdown"] }) {
   );
   if (style === "floating") {
     return (
-      <div className="fixed bottom-4 left-4 z-40 rounded-full border border-border bg-primary px-4 py-2 text-primary-foreground shadow-lg">
+      <div className="fixed bottom-4 left-4 z-40 rounded-full border border-border bg-primary px-4 py-2 text-primary-foreground shadow-sm">
         {inner}
       </div>
     );
