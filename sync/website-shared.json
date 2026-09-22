@@ -1,8 +1,22 @@
 {
   "sourceRepository": "2023mkumbchb-source/story-weave-box",
   "sourceBranch": "main",
+  "policy": {
+    "sync": "Only explicitly shared logic/data modules.",
+    "neverSync": [
+      "layout",
+      "styling",
+      "CSS",
+      "Tailwind classes",
+      "responsive design",
+      "component structure",
+      "mobile navigation",
+      "mobile-only screens",
+      "assets"
+    ]
+  },
   "files": [
-    "src/lib/academic.ts",
-    "src/pages/Essays.tsx"
-  ]
+    "src/lib/academic.ts"
+  ],
+  "pageSync": "Pages are never copied wholesale. Shared page behavior must be extracted into a shared module before it is added here."
 }
