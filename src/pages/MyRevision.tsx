@@ -145,7 +145,7 @@ export default function MyRevision() {
       <div className="mx-auto max-w-6xl space-y-4 px-5 py-10">
         <Skeleton className="h-40 w-full rounded-3xl" />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 border-y" />)}
         </div>
       </div>
     );
@@ -191,7 +191,7 @@ export default function MyRevision() {
           Continue where you stopped, revisit difficult material and keep your exam preparation together.
         </p>
         {!user && (
-          <Link to="/login" className="mt-4 inline-block rounded-lg bg-white px-4 py-2 text-sm font-bold text-[hsl(174,62%,20%)]">
+          <Link to="/login" className="mt-4 inline-block border bg-white px-4 py-2 text-sm font-bold text-[hsl(174,62%,20%)]">
             Sign in to sync across devices
           </Link>
         )}
@@ -199,7 +199,7 @@ export default function MyRevision() {
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map(([Icon, label, value]) => (
-          <div key={label} className="rounded-2xl border border-border bg-card p-4">
+          <div key={label} className="border-y border-border bg-card p-4">
             <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
             <p className="mt-3 text-2xl font-bold">{value}</p>
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -222,24 +222,24 @@ export default function MyRevision() {
         <section>
           <h2 className="mb-1 flex items-center gap-2 font-serif text-xl font-bold"><AlertTriangle className="h-5 w-5 text-amber-600" /> Topics to revise more</h2>
           <p className="mb-3 text-sm text-muted-foreground">Based on questions you answered incorrectly.</p>
-          <div className="space-y-2">{weakAreas.length ? weakAreas.map(x => <Link key={x.label} to={`/search?q=${encodeURIComponent(x.label)}`} className="flex justify-between rounded-xl border bg-card p-3 hover:border-primary"><span className="font-semibold">{x.label}</span><span className="text-sm text-red-600">{x.wrong}/{x.total} wrong</span></Link>) : <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Answer article questions to identify weak topics.</p>}</div>
+          <div className="space-y-2">{weakAreas.length ? weakAreas.map(x => <Link key={x.label} to={`/search?q=${encodeURIComponent(x.label)}`} className="flex justify-between border bg-card p-3 hover:border-primary"><span className="font-semibold">{x.label}</span><span className="text-sm text-red-600">{x.wrong}/{x.total} wrong</span></Link>) : <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">Answer article questions to identify weak topics.</p>}</div>
         </section>
         <section>
           <h2 className="mb-1 font-serif text-xl font-bold">Units not visited yet</h2>
           <p className="mb-3 text-sm text-muted-foreground">From the year selected in your learner profile.</p>
-          <div className="flex flex-wrap gap-2">{unvisitedUnits.length ? unvisitedUnits.map(x => <Link key={x.slug} to={`/year/${x.year}/unit/${x.slug}`} className="rounded-full border bg-card px-3 py-2 text-sm font-semibold hover:border-primary">{x.name}</Link>) : <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">You have opened every mapped unit, or your unit catalogue is still being completed.</p>}</div>
+          <div className="flex flex-wrap gap-2">{unvisitedUnits.length ? unvisitedUnits.map(x => <Link key={x.slug} to={`/year/${x.year}/unit/${x.slug}`} className="rounded-full border bg-card px-3 py-2 text-sm font-semibold hover:border-primary">{x.name}</Link>) : <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">You have opened every mapped unit, or your unit catalogue is still being completed.</p>}</div>
         </section>
       </div>}
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
-        <Link to="/revision-planner" className="flex items-center gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-5 hover:border-primary">
+        <Link to="/revision-planner" className="flex items-center gap-3 border-y border-primary/20 bg-primary/5 p-5 hover:border-primary">
           <CalendarDays className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
           <span>
             <strong className="block">Build a revision plan</strong>
             <span className="text-sm text-muted-foreground">Turn your units and exam date into daily tasks.</span>
           </span>
         </Link>
-        <Link to="/search" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-5 hover:border-primary/40">
+        <Link to="/search" className="flex items-center gap-3 border-y border-border bg-card p-5 hover:border-primary/40">
           <Target className="h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
           <span>
             <strong className="block">Find a weak topic</strong>
