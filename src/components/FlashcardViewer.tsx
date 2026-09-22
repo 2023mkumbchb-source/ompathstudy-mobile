@@ -216,7 +216,7 @@ export default function FlashcardViewer({ cards, title, setId }: Props) {
 
       <div className="mt-4 h-1 w-full rounded-full bg-secondary">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-300"
+          className="h-full rounded-full bg-primary transition-colors duration-300"
           style={{ width: `${((current + 1) / order.length) * 100}%` }}
         />
       </div>
