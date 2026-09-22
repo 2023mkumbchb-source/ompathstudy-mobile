@@ -1,9 +1,8 @@
 name: Supabase keep-alive
 
 on:
-  schedule:
-    # External database activity four times per day keeps the free project warm.
-    - cron: "17 */6 * * *"
+  # Manual only: routine keep-alive traffic provides no app functionality
+  # and unnecessarily adds recurring Supabase requests.
   workflow_dispatch:
 
 permissions:
