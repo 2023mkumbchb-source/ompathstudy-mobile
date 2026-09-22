@@ -462,7 +462,7 @@ export default function Admin() {
         <button
           type="button"
           onClick={() => navigate("/admin/notifications")}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1.5 border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors shadow-2xs"
         >
           <Bell className="h-4 w-4" />
           <span>Broadcast Studio (Send Alerts)</span>
@@ -476,7 +476,7 @@ export default function Admin() {
             const el = document.getElementById("admin-nav-panel");
             if (el) el.classList.toggle("hidden");
           }}
-          className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm"
+          className="flex w-full items-center justify-between border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm"
         >
           <span className="flex items-center gap-2">
             {activeTab && <activeTab.icon className="h-4 w-4 text-primary" />}
@@ -484,14 +484,14 @@ export default function Admin() {
           </span>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </button>
-        <div id="admin-nav-panel" className="hidden mt-2 rounded-xl border border-border bg-card p-3 shadow-lg space-y-3">
+        <div id="admin-nav-panel" className="hidden mt-2 border border-border bg-card p-3 shadow-lg space-y-3">
           {tabGroups.map(group => (
             <div key={group.label}>
               <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{group.label}</p>
               <div className="grid grid-cols-3 gap-1.5">
                 {group.items.map(t => (
                   <button key={t.id} onClick={() => { if (t.id === "unedited") { navigate("/source-library"); return; } if (t.id === "editor") { navigate("/admin/editor"); return; } if (t.id === "categories") { navigate("/admin/categories"); return; } setTabAndHash(t.id); document.getElementById("admin-nav-panel")?.classList.add("hidden"); }}
-                    className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-[11px] font-medium transition-colors ${tab === t.id ? "bg-primary/10 text-primary ring-1 ring-primary/30" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
+                    className={`flex flex-col items-center gap-1 border px-2 py-2.5 text-[11px] font-medium transition-colors ${tab === t.id ? "bg-primary/10 text-primary ring-1 ring-primary/30" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
                     <t.icon className="h-4 w-4" />
                     <span className="text-center leading-tight">{t.label}</span>
                   </button>
@@ -503,10 +503,10 @@ export default function Admin() {
       </div>
 
       {/* Desktop: Horizontal tabs */}
-      <div className="mb-8 hidden sm:flex gap-1 rounded-xl border border-border bg-secondary/50 p-1 overflow-x-auto">
+      <div className="mb-8 hidden sm:flex gap-1 border border-border bg-secondary/50 p-1 overflow-x-auto">
         {tabs.map((t) => (
           <button key={t.id} onClick={() => { if (t.id === "unedited") { navigate("/source-library"); return; } if (t.id === "editor") { navigate("/admin/editor"); return; } if (t.id === "categories") { navigate("/admin/categories"); return; } setTabAndHash(t.id); }}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            className={`flex items-center gap-2 border px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${tab === t.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             <t.icon className="h-4 w-4" />{t.label}
           </button>
         ))}
@@ -536,7 +536,7 @@ export default function Admin() {
             {!category && <p className="mt-1 text-[10px] text-muted-foreground italic">If left empty, AI will auto-detect the unit.</p>}
           </div>
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-border bg-card p-3">
+            <div className="border border-border bg-card p-3">
               <label className="mb-2 block text-sm font-medium text-foreground">Flashcards (5-100)</label>
               <div className="flex items-center gap-2">
                 <Input type="number" min={5} max={100} value={cardCount} onChange={(e) => setCardCount(clampRequestedCount(Number(e.target.value) || 20))} className="w-24" />
@@ -547,7 +547,7 @@ export default function Admin() {
                 </div>
               </div>
             </div>
-            <div className="rounded-lg border border-border bg-card p-3">
+            <div className="border border-border bg-card p-3">
               <label className="mb-2 block text-sm font-medium text-foreground">MCQs (5-100)</label>
               <div className="flex items-center gap-2">
                 <Input type="number" min={5} max={100} value={mcqCount} onChange={(e) => setMcqCount(clampRequestedCount(Number(e.target.value) || 15))} className="w-24" />
@@ -559,7 +559,7 @@ export default function Admin() {
               </div>
             </div>
           </div>
-          <div className="mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+          <div className="mb-4 border border-primary/30 bg-primary/5 p-4">
             <div className="mb-3 flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Generate All at Once</h3>
@@ -576,13 +576,13 @@ export default function Admin() {
             </Button>
           </div>
           {hasBatchPreview && (
-            <div className="mb-8 space-y-4 rounded-xl border-2 border-primary/40 bg-primary/5 p-6">
+            <div className="mb-8 space-y-4 border-2 border-primary/40 bg-primary/5 p-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold text-foreground">Review Generated Content</h3>
                 <div className="text-xs rounded-full bg-primary/20 px-3 py-1 text-primary font-medium">{batchCategory}</div>
               </div>
               {batchArticle && (
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="border border-border bg-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-bold text-foreground">Article</h4>
                     <Button size="sm" variant="ghost" onClick={() => handleRegenerateBatch("article")} disabled={loading} className="gap-1 text-xs"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -592,7 +592,7 @@ export default function Admin() {
                 </div>
               )}
               {batchCards && (
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="border border-border bg-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-bold text-foreground">Flashcards ({batchCards.length})</h4>
                     <Button size="sm" variant="ghost" onClick={() => handleRegenerateBatch("flashcards")} disabled={loading} className="gap-1 text-xs"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -604,7 +604,7 @@ export default function Admin() {
                 </div>
               )}
               {batchMcqs && (
-                <div className="rounded-lg border border-border bg-card p-4">
+                <div className="border border-border bg-card p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-bold text-foreground">MCQs ({batchMcqs.length})</h4>
                     <Button size="sm" variant="ghost" onClick={() => handleRegenerateBatch("mcqs")} disabled={loading} className="gap-1 text-xs"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -636,7 +636,7 @@ export default function Admin() {
             </Button>
           </div>
           {previewArticle && (
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold text-foreground">Article Preview</h3>
                 <Button size="sm" variant="ghost" onClick={() => handleGenerate("article")} disabled={loading} className="gap-1"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -650,7 +650,7 @@ export default function Admin() {
             </div>
           )}
           {previewCards && (
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold text-foreground">Flashcard Preview ({previewCards.length})</h3>
                 <Button size="sm" variant="ghost" onClick={() => handleGenerate("flashcards")} disabled={loading} className="gap-1"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -658,7 +658,7 @@ export default function Admin() {
               <Input value={previewTitle} onChange={(e) => setPreviewTitle(e.target.value)} className="mb-4" placeholder="Set title" />
               <div className="mb-4 grid gap-2 max-h-96 overflow-y-auto">
                 {previewCards.map((c, i) => (
-                  <div key={i} className="rounded-lg border border-border bg-secondary/30 p-3">
+                  <div key={i} className="border border-border bg-secondary/30 p-3">
                     <p className="text-sm font-medium text-foreground">Q: {c.question}</p>
                     <p className="text-sm text-muted-foreground">A: {c.answer}</p>
                   </div>
@@ -671,7 +671,7 @@ export default function Admin() {
             </div>
           )}
           {previewMcqs && (
-            <div className="rounded-xl border border-border bg-card p-6">
+            <div className="border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-lg font-bold text-foreground">MCQ Preview ({previewMcqs.length})</h3>
                 <Button size="sm" variant="ghost" onClick={() => handleGenerate("mcqs")} disabled={loading} className="gap-1"><RefreshCw className="h-3 w-3" /> Regenerate</Button>
@@ -679,7 +679,7 @@ export default function Admin() {
               <Input value={previewTitle} onChange={(e) => setPreviewTitle(e.target.value)} className="mb-4" placeholder="Quiz title" />
               <div className="mb-4 grid gap-3 max-h-96 overflow-y-auto">
                 {previewMcqs.map((q, i) => (
-                  <div key={i} className="rounded-lg border border-border bg-secondary/30 p-3">
+                  <div key={i} className="border border-border bg-secondary/30 p-3">
                     <p className="text-sm font-medium text-foreground mb-1">{i + 1}. {q.question}</p>
                     {q.options.map((opt, j) => (
                       <p key={j} className={`text-sm ml-4 ${j === q.correct_answer ? "text-primary font-medium" : "text-muted-foreground"}`}>
@@ -696,7 +696,7 @@ export default function Admin() {
               </div>
             </div>
           )}
-          <div className="mt-8 rounded-xl border border-border bg-card p-6">
+          <div className="mt-8 border border-border bg-card p-6">
             <h3 className="mb-1 font-serif text-lg font-bold text-foreground">Direct Publish Mode</h3>
             <p className="mb-4 text-sm text-muted-foreground">
               <strong>Direct Publish (No AI)</strong> saves instantly. Items land in the Raw tab for bulk Gemini formatting later.
@@ -704,7 +704,7 @@ export default function Admin() {
             <div className="mb-4 grid gap-4 md:grid-cols-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">Content Type</label>
-                <select value={directType} onChange={(e) => setDirectType(e.target.value as DirectType)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground">
+                <select value={directType} onChange={(e) => setDirectType(e.target.value as DirectType)} className="w-full border border-input bg-background px-3 py-2 text-sm text-foreground">
                   <option value="article">Article</option>
                   <option value="mcqs">MCQs</option>
                   <option value="flashcards">Flashcards</option>
@@ -725,7 +725,7 @@ export default function Admin() {
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">{directType === "article" ? "Preview" : "Target count"}</label>
                 {directType === "article"
-                  ? <div className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-muted-foreground">Auto format</div>
+                  ? <div className="border border-input bg-background px-3 py-2 text-sm text-muted-foreground">Auto format</div>
                   : <Input type="number" min={5} max={100} value={directTargetCount} onChange={(e) => setDirectTargetCount(clampRequestedCount(Number(e.target.value) || 20))} />
                 }
               </div>
@@ -746,19 +746,19 @@ export default function Admin() {
               <Button onClick={() => handleDirectSave(true)} disabled={loading}>Publish (Formatted)</Button>
             </div>
             {directPreviewArticle && (
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
+              <div className="border border-border bg-secondary/30 p-4">
                 <p className="font-medium text-foreground">{directPreviewArticle.title}</p>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{directPreviewArticle.content.slice(0, 500)}...</p>
               </div>
             )}
             {directPreviewMcqs && (
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
+              <div className="border border-border bg-secondary/30 p-4">
                 <p className="mb-2 font-medium text-foreground">Parsed MCQs: {directPreviewMcqs.length}</p>
                 {directPreviewMcqs.slice(0, 2).map((q, i) => <p key={i} className="text-sm text-muted-foreground">{i + 1}. {q.question}</p>)}
               </div>
             )}
             {directPreviewCards && (
-              <div className="rounded-lg border border-border bg-secondary/30 p-4">
+              <div className="border border-border bg-secondary/30 p-4">
                 <p className="mb-2 font-medium text-foreground">Parsed Flashcards: {directPreviewCards.length}</p>
                 {directPreviewCards.slice(0, 2).map((c, i) => <p key={i} className="text-sm text-muted-foreground">Q: {c.question}</p>)}
               </div>
@@ -925,7 +925,7 @@ function CategoriesTab() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-6 rounded-xl border border-border bg-card p-5">
+      <div className="mb-6 border border-border bg-card p-5">
         <h3 className="mb-4 font-serif text-lg font-bold text-foreground">Manage Article Categories</h3>
         <div className="flex gap-2">
           <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Category name (e.g. Clinical Pharmacology)" className="flex-1" />
@@ -941,7 +941,7 @@ function CategoriesTab() {
           <p className="text-center py-8 text-muted-foreground">No custom categories yet.</p>
         ) : (
           categories.map((c) => (
-            <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+            <div key={c.id} className="flex items-center justify-between border border-border bg-card p-3">
               <span className="font-medium text-foreground">{c.name}</span>
               <Button size="sm" variant="ghost" onClick={() => handleDelete(c.id)} className="text-destructive h-8 w-8 p-0">
                 <Trash2 className="h-4 w-4" />
@@ -1060,7 +1060,7 @@ function RawContentTab({ geminiKey }: { geminiKey: string }) {
 
   return (
     <div>
-      <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
+      <div className="mb-6 border border-amber-500/30 bg-amber-500/10 p-5">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -1102,7 +1102,7 @@ function RawContentTab({ geminiKey }: { geminiKey: string }) {
           <h4 className="mb-3 text-sm font-bold text-foreground uppercase tracking-wide">Articles ({articles.length})</h4>
           <div className="space-y-2">
             {articles.map((a) => (
-              <div key={a.id} className="rounded-xl border border-amber-500/20 bg-card p-3 sm:p-4">
+              <div key={a.id} className="border border-amber-500/20 bg-card p-3 sm:p-4">
                 <div className="min-w-0">
                   <h5 className="font-medium text-foreground text-sm break-words">{a.title}</h5>
                   <p className="text-xs text-muted-foreground mt-0.5">{a.category} · {new Date(a.created_at).toLocaleDateString()}</p>
@@ -1123,7 +1123,7 @@ function RawContentTab({ geminiKey }: { geminiKey: string }) {
           <h4 className="mb-3 text-sm font-bold text-foreground uppercase tracking-wide">Flashcard Sets ({flashcardSets.length})</h4>
           <div className="space-y-2">
             {flashcardSets.map((s) => (
-              <div key={s.id} className="rounded-xl border border-amber-500/20 bg-card p-3 sm:p-4">
+              <div key={s.id} className="border border-amber-500/20 bg-card p-3 sm:p-4">
                 <div className="min-w-0">
                   <h5 className="font-medium text-foreground text-sm break-words">{s.title}</h5>
                   <p className="text-xs text-muted-foreground mt-0.5">{s.category} · {s.cards.length} cards · {new Date(s.created_at).toLocaleDateString()}</p>
@@ -1144,7 +1144,7 @@ function RawContentTab({ geminiKey }: { geminiKey: string }) {
           <h4 className="mb-3 text-sm font-bold text-foreground uppercase tracking-wide">MCQ Sets ({mcqSets.length})</h4>
           <div className="space-y-2">
             {mcqSets.map((s) => (
-              <div key={s.id} className="rounded-xl border border-amber-500/20 bg-card p-3 sm:p-4">
+              <div key={s.id} className="border border-amber-500/20 bg-card p-3 sm:p-4">
                 <div className="min-w-0">
                   <h5 className="font-medium text-foreground text-sm break-words">{s.title}</h5>
                   <p className="text-xs text-muted-foreground mt-0.5">{s.category} · {s.questions.length} questions · {new Date(s.created_at).toLocaleDateString()}</p>
@@ -1327,7 +1327,7 @@ function ArticlesList({
   if (editing) {
     return (
       <div className="space-y-6">
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="border border-border bg-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-serif text-xl font-bold text-foreground">Edit Article</h3>
             <div className="flex gap-2">
@@ -1350,7 +1350,7 @@ function ArticlesList({
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-4">
+              <div className="border border-border bg-secondary/30 p-4 space-y-4">
                 <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                   <Globe className="h-4 w-4 text-primary" /> SEO & Metadata
                 </h4>
@@ -1382,7 +1382,7 @@ function ArticlesList({
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-4">
+              <div className="border border-border bg-secondary/30 p-4 space-y-4">
                 <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                   <Layers className="h-4 w-4 text-primary" /> Categorization
                 </h4>
@@ -1412,7 +1412,7 @@ function ArticlesList({
                 </div>
               </div>
 
-              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+              <div className="border border-destructive/20 bg-destructive/5 p-4">
                 <h4 className="font-bold text-sm text-destructive mb-2">Danger Zone</h4>
                 <Button 
                   variant="ghost" 
@@ -1433,10 +1433,10 @@ function ArticlesList({
   return (
     <div>
       {/* Year filter tabs */}
-      <div className="mb-4 flex gap-1 rounded-xl border border-border bg-secondary/50 p-1 overflow-x-auto">
+      <div className="mb-4 flex gap-1 border border-border bg-secondary/50 p-1 overflow-x-auto">
         {years.map(y => (
           <button key={y} onClick={() => setActiveYear(y)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${activeYear === y ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+            className={`border px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${activeYear === y ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
             {y === "all" ? "All" : y}
             <span className="ml-1.5 text-xs text-muted-foreground">({yearCounts[y] || 0})</span>
           </button>
@@ -1445,7 +1445,7 @@ function ArticlesList({
 
       {/* Batch action bar */}
       {filteredArticles.length > 0 && (
-        <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4">
+        <div className="mb-6 border border-primary/30 bg-primary/5 p-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <h3 className="text-sm font-bold text-foreground">
@@ -1494,7 +1494,7 @@ function ArticlesList({
           <h4 className="mb-3 text-xs font-bold text-primary uppercase tracking-wide">{getCategoryDisplayName(cat)} ({arts.length})</h4>
           <div className="space-y-2">
             {arts.map(a => (
-              <div key={a.id} className={`rounded-xl border bg-card p-3 sm:p-4 transition-colors ${updatedIds.has(a.id) ? "border-primary/40 bg-primary/5" : "border-border"}`}>
+              <div key={a.id} className={`border bg-card p-3 sm:p-4 transition-colors ${updatedIds.has(a.id) ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1545,11 +1545,11 @@ function FlashcardsList() {
   if (sets.length === 0) return <p className="text-muted-foreground">No flashcard sets yet.</p>;
   if (editing) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-4 font-serif text-lg font-bold text-foreground">Edit Flashcard Set</h3>
         <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="mb-4 font-bold" placeholder="Title" />
         
-        <div className="mb-6 rounded-lg border border-border bg-secondary/30 p-4 space-y-4">
+        <div className="mb-6 border border-border bg-secondary/30 p-4 space-y-4">
           <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" /> SEO & Metadata
           </h4>
@@ -1571,7 +1571,7 @@ function FlashcardsList() {
 
         <div className="mb-4 max-h-96 overflow-y-auto space-y-2">
           {editing.cards.map((c, i) => (
-            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+            <div key={i} className="border border-border p-3 space-y-2">
               <Input value={c.question} onChange={(e) => updateCard(i, "question", e.target.value)} placeholder="Question" className="text-sm" />
               <Input value={c.answer} onChange={(e) => updateCard(i, "answer", e.target.value)} placeholder="Answer" className="text-sm" />
             </div>
@@ -1587,7 +1587,7 @@ function FlashcardsList() {
   return (
     <div className="space-y-3">
       {sets.map((s) => (
-        <div key={s.id} className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div key={s.id} className="border border-border bg-card p-3 sm:p-4">
           <div className="min-w-0">
             <h4 className="font-medium text-foreground text-sm break-words">{s.title}</h4>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -1666,15 +1666,15 @@ function McqsList() {
   if (sets.length === 0) return <p className="text-muted-foreground">No MCQ sets yet.</p>;
   if (editing) {
     return (
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-4 font-serif text-lg font-bold text-foreground">Edit MCQ Set</h3>
         <Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="mb-3 font-bold" placeholder="Title" />
-        <select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="w-full mb-4 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground">
+        <select value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className="w-full mb-4 border border-input bg-background px-3 py-2 text-sm text-foreground">
           <option value="Uncategorized">Uncategorized</option>
           {UNIT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
 
-        <div className="mb-6 rounded-lg border border-border bg-secondary/30 p-4 space-y-4">
+        <div className="mb-6 border border-border bg-secondary/30 p-4 space-y-4">
           <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" /> SEO & Metadata
           </h4>
@@ -1696,7 +1696,7 @@ function McqsList() {
 
         <div className="mb-4 max-h-[500px] overflow-y-auto space-y-3">
           {editing.questions.map((q, i) => (
-            <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+            <div key={i} className="border border-border p-3 space-y-2">
               <Input value={q.question} onChange={(e) => updateQuestion(i, "question", e.target.value)} placeholder="Question" className="text-sm font-medium" />
               {q.options.map((opt, j) => (
                 <div key={j} className="flex items-center gap-2">
@@ -1727,7 +1727,7 @@ function McqsList() {
       </div>
 
       {sets.map((s) => (
-        <div key={s.id} className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div key={s.id} className="border border-border bg-card p-3 sm:p-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className="font-medium text-foreground text-sm break-words">{s.title}</h4>
@@ -1932,7 +1932,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
 
   return (
     <div className="max-w-lg space-y-6">
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">Google Gemini API Keys</h3>
         <p className="mb-4 text-sm text-muted-foreground">Add multiple keys from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google AI Studio</a>. When one key hits its quota, the system automatically switches to the next.</p>
         <div className="space-y-2 mb-3">
@@ -1970,7 +1970,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">MCQ Content Audit</h3>
         <p className="mb-4 text-sm text-muted-foreground">Scan all MCQ sets for essay-like content (marking points, long answers) and move them to the Essays section automatically.</p>
         <Button onClick={handleAuditMcqs} disabled={auditRunning} className="gap-2">
@@ -1978,13 +1978,13 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           {auditRunning ? "Auditing..." : "Run MCQ Audit"}
         </Button>
         {auditLog.length > 0 && (
-          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-border bg-background p-3 text-xs font-mono text-muted-foreground space-y-0.5">
+          <div className="mt-3 max-h-40 overflow-y-auto border border-border bg-background p-3 text-xs font-mono text-muted-foreground space-y-0.5">
             {auditLog.map((log, i) => <p key={i}>{log}</p>)}
           </div>
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">Default Exam Password</h3>
         <p className="mb-4 text-sm text-muted-foreground">Set a default password for auto-generated weekly exams.</p>
         <div className="flex gap-2">
@@ -1992,7 +1992,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           <Button onClick={handleSaveExamPassword} disabled={saving} size="sm" className="gap-2"><Save className="h-3 w-3" /> Save</Button>
         </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">Exam Price (KES)</h3>
         <p className="mb-4 text-sm text-muted-foreground">Set the M-Pesa payment amount for exam access.</p>
         <div className="flex gap-2">
@@ -2000,7 +2000,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           <Button onClick={async () => { setSaving(true); try { await saveSetting("exam_price", examPrice); toast({ title: "Exam price saved!" }); } catch {} finally { setSaving(false); } }} disabled={saving} size="sm" className="gap-2"><Save className="h-3 w-3" /> Save</Button>
         </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">MCQ Paywall — Free Questions</h3>
         <p className="mb-4 text-sm text-muted-foreground">Number of free MCQs before the paywall kicks in. Default: 10.</p>
         <div className="flex gap-2">
@@ -2008,7 +2008,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           <Button onClick={async () => { setSaving(true); try { await saveSetting("mcq_free_limit", mcqFreeLimit); toast({ title: "MCQ free limit saved!" }); } catch {} finally { setSaving(false); } }} disabled={saving} size="sm" className="gap-2"><Save className="h-3 w-3" /> Save</Button>
         </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">MCQ Price (KES)</h3>
         <p className="mb-4 text-sm text-muted-foreground">M-Pesa payment amount to unlock remaining MCQs in a set. Default: 10.</p>
         <div className="flex gap-2">
@@ -2016,7 +2016,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           <Button onClick={async () => { setSaving(true); try { await saveSetting("mcq_price", mcqPrice); toast({ title: "MCQ price saved!" }); } catch {} finally { setSaving(false); } }} disabled={saving} size="sm" className="gap-2"><Save className="h-3 w-3" /> Save</Button>
         </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">Exam Winner Award (KES)</h3>
         <p className="mb-4 text-sm text-muted-foreground">Default prize for the top-scoring student per unit exam.</p>
         <div className="flex gap-2">
@@ -2024,7 +2024,7 @@ function SettingsPanel({ setGeminiKey }: { setGeminiKey: (key: string) => void }
           <Button onClick={async () => { setSaving(true); try { await saveSetting("exam_award", examAward); toast({ title: "Exam award saved!" }); } catch {} finally { setSaving(false); } }} disabled={saving} size="sm" className="gap-2"><Save className="h-3 w-3" /> Save</Button>
         </div>
       </div>
-      <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
+      <div className="border border-primary/30 bg-primary/5 p-6">
         <h3 className="mb-2 font-serif text-lg font-bold text-foreground">Weekly Exam Generator</h3>
         <p className="mb-4 text-sm text-muted-foreground">Generates a comprehensive exam from all published content.</p>
         <Button onClick={handleGenerateExam} disabled={generatingExam} className="gap-2">
@@ -2141,21 +2141,21 @@ function ExamResultsTab() {
     <div>
       {/* Stats summary */}
       <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-border bg-card p-4 text-center">
+        <div className="border border-border bg-card p-4 text-center">
           <p className="text-2xl font-bold text-foreground">{results.length}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Total Submissions</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center">
+        <div className="border border-border bg-card p-4 text-center">
           <p className="text-2xl font-bold text-foreground">{units.length}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Units Examined</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center">
+        <div className="border border-border bg-card p-4 text-center">
           <p className="text-2xl font-bold text-green-600">
             {results.length > 0 ? Math.round(results.reduce((sum, r) => sum + (r.mcq_total > 0 ? (r.mcq_score / r.mcq_total) * 100 : 0), 0) / results.length) : 0}%
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">Average Score</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center">
+        <div className="border border-border bg-card p-4 text-center">
           <p className="text-2xl font-bold text-primary">
             {results.length > 0 ? Math.max(...results.map((r) => r.mcq_total > 0 ? Math.round((r.mcq_score / r.mcq_total) * 100) : 0)) : 0}%
           </p>
@@ -2170,7 +2170,7 @@ function ExamResultsTab() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">Filter by Unit</label>
-          <select value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground">
+          <select value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)} className="border border-input bg-background px-3 py-2 text-sm text-foreground">
             <option value="">All Units</option>
             {units.map((u) => <option key={u} value={u}>{u}</option>)}
           </select>
@@ -2192,7 +2192,7 @@ function ExamResultsTab() {
           <p className="text-sm mt-1">Results appear here after students submit exams.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
@@ -2234,7 +2234,7 @@ function ExamResultsTab() {
       )}
 
       {units.length > 0 && (
-        <div className="mt-6 rounded-xl border border-border bg-card p-5">
+        <div className="mt-6 border border-border bg-card p-5">
           <h3 className="mb-3 font-serif text-base font-bold text-foreground">Download Results by Unit</h3>
           <div className="flex flex-wrap gap-2">
             {units.map((u) => (
@@ -2305,7 +2305,7 @@ function RecycleBinTab() {
 
   return (
     <div>
-      <div className="mb-6 rounded-xl border border-border bg-card p-5">
+      <div className="mb-6 border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-1">
           <Trash2 className="h-5 w-5 text-muted-foreground" />
           <h3 className="font-serif text-lg font-bold text-foreground">Recycle Bin</h3>
@@ -2320,7 +2320,7 @@ function RecycleBinTab() {
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+            <div key={item.id} className="flex items-center justify-between border border-border bg-card p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">{item.type}</span>
@@ -2402,7 +2402,7 @@ function InstitutionsTab() {
         <div className="flex items-center gap-2 flex-wrap">
           {(["pending", "approved", "rejected", "all"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+              className={`border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
                 filter === f ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
               }`}>
               {f}
@@ -2415,13 +2415,13 @@ function InstitutionsTab() {
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-10 text-center text-muted-foreground text-sm">
+        <div className="border border-border bg-card p-10 text-center text-muted-foreground text-sm">
           No {filter === "all" ? "" : filter} submissions found.
         </div>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 flex-wrap">
+            <div key={item.id} className="flex items-center gap-3 border border-border bg-card px-4 py-3 flex-wrap">
               <div className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide shrink-0 ${
                 item.type === "university" ? "bg-blue-500/10 text-blue-500" : "bg-purple-500/10 text-purple-500"
               }`}>
@@ -2736,7 +2736,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-2">
           <Wrench className="h-5 w-5 text-primary" />
           <h3 className="font-serif text-lg font-bold text-foreground">Bulk Article Cleanup</h3>
@@ -2750,7 +2750,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
           <select
             value={cleanupYear}
             onChange={(e) => setCleanupYear(e.target.value as (typeof CLEANUP_YEAR_OPTIONS)[number])}
-            className="rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground"
+            className="border border-input bg-background px-3 py-2 text-xs font-medium text-foreground"
             aria-label="Select cleanup year"
             disabled={anyRunning}
           >
@@ -2789,7 +2789,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
       </div>
 
       {fixLog.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="border border-border bg-card p-4">
           <h4 className="text-sm font-bold text-foreground mb-2">Activity Log</h4>
           <div className="max-h-56 overflow-y-auto space-y-0.5 text-xs text-muted-foreground font-mono">
             {fixLog.map((log, i) => <p key={i}>{log}</p>)}
@@ -2804,7 +2804,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
           </p>
           <div className="space-y-2">
             {manualReview.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+              <div key={item.id} className="flex items-center justify-between border border-border bg-card p-4">
                 <div className="min-w-0 flex-1">
                   <h5 className="font-medium text-foreground text-sm truncate">{item.title}</h5>
                   <p className="text-xs text-muted-foreground">{item.category} · {item.word_count} words</p>
@@ -2826,7 +2826,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
           </p>
           <div className="space-y-2">
             {mcqArticles.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+              <div key={item.id} className="flex items-center justify-between border border-border bg-card p-4">
                 <div className="min-w-0 flex-1">
                   <h5 className="font-medium text-foreground text-sm truncate">{item.title}</h5>
                   <p className="text-xs text-muted-foreground">{item.category} · {item.fixes.mcq_count} MCQs detected · {item.word_count} words</p>
@@ -2853,7 +2853,7 @@ function BulkCleanupTab({ onEditArticle }: { onEditArticle: (id: string) => void
           </p>
           <div className="space-y-2">
             {formatIssues.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+              <div key={item.id} className="flex items-center justify-between border border-border bg-card p-4">
                 <div className="min-w-0 flex-1">
                   <h5 className="font-medium text-foreground text-sm truncate">{item.title}</h5>
                   <p className="text-xs text-muted-foreground">{item.category} · {item.word_count} words</p>
@@ -2992,7 +2992,7 @@ function ContentUpgradeTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="h-5 w-5 text-primary" />
           <h3 className="font-serif text-lg font-bold text-foreground">AI Content Upgrade</h3>
@@ -3014,7 +3014,7 @@ function ContentUpgradeTab() {
       </div>
 
       {preview && (
-        <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 space-y-3">
+        <div className="border-2 border-primary/30 bg-primary/5 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-foreground flex items-center gap-2">
               <Eye className="h-4 w-4 text-primary" /> Preview: {preview.title}
@@ -3027,7 +3027,7 @@ function ContentUpgradeTab() {
               <Button size="sm" variant="outline" onClick={() => setPreview(null)}>Discard</Button>
             </div>
           </div>
-          <div className="max-h-96 overflow-y-auto rounded-lg border border-border bg-card p-4 text-sm text-foreground whitespace-pre-wrap">
+          <div className="max-h-96 overflow-y-auto border border-border bg-card p-4 text-sm text-foreground whitespace-pre-wrap">
             {preview.content.slice(0, 3000)}
             {preview.content.length > 3000 && <span className="text-muted-foreground">... ({preview.content.length} chars total)</span>}
           </div>
@@ -3038,7 +3038,7 @@ function ContentUpgradeTab() {
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{suggestions.length} upgrade suggestions</p>
           {suggestions.map((s) => (
-            <div key={s.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+            <div key={s.id} className="flex items-center justify-between border border-border bg-card p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
@@ -3319,21 +3319,21 @@ function SeoIndexingTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="border border-border bg-card p-5 space-y-4">
         <div className="flex items-center gap-2">
           <Search className="h-5 w-5 text-primary" />
           <h3 className="font-serif text-lg font-bold text-foreground">Generate SEO Metadata</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select value={seoYear} onChange={(e) => setSeoYear(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground" disabled={generating || loadingArticles}>
+          <select value={seoYear} onChange={(e) => setSeoYear(e.target.value)} className="border border-input bg-background px-3 py-2 text-xs font-medium text-foreground" disabled={generating || loadingArticles}>
             {CLEANUP_SEO_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
-          <select value={seoMode} onChange={(e) => setSeoMode(e.target.value as "missing" | "all")} className="rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground" disabled={generating}>
+          <select value={seoMode} onChange={(e) => setSeoMode(e.target.value as "missing" | "all")} className="border border-input bg-background px-3 py-2 text-xs font-medium text-foreground" disabled={generating}>
             <option value="missing">Only missing SEO</option>
             <option value="all">Regenerate all articles</option>
           </select>
-          <label className="flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground">
+          <label className="flex items-center gap-2 border border-input bg-background px-3 py-2 text-xs font-medium text-foreground">
             <input type="checkbox" checked={includeUnpublished} onChange={(e) => setIncludeUnpublished(e.target.checked)} /> Include drafts/raw
           </label>
           <Button onClick={handleGenerateSeo} disabled={generating} className="gap-2">
@@ -3380,7 +3380,7 @@ function SeoIndexingTab() {
       </div>
 
       {seoLog.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="border border-border bg-card p-4">
           <h4 className="text-sm font-bold text-foreground mb-2">SEO Activity Log</h4>
           <div className="max-h-56 overflow-y-auto space-y-0.5 text-xs text-muted-foreground font-mono">
             {seoLog.map((log, i) => <p key={i}>{log}</p>)}
@@ -3388,12 +3388,12 @@ function SeoIndexingTab() {
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+      <div className="border border-border bg-card p-5 space-y-3">
         <div className="flex items-center gap-2">
           <Globe className="h-5 w-5 text-primary" />
           <h3 className="font-serif text-lg font-bold text-foreground">Google Indexing – All Content</h3>
         </div>
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+        <div className="border border-primary/20 bg-primary/5 p-3">
           <p className="text-xs font-semibold text-primary mb-1">Sitemap URL</p>
           <div className="flex items-center gap-2">
             <code className="flex-1 text-xs text-foreground bg-background rounded px-2 py-1 border border-border break-all">{sitemapUrl}</code>
@@ -3403,7 +3403,7 @@ function SeoIndexingTab() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <select value={contentTypeFilter} onChange={(e) => setContentTypeFilter(e.target.value)} className="rounded-lg border border-input bg-background px-3 py-2 text-xs font-medium text-foreground">
+          <select value={contentTypeFilter} onChange={(e) => setContentTypeFilter(e.target.value)} className="border border-input bg-background px-3 py-2 text-xs font-medium text-foreground">
             {CONTENT_TYPES.map((t) => <option key={t} value={t}>{t === "all" ? "All Content" : t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
           </select>
           <Button onClick={handleLoadBatches} disabled={loadingBatches} className="gap-2">
@@ -3416,7 +3416,7 @@ function SeoIndexingTab() {
       {batches.length > 0 && (
         <div className="space-y-3">
           {batches.map((batch) => (
-            <div key={batch.batch_number} className="rounded-xl border border-border bg-card p-4">
+            <div key={batch.batch_number} className="border border-border bg-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h5 className="font-medium text-foreground">Batch {batch.batch_number}</h5>
@@ -3452,11 +3452,11 @@ function SeoIndexingTab() {
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+      <div className="border border-border bg-card p-4 space-y-3">
         <h4 className="text-sm font-bold text-foreground">All Articles SEO Status</h4>
         <div className="max-h-[34rem] overflow-auto space-y-2">
           {seoArticles.map((a) => (
-            <div key={a.id} className="rounded-lg border border-border bg-background p-3">
+            <div key={a.id} className="border border-border bg-background p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{a.title}</p>
@@ -3606,7 +3606,7 @@ function StoriesTab() {
         <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="Title" className="font-bold" />
         <Input value={editCategory} onChange={e => setEditCategory(e.target.value)} placeholder="Category" />
         
-        <div className="rounded-lg border border-border bg-secondary/30 p-4 space-y-4">
+        <div className="border border-border bg-secondary/30 p-4 space-y-4">
           <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" /> SEO & Metadata
           </h4>
@@ -3633,7 +3633,7 @@ function StoriesTab() {
         <div>
           <label className="mb-1.5 block text-sm font-medium text-foreground">Cover Image URL</label>
           <Input value={editCoverUrl} onChange={e => setEditCoverUrl(e.target.value)} placeholder="https://... (paste image URL)" />
-          {editCoverUrl && <img src={editCoverUrl} alt="Cover preview" className="mt-2 h-32 w-full rounded-lg object-cover border border-border" />}
+          {editCoverUrl && <img src={editCoverUrl} alt="Cover preview" className="mt-2 h-32 w-full border object-cover border border-border" />}
         </div>
         <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} className="min-h-[400px] resize-y font-mono text-sm" />
         <div className="flex gap-3">
@@ -3664,13 +3664,13 @@ function StoriesTab() {
   return (
     <div className="space-y-6">
       {pendingStories.length > 0 && (
-        <div className="rounded-xl border-2 border-amber-500/30 bg-amber-500/5 p-5">
+        <div className="border-2 border-amber-500/30 bg-amber-500/5 p-5">
           <h3 className="font-serif text-lg font-bold text-foreground mb-3 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-amber-500" /> Pending Submissions ({pendingStories.length})
           </h3>
           <div className="space-y-3">
             {pendingStories.map(s => (
-              <div key={s.id} className="rounded-lg border border-border bg-card p-4">
+              <div key={s.id} className="border border-border bg-card p-4">
                 <h4 className="font-bold text-foreground">{s.title}</h4>
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{s.content.slice(0, 200)}...</p>
                 <div className="flex gap-2 mt-3">
@@ -3700,7 +3700,7 @@ function StoriesTab() {
 
       <div className="space-y-3">
         {stories.map(s => (
-          <div key={s.id} className="rounded-lg border border-border bg-card p-4">
+          <div key={s.id} className="border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -3791,7 +3791,7 @@ function ImportTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card p-5">
+      <div className="border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-2">
           <Upload className="h-5 w-5 text-primary" />
           <h3 className="font-serif text-lg font-bold text-foreground">Import WordPress Posts</h3>
@@ -3801,7 +3801,7 @@ function ImportTab() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <label className="flex-1 cursor-pointer rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors p-6 text-center">
+          <label className="flex-1 cursor-pointer border-2 border-dashed border-border hover:border-primary/50 transition-colors p-6 text-center">
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm font-medium text-foreground">{fileName || "Click to select JSON file"}</p>
             {jsonData && <p className="text-xs text-primary mt-1">{jsonData.length} posts ready</p>}
@@ -3822,25 +3822,25 @@ function ImportTab() {
               <div className="bg-primary h-2.5 rounded-full transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-lg border border-border bg-background p-3 text-center">
+              <div className="border border-border bg-background p-3 text-center">
                 <p className="text-2xl font-bold text-foreground">{progress.articles}</p>
                 <p className="text-xs text-muted-foreground">Articles</p>
               </div>
-              <div className="rounded-lg border border-border bg-background p-3 text-center">
+              <div className="border border-border bg-background p-3 text-center">
                 <p className="text-2xl font-bold text-foreground">{progress.mcqs}</p>
                 <p className="text-xs text-muted-foreground">MCQ Sets</p>
               </div>
-              <div className="rounded-lg border border-border bg-background p-3 text-center">
+              <div className="border border-border bg-background p-3 text-center">
                 <p className="text-2xl font-bold text-foreground">{progress.stories}</p>
                 <p className="text-xs text-muted-foreground">Stories</p>
               </div>
-              <div className="rounded-lg border border-border bg-background p-3 text-center">
+              <div className="border border-border bg-background p-3 text-center">
                 <p className="text-2xl font-bold text-foreground">{progress.skipped}</p>
                 <p className="text-xs text-muted-foreground">Skipped</p>
               </div>
             </div>
             {progress.errors.length > 0 && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+              <div className="border border-destructive/30 bg-destructive/5 p-3">
                 <p className="text-xs font-bold text-destructive mb-1">Errors ({progress.errors.length})</p>
                 <div className="max-h-32 overflow-y-auto text-xs text-muted-foreground space-y-0.5">
                   {progress.errors.slice(0, 20).map((err, i) => <p key={i}>{err}</p>)}
@@ -3936,14 +3936,14 @@ function MetaManagerTab() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="border border-border bg-card p-4">
         <h3 className="font-serif text-lg font-bold text-foreground mb-3">Meta Title & Description Manager</h3>
         <p className="text-sm text-muted-foreground mb-4">Bulk update meta titles, descriptions, and slugs for all your content using AI.</p>
         
         <div className="flex flex-wrap gap-2 mb-4">
           {(["articles", "mcq_sets", "flashcard_sets", "essays"] as const).map(t => (
             <button key={t} onClick={() => setContentType(t)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${contentType === t ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+              className={`border px-3 py-1.5 text-xs font-medium transition-colors ${contentType === t ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
               {t === "articles" ? "Articles" : t === "mcq_sets" ? "MCQs" : t === "flashcard_sets" ? "Flashcards" : "Essays"}
             </button>
           ))}
@@ -3977,7 +3977,7 @@ function MetaManagerTab() {
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
-            <div key={item.id} className="rounded-lg border border-border bg-card p-3">
+            <div key={item.id} className="border border-border bg-card p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
