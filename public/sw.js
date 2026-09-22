@@ -6,7 +6,7 @@ const API_CACHE = "ompath-api-v4";
 // medical diagrams and must survive service-worker upgrades and app restarts.
 const OFFLINE_IMAGE_CACHE = "ompath-offline-images-v1";
 const PRESERVED_CACHES = new Set([CACHE_NAME, API_CACHE, OFFLINE_IMAGE_CACHE]);
-const STATIC_ASSETS = ["/", "/index.html", "/manifest.json"];
+const BASE_PATH = new URL("./", self.location).pathname;\nconst withBase = (path) => `${BASE_PATH}${path}`;\nconst STATIC_ASSETS = [withBase(""), withBase("index.html"), withBase("manifest.json")];
 
 // Install: cache shell
 self.addEventListener("install", (event) => {
@@ -67,7 +67,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() =>
-          caches.match(event.request).then((r) => r || caches.match("/"))
+          caches.match(event.request).then((r) => r || caches.match(withBase("")))
         )
     );
     return;
