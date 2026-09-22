@@ -155,3 +155,41 @@ html, body { background: hsl(var(--study-page)); }
     transition-duration: .001ms !important;
   }
 }
+
+
+/* Final workspace accessibility + responsive guardrails */
+.study-shell :where(button, [role="button"], input, select, textarea) {
+  min-height: 2.5rem;
+}
+.study-shell :where(input, select, textarea) {
+  max-width: 100%;
+}
+.study-shell :where(a, button, [role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+.study-shell :where(pre, code) {
+  max-width: 100%;
+}
+.study-shell :where(img, video) {
+  max-width: 100%;
+  height: auto;
+}
+.study-shell .study-resource-row > :last-child {
+  min-width: 0;
+}
+.study-shell .study-resource-row :where(h1,h2,h3,h4,p) {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 767px) {
+  .study-shell :where(button, [role="button"]) {
+    min-width: 2.5rem;
+  }
+  .study-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .45rem;
+  }
+  .study-reading {
+    max-width: 100%;
+  }
+}
