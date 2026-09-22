@@ -55,10 +55,10 @@ export function Countdown({ data }: { data: ExtrasData["countdown"] }) {
     );
   }
   if (style === "inline") {
-    return <div className="my-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-primary">{inner}</div>;
+    return <div className="my-4 border border-primary/30 bg-primary/10 px-4 py-3 text-primary">{inner}</div>;
   }
   return (
-    <div className="-mx-4 mb-4 bg-primary px-4 py-3 text-center text-primary-foreground sm:mx-0 sm:rounded-lg">
+    <div className="-mx-4 mb-4 bg-primary px-4 py-3 text-center text-primary-foreground sm:mx-0 sm:border">
       {inner}
     </div>
   );
@@ -88,7 +88,7 @@ export function PasswordGate({
   if (unlocked) return <>{children}</>;
 
   return (
-    <div className="mx-auto my-10 max-w-sm rounded-2xl border border-border bg-card p-6 text-center">
+    <div className="mx-auto my-10 max-w-sm border-y border-border bg-card p-6 text-center">
       <Lock className="mx-auto mb-3 h-8 w-8 text-primary" />
       <h2 className="mb-1 font-serif text-lg font-bold text-foreground">Password protected</h2>
       <p className="mb-4 text-sm text-muted-foreground">Enter the password your tutor shared to view this content.</p>
@@ -131,7 +131,7 @@ export function ContentToc({ content }: { content: string }) {
   }, [content]);
   if (!items.length) return null;
   return (
-    <nav aria-label="Table of contents" className="my-6 rounded-lg border border-border bg-muted/40 p-4">
+    <nav aria-label="Table of contents" className="my-6 border border-border bg-muted/40 p-4">
       <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">On this page</p>
       <ul className="space-y-1 text-sm">
         {items.map((it, i) => (
