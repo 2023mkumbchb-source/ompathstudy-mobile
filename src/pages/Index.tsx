@@ -170,23 +170,22 @@ export default function Index() {
     <div className="min-h-dvh bg-background">
       {/* ── Hero: split colour band (Osmosis/Lecturio) + checkable proof points
              (TeachMeAnatomy) + a search bar as the primary action (AMBOSS). ── */}
-      <section ref={heroRef} className="band-ink relative overflow-hidden">
+      <section ref={heroRef} className="band-ink relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" aria-hidden />
         <motion.div
           style={{ y: heroY, opacity: heroFade }}
-          className="relative mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:py-16 lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:py-20"
+          className="relative mx-auto grid max-w-6xl gap-8 px-5 py-9 sm:py-12 lg:grid-cols-[1.1fr,0.9fr] lg:items-center lg:py-14"
         >
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">
-              Free medical library · Kenya
+              YOUR MEDICAL STUDY WORKSPACE
             </span>
             <h1 className="mt-5 font-serif text-[2.15rem] font-bold leading-[1.06] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              Every note, paper and MCQ<br className="hidden sm:block" />
-              <span style={{ color: "hsl(var(--highlight))" }}> for medical school.</span>
+              Your medical study workspace<br className="hidden sm:block" />
+              <span style={{ color: "hsl(var(--highlight))" }}>Year → Unit → Topic → Exam.</span>
             </h1>
             <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/75 sm:text-base">
-              Ompath Study organises the whole MBChB syllabus — notes, past papers, CATs, MCQ banks
-              and flashcards — by year, semester and unit, so revision starts in one click.
+              Start with your year, open a unit, read the notes, practise questions, test yourself, then revise.
             </p>
 
             {/* Search-first entry */}
@@ -195,7 +194,7 @@ export default function Index() {
                 e.preventDefault();
                 navigate(query.trim() ? `/blog?q=${encodeURIComponent(query.trim())}` : "/blog");
               }}
-              className="mt-7 flex overflow-hidden rounded-xl bg-white shadow-lg shadow-black/20"
+              className="mt-6 flex max-w-2xl overflow-hidden rounded-lg bg-white shadow-md shadow-black/15"
             >
               <span className="flex items-center pl-4 text-muted-foreground"><Search className="h-4 w-4" /></span>
               <input
