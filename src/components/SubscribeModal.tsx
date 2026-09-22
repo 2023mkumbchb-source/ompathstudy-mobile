@@ -39,7 +39,7 @@ export function SubscribeModal({
   return (
     <div className="fixed inset-0 z-[130] flex items-end justify-center bg-background/80 p-3 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true">
       <div className="absolute inset-0" onClick={later} aria-hidden />
-      <div className="relative z-10 max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-2xl sm:p-7" onClick={(event) => event.stopPropagation()}>
+      <div className="relative z-10 max-h-[92vh] w-full max-w-xl overflow-y-auto border-y border-border bg-card p-5 shadow-lg sm:p-7" onClick={(event) => event.stopPropagation()}>
         <button
           type="button"
           onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); close(); }}
