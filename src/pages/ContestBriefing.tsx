@@ -58,25 +58,25 @@ export default function ContestBriefing() {
       <div className="mx-auto max-w-5xl px-5 py-8 sm:py-12">
         <Link to="/contests" className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white"><ArrowLeft className="h-4 w-4" /> Contest overview</Link>
 
-        <div className="mt-8 overflow-hidden rounded-2xl border border-teal-300/20 bg-[#071315] shadow-2xl shadow-teal-950/30">
+        <div className="mt-8 overflow-hidden border-y border-teal-300/20 bg-[#071315]">
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.14em] text-teal-300/75">
             <span>{typed}<span className="ml-1 animate-pulse">▌</span></span>
             <span className="hidden capitalize sm:inline">Stage: {contest.stage}</span>
           </div>
 
           <div className="p-6 sm:p-10">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-teal-300/20 bg-teal-300/10"><ShieldCheck className="h-7 w-7 text-teal-300" /></div>
+            <div className="flex h-14 w-14 items-center justify-center border border-teal-300/20 bg-teal-300/10"><ShieldCheck className="h-7 w-7 text-teal-300" /></div>
             <p className="mt-7 text-xs font-bold uppercase tracking-[0.2em] text-teal-300">Participant briefing</p>
             <h1 className="mt-3 max-w-3xl font-serif text-3xl font-bold sm:text-5xl">{contest.title}</h1>
             <p className="mt-4 max-w-2xl leading-relaxed text-white/55">{contest.subtitle || "Review the contest requirements before registration and entry."}</p>
             {contest.shareImageUrl && <img src={contest.shareImageUrl} alt={`${contest.title} poster`} className="mt-6 max-h-80 w-full rounded-xl border border-white/10 object-cover" />}
             <ShareButtons url={`https://www.ompathstudy.com/contests/${contest.slug}/briefing`} title={contest.title} description={contest.subtitle} className="mt-5" />
-            {nextRound?.starts_at && nextRound.status !== "live" && <ContestCountdown startsAt={nextRound.starts_at} className="mt-6 rounded-xl border border-teal-300/20 bg-teal-300/[0.07] p-4" />}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Questions</p><p className="mt-1 font-bold">{nextRound?.question_count || "Pending"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Duration</p><p className="mt-1 font-bold">{nextRound ? `${Math.round(nextRound.duration_seconds / 60)} min` : "Pending"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Eligible years</p><p className="mt-1 font-bold">{contest.years.join(", ") || "All"}</p></div><div className="rounded-xl border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Subject</p><p className="mt-1 truncate font-bold">{contest.subjects.join(", ") || "Medical"}</p></div></div>
+            {nextRound?.starts_at && nextRound.status !== "live" && <ContestCountdown startsAt={nextRound.starts_at} className="mt-6 border-y border-teal-300/20 bg-teal-300/[0.07] p-4" />}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Questions</p><p className="mt-1 font-bold">{nextRound?.question_count || "Pending"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Duration</p><p className="mt-1 font-bold">{nextRound ? `${Math.round(nextRound.duration_seconds / 60)} min` : "Pending"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Eligible years</p><p className="mt-1 font-bold">{contest.years.join(", ") || "All"}</p></div><div className="border border-white/10 p-3"><p className="text-[10px] uppercase text-white/35">Subject</p><p className="mt-1 truncate font-bold">{contest.subjects.join(", ") || "Medical"}</p></div></div>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2">
               {checks.map(({ icon: Icon, label, detail }) => (
-                <div key={label} className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+                <div key={label} className="flex gap-4 border-y border-white/10 bg-white/[0.025] p-4">
                   <Icon className="mt-0.5 h-5 w-5 shrink-0 text-teal-300" />
                   <div><p className="text-sm font-bold">{label}</p><p className="mt-1 text-xs text-white/40">{detail}</p></div>
                 </div>
@@ -92,7 +92,7 @@ export default function ContestBriefing() {
               </ol>
             </div>
 
-            <label className="mt-9 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4">
+            <label className="mt-9 flex cursor-pointer items-start gap-3 border-y border-white/10 bg-white/[0.025] p-4">
               <input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} className="mt-0.5 h-4 w-4 accent-teal-300" />
               <span className="text-sm leading-relaxed text-white/65">I understand how integrity events will be recorded and reviewed during an official contest.</span>
             </label>
