@@ -105,7 +105,7 @@ export default function Login() {
       </Helmet>
       <div className="w-full max-w-sm">
         <div className="border-y border-border bg-card p-6 sm:p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-primary/10 text-primary">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h1 className="mb-1 text-center font-serif text-2xl font-bold text-foreground">
