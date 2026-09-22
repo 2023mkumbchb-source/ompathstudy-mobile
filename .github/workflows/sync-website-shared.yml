@@ -1,0 +1,76 @@
+name: Sync Shared Code from Website
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-website-shared
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mobile repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout website repository
+        uses: actions/checkout@v4
+        with:
+          repository: 2023mkumbchb-source/story-weave-box
+          ref: main
+          path: .website-source
+          fetch-depth: 1
+
+      - name: Apply allowlisted shared files
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            mkdir -p "$(dirname "$file")"
+            cp ".website-source/$file" "$file"
+          done < <(node -e 'const m = require("./sync/website-shared.json"); for (const f of m.files) console.log(f);')
+
+      - name: Check for changes
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet -- src/lib/academic.ts src/pages/Essays.tsx; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create sync branch and commit
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="sync/website-shared-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/academic.ts src/pages/Essays.tsx
+          git commit -m "Sync shared code from website"
+          git push --set-upstream origin "$branch"
+
+      - name: Open sync pull request
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh pr create \
+            --base main \
+            --head "sync/website-shared-${GITHUB_RUN_ID}" \
+            --title "Sync shared code from website" \
+            --body "Automated sync from 2023mkumbchb-source/story-weave-box@main. Only the allowlisted shared files in sync/website-shared.json are copied. Mobile-specific files are intentionally excluded."
