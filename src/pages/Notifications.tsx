@@ -220,7 +220,7 @@ export default function Notifications() {
       </div>
 
       {/* Mobile Notification Controls Card */}
-      <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="border-y border-border bg-card p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="h-4 w-4 text-primary" />
@@ -240,7 +240,7 @@ export default function Notifications() {
 
         {/* Android Permission Banner if needed */}
         {permissionStatus !== "granted" && (
-          <div className="flex items-start justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+          <div className="flex items-start justify-between gap-3 border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
             <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <div>
@@ -263,7 +263,7 @@ export default function Notifications() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           {/* Push Notifications */}
-          <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/20 p-3">
+          <div className="flex items-center justify-between border border-border/70 bg-muted/20 p-3">
             <div>
               <span className="block text-xs font-semibold text-foreground">Status Bar Push</span>
               <span className="text-[10px] text-muted-foreground">Android tray alerts</span>
@@ -275,7 +275,7 @@ export default function Notifications() {
           </div>
 
           {/* WhatsApp Popups */}
-          <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/20 p-3">
+          <div className="flex items-center justify-between border border-border/70 bg-muted/20 p-3">
             <div>
               <span className="block text-xs font-semibold text-foreground">In-App Popups</span>
               <span className="text-[10px] text-muted-foreground">Floating banners</span>
@@ -287,7 +287,7 @@ export default function Notifications() {
           </div>
 
           {/* Sound / Chime */}
-          <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/20 p-3">
+          <div className="flex items-center justify-between border border-border/70 bg-muted/20 p-3">
             <div>
               <span className="block text-xs font-semibold text-foreground">Alert Chimes</span>
               <span className="text-[10px] text-muted-foreground">Sound on new alert</span>
@@ -326,7 +326,7 @@ export default function Notifications() {
       {/* Notification List */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
+          <div className="flex flex-col items-center justify-center border-y border-dashed border-border py-16 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground mb-3">
               <Bell className="h-6 w-6 opacity-40" />
             </div>
@@ -345,7 +345,7 @@ export default function Notifications() {
               <div
                 key={item.id}
                 onClick={() => handleSelect(item)}
-                className={`group relative cursor-pointer rounded-2xl border p-4 transition-all ${
+                className={`group relative cursor-pointer border-y p-4 transition-all ${
                   isUnread
                     ? "border-primary/30 bg-primary/5 hover:border-primary/50 shadow-xs"
                     : "border-border bg-card hover:bg-muted/30"
