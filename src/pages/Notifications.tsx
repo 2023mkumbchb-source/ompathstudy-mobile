@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
