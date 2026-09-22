@@ -36,7 +36,7 @@ export default function ExamCountdownWidget({
   if (!activeExamAlert) {
     return (
       <div
-        className={`relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 ${className}`}
+        className={`relative overflow-hidden border-y border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 ${className}`}
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -75,7 +75,7 @@ export default function ExamCountdownWidget({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 p-4 sm:p-5 shadow-lg ${className}`}
+      className={`relative overflow-hidden border-y-2 border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 p-4 sm:p-5 shadow-lg ${className}`}
     >
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5">
@@ -105,7 +105,7 @@ export default function ExamCountdownWidget({
         {activeExamAlert.action_url && (
           <Link
             to={activeExamAlert.action_url}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-950 transition-all hover:bg-amber-400 hover:shadow-md hover:scale-105"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-950 transition-all hover:bg-amber-400 hover:bg-muted/40 hover:scale-105"
           >
             <span>Open Exam Bank</span>
             <ArrowRight className="h-4 w-4" />
