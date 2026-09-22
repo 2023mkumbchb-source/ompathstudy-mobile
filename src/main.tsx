@@ -51,7 +51,7 @@ window.addEventListener("unhandledrejection", (e) => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").then(() => {
+    navigator.serviceWorker.register(new URL("sw.js", import.meta.env.BASE_URL).toString()).then(() => {
       const SUPA = SUPABASE_URL;
       const KEY = SUPABASE_PUBLISHABLE_KEY;
       if (!SUPA || !KEY) return;
