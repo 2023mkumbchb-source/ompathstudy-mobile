@@ -337,7 +337,7 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-xl"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-md"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="rounded-full bg-destructive/10 p-2">
@@ -378,11 +378,11 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-xl"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-md"
           >
             <h3 className="font-serif text-base font-bold text-foreground mb-2">Submit Exam?</h3>
             {unanswered > 0 && (
-              <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-2">
+              <div className="mb-3 border border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-2">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                 {unanswered} question{unanswered > 1 ? "s" : ""} unanswered — marked wrong.
               </div>
@@ -432,7 +432,7 @@ export default function ExamMode({
       <div className="min-h-screen bg-background px-3 sm:px-6 py-6 pb-20">
         <div className="mx-auto max-w-2xl space-y-4">
           {reasonNote[submitReason] && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 text-sm text-destructive">
+            <div className="border border border-destructive/30 bg-destructive/5 p-3 flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{reasonNote[submitReason]}</span>
             </div>
@@ -484,7 +484,7 @@ export default function ExamMode({
             </div>
           </motion.div>
 
-          <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+          <div className="border border border-green-500/20 bg-green-500/5 p-3 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
             <CheckCircle className="h-4 w-4 shrink-0" />
             Results and answers are available immediately.
           </div>
@@ -566,7 +566,7 @@ export default function ExamMode({
                   </div>
 
                   {q.explanation && (
-                    <div className="mt-2 ml-8 rounded-lg border border-primary/20 bg-primary/5 p-2 flex gap-1.5">
+                    <div className="mt-2 ml-8 border border border-primary/20 bg-primary/5 p-2 flex gap-1.5">
                       <Lightbulb className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
                       <p className="text-[10px] sm:text-xs text-foreground leading-relaxed break-words">
                         {q.explanation}
@@ -642,8 +642,8 @@ export default function ExamMode({
           return (
             <div key={qi}>
               {isPaywalled && qi === freeLimit && (
-                <div className="mb-3 rounded-xl border border-primary/30 bg-card p-5 text-center shadow-sm">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="mb-3 border border border-primary/30 bg-card p-5 text-center shadow-sm">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center border bg-primary/10 text-primary">
                     <Lock className="h-5 w-5" />
                   </div>
 
@@ -661,20 +661,20 @@ export default function ExamMode({
                   </p>
 
                   {paymentStatus === "pending" ? (
-                    <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
+                    <div className="border border border-primary/30 bg-primary/10 p-3">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin text-primary" />
                       <p className="mt-2 text-sm font-medium text-foreground">Check your phone</p>
                       <p className="text-xs text-muted-foreground">Enter your M-Pesa PIN to complete.</p>
                     </div>
                   ) : paymentStatus === "failed" ? (
-                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                    <div className="border border border-destructive/30 bg-destructive/10 p-3">
                       <p className="text-sm font-medium text-foreground">Payment failed</p>
                       <Button size="sm" variant="outline" className="mt-2" onClick={onRetryPay}>
                         Try again
                       </Button>
                     </div>
                   ) : paymentStatus === "completed" ? (
-                    <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
+                    <div className="border border border-primary/30 bg-primary/10 p-3">
                       <CheckCircle className="mx-auto h-5 w-5 text-primary" />
                       <p className="mt-2 text-sm font-medium text-foreground">
                         Unlocked. Continue your exam.
@@ -703,7 +703,7 @@ export default function ExamMode({
               )}
 
               <div
-                className={`relative rounded-xl border p-3 transition-colors ${
+                className={`relative border border p-3 transition-colors ${
                   selected !== undefined
                     ? "border-primary/30 bg-primary/5"
                     : "border-border bg-card"
@@ -731,7 +731,7 @@ export default function ExamMode({
                       key={oi}
                       onClick={() => selectAnswer(qi, oi)}
                       disabled={lockedByPaywall}
-                      className={`w-full flex items-start gap-1.5 rounded-lg border p-2 text-xs sm:text-sm text-left transition-colors ${
+                      className={`w-full flex items-start gap-1.5 border border p-2 text-xs sm:text-sm text-left transition-colors ${
                         selected === oi
                           ? "border-primary bg-primary/10 text-primary font-medium"
                           : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
