@@ -38,7 +38,7 @@ export default function NoteCard({ article }: { article: Article }) {
     <Link
       to={buildBlogPath(article)}
       state={{ from: `${location.pathname}${location.search}` }}
-      className="group flex h-full flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-muted/30"
+      className="group flex h-full flex-col border border-border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-muted/30"
     >
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
         {trail.slice(0, -1).map((part, i) => (
