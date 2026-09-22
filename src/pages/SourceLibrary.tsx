@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Check, Clipboard, Download, FileQuestion, Loader2, Save, Search } from "lucide-react";
