@@ -551,7 +551,7 @@ export default function Blog() {
                                 <button
                                   key={u.category}
                                   onClick={() => setUnit(selectedUnit === u.category ? null : u.category)}
-                                  className={`flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-all duration-200 ${selectedUnit === u.category ? "bg-primary/15 text-primary font-semibold shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm"}`}
+                                  className={`flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-xs transition-colors duration-150 ${selectedUnit === u.category ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
                                 >
                                   <span className="truncate">{u.name}</span>
                                   <span className="ml-2 shrink-0 text-[10px] text-muted-foreground">{u.count}</span>
