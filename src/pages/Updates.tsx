@@ -84,8 +84,8 @@ export default function Updates() {
         <p className="mt-3 text-xs text-muted-foreground">Keep the app open. It will restart automatically when installation completes.</p>
       </div>}
 
-      {phase === "current" && <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4"><CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" /><div><p className="font-semibold text-foreground">Your app is up to date</p><p className="text-xs text-muted-foreground">No download or reinstall is needed.</p></div></div>}
-      {phase === "available" && <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4"><Download className="mt-0.5 h-5 w-5 text-primary" /><div><p className="font-semibold text-foreground">Update {latest?.version} is ready</p><p className="text-xs text-muted-foreground">Tap Update now. Installation and restart are automatic.</p></div></div>}
+      {phase === "current" && <div className="mt-6 flex items-start gap-3 border-y border-emerald-500/20 bg-emerald-500/10 p-4"><CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" /><div><p className="font-semibold text-foreground">Your app is up to date</p><p className="text-xs text-muted-foreground">No download or reinstall is needed.</p></div></div>}
+      {phase === "available" && <div className="mt-6 flex items-start gap-3 border-y border-primary/20 bg-primary/5 p-4"><Download className="mt-0.5 h-5 w-5 text-primary" /><div><p className="font-semibold text-foreground">Update {latest?.version} is ready</p><p className="text-xs text-muted-foreground">Tap Update now. Installation and restart are automatic.</p></div></div>}
       {phase === "error" && <p className="mt-5 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
       {!native && <p className="mt-5 rounded-xl bg-amber-500/10 p-3 text-sm text-amber-700">Open this page inside the Android app to install updates.</p>}
 
@@ -104,7 +104,7 @@ export default function Updates() {
       {!!offline?.failedImageCount && <p className="mt-3 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-700">{offline.failedImageCount} images still require download. Reconnect to Wi-Fi and synchronize again.</p>}
       {offline?.lastSync && <p className="mt-3 text-xs text-muted-foreground">Last synchronized: {new Date(offline.lastSync).toLocaleString()}</p>}
       {syncing && <div className="mt-5"><div className="mb-2 flex justify-between text-xs"><span>{syncMessage}</span><strong>{syncProgress}%</strong></div><div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${syncProgress}%` }} /></div></div>}
-      <button disabled={syncing || !navigator.onLine} onClick={() => void syncOffline()} className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-primary/30 px-4 text-sm font-bold text-primary disabled:opacity-50">{syncing ? <><Loader2 className="h-4 w-4 animate-spin" /> Synchronizing…</> : <><RefreshCw className="h-4 w-4" /> Synchronize entire library</>}</button>
+      <button disabled={syncing || !navigator.onLine} onClick={() => void syncOffline()} className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 border border-primary/30 px-4 text-sm font-bold text-primary disabled:opacity-50">{syncing ? <><Loader2 className="h-4 w-4 animate-spin" /> Synchronizing…</> : <><RefreshCw className="h-4 w-4" /> Synchronize entire library</>}</button>
     </div>
   </main>;
 }
