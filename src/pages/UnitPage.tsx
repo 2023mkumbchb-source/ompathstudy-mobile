@@ -201,22 +201,22 @@ export default function UnitPage() {
         </script>
       </Helmet>
 
-      <nav aria-label="Breadcrumb" className="mb-3 text-xs text-muted-foreground">
+      <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-1.5 overflow-x-auto text-xs text-muted-foreground">
         <Link to="/" className="hover:text-primary">Home</Link> ›{" "}
         <Link to={`/year/${year}`} className="hover:text-primary">Year {year}</Link> ›{" "}
         <span className="text-foreground">{unit.name}</span>
       </nav>
 
-      <header className="rounded-2xl border border-border bg-card p-6">
+      <header className="study-surface border-x-0 border-t-0 bg-transparent px-0 pb-6 pt-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
           Year {year}{unit.course_code ? ` · ${unit.course_code}` : ""}
         </p>
         <h1 className="mt-1 font-serif text-3xl font-bold text-foreground">{unit.name}</h1>
         {unit.description && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{unit.description}</p>}
 
-        <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <dl className="mt-6 grid grid-cols-2 gap-0 divide-x divide-y divide-border border-y border-border sm:grid-cols-5 sm:divide-y-0">
           {counts.map((c) => (
-            <div key={c.label} className="rounded-xl border border-border bg-background p-3">
+            <div key={c.label} className="bg-background p-3 sm:p-4">
               <dt className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                 <c.icon className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                 {c.label}
