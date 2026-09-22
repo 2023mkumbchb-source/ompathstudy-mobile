@@ -1,49 +1,45 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Award, User, Sparkles } from "lucide-react";
+import { Home, BookOpen, ClipboardList, RotateCcw, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function MobileBottomNav() {
   const location = useLocation();
-  const currentPath = location.pathname;
   const { user } = useAuth();
 
   const navItems = [
     { label: "Home", path: "/", icon: Home },
-    { label: "Library", path: "/blog", icon: BookOpen },
-    { label: "MCQs", path: "/mcqs", icon: Award },
-    { label: user ? "Account" : "Sign In", path: user ? "/account" : "/login", icon: User },
+    { label: "Study", path: "/blog", icon: BookOpen },
+    { label: "Practice", path: "/mcqs", icon: ClipboardList },
+    { label: "Revision", path: "/revision-index", icon: RotateCcw },
+    { label: user ? "Account" : "Sign in", path: user ? "/account" : "/login", icon: User },
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border shadow-lg safe-area-pb">
-      <div className="flex items-center justify-around h-14 max-w-md mx-auto px-2">
+    <nav
+      aria-label="Primary mobile navigation"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[90] border-t border-border bg-background/98 shadow-[0_-4px_18px_hsl(var(--foreground)/.06)] safe-area-pb"
+    >
+      <div className="mx-auto flex h-14 max-w-xl items-stretch px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             item.path === "/"
-              ? currentPath === "/"
-              : currentPath.startsWith(item.path);
+              ? location.pathname === "/"
+              : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
 
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[11px] font-medium transition-colors ${
-                isActive
-                  ? "text-primary font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              aria-current={isActive ? "page" : undefined}
+              className={[
+                "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5",
+                "text-[10px] font-semibold transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
             >
-              <div className="relative">
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.75} />
-                {item.label === "Account" && (
-                  <Sparkles
-                    size={8}
-                    className="absolute -top-1 -right-1 text-emerald-500 fill-emerald-500"
-                  />
-                )}
-              </div>
-              <span className="mt-0.5 tracking-tight">{item.label}</span>
+              <Icon aria-hidden="true" className="h-[19px] w-[19px]" strokeWidth={isActive ? 2.4 : 1.8} />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
