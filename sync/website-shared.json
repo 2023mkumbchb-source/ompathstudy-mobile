@@ -1,0 +1,8 @@
+{
+  "sourceRepository": "2023mkumbchb-source/story-weave-box",
+  "sourceBranch": "main",
+  "files": [
+    "src/lib/academic.ts",
+    "src/pages/Essays.tsx"
+  ]
+}
