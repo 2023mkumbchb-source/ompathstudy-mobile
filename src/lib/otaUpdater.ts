@@ -132,28 +132,34 @@ export async function initOtaUpdater(onStatus?: (message: string, progress?: num
   if (!Capacitor.isNativePlatform()) return;
 
   try {
-    // 1. Confirm app boot to native plugin (prevents rollback)
     await CapacitorUpdater.notifyAppReady().catch(() => {});
 
-    // 2. If online, check if a remote web bundle is published in app_settings
     if (typeof navigator !== "undefined" && navigator.onLine) {
       const bundleInfo = await getLatestBundle();
       if (bundleInfo) {
         try {
           const current = await CapacitorUpdater.current();
+          const installedVersion = localStorage.getItem("ompath_update_installed");
+          const activeVersion = current?.bundle?.version;
+          const alreadyInstalled =
+            installedVersion === bundleInfo.version ||
+            activeVersion === bundleInfo.version;
 
-          if (
-            bundleInfo.version &&
-            bundleInfo.url &&
-            current?.bundle?.version !== bundleInfo.version
-          ) {
-            onStatus?.("Updating Ompath — small update, this shouldn’t take long…", 0);\n            console.log(`[OTA] Downloading live update bundle v${bundleInfo.version}...`);
+          if (bundleInfo.version && bundleInfo.url && !alreadyInstalled) {
+            onStatus?.("Updating Ompath — small update, this shouldn’t take long…", 0);
+            console.log(`[OTA] Downloading live update bundle v${bundleInfo.version}...`);
+
             const downloaded = await CapacitorUpdater.download({
               url: bundleInfo.url,
               version: bundleInfo.version,
             });
 
-            onStatus?.("Update downloaded. Applying it now…", 100);\n\n            // Set bundle to activate on next backgrounding or launch
+            onStatus?.("Update downloaded. Applying it now…", 100);
+
+            // Persist the exact version so this same update is never
+            // downloaded again on the next app launch.
+            localStorage.setItem("ompath_update_installed", bundleInfo.version);
+
             await CapacitorUpdater.next({ id: downloaded.id });
             console.log(`[OTA] Live update v${bundleInfo.version} ready for next launch!`);
           }
