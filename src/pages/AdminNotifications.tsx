@@ -23,7 +23,7 @@ export default function AdminNotifications() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/admin"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
           <span>Back to Dashboard</span>
