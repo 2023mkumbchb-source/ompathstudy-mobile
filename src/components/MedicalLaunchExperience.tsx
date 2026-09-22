@@ -35,7 +35,7 @@ export default function MedicalLaunchExperience() {
             {steps.map((Icon, index) => (
               <div key={index} className="flex items-center gap-2 sm:gap-4">
                 <motion.span
-                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 shadow-lg sm:h-14 sm:w-14"
+                  className="flex h-11 w-11 items-center justify-center border-y border-white/15 bg-white/10 shadow-lg sm:h-14 sm:w-14"
                   initial={{ opacity: 0.25, y: 10, scale: 0.85 }}
                   animate={{ opacity: [0.3, 1, 0.55], y: [10, 0, 0], scale: [0.85, 1.08, 1] }}
                   transition={{ duration: 0.75, delay: index * 0.28 }}
