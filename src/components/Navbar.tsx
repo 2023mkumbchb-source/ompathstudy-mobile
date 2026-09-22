@@ -57,12 +57,14 @@ export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedYear, setExpandedYear] = useState<number | null>(null);
 
-  // Desktop horizontal links
+  // Desktop navigation follows the student's workflow: Study → Practice → Exams → Revision.
   const links = useMemo(() => {
     const base = [
-      { to: "/", label: "Home", icon: Home },
-      { to: "/revision-index", label: "Exam Revision", icon: ListChecks },
-      { to: "/contests", label: "Mega Contest", icon: Trophy },
+      { to: "/blog", label: "Study", icon: BookOpen },
+      { to: "/mcqs", label: "Practice", icon: ListChecks },
+      { to: "/exams", label: "Exams", icon: Trophy },
+      { to: "/revision-index", label: "Revision", icon: Target },
+      { to: "/stories", label: "Stories", icon: BookOpen },
     ];
     if (user) {
       base.push({ to: "/my-revision", label: "My Revision", icon: Target });
@@ -80,11 +82,13 @@ export default function Navbar() {
   // Mobile drawer links: exclude Home & Account (already in bottom nav!) and focus on study tools
   const mobileDrawerLinks = useMemo(() => {
     const base = [
+      { to: "/blog", label: "Study Library", icon: BookOpen },
+      { to: "/mcqs", label: "MCQ Practice", icon: ListChecks },
+      { to: "/flashcards", label: "Flashcards", icon: GraduationCap },
+      { to: "/exams", label: "CATs & Exams", icon: Trophy },
+      { to: "/revision-index", label: "Revision", icon: Target },
+      { to: "/stories", label: "Stories", icon: BookOpen },
       { to: "/updates", label: "App Updates & Offline Library", icon: Database },
-      { to: "/revision-index", label: "Exam Revision Bank", icon: ListChecks },
-      { to: "/exams", label: "Timed Weekly Exams", icon: Clock },
-      { to: "/contests", label: "Mega Contests", icon: Trophy },
-      { to: "/stories", label: "Medical Stories", icon: BookOpen },
     ];
     if (user) base.unshift(
       { to: "/notifications", label: "Notifications & Alerts", icon: Bell },
