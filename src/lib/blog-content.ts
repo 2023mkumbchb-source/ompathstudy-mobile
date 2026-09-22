@@ -262,7 +262,7 @@ export function extractExamQuestions(rawContent: string): { mcqs: PreviewMcq[]; 
   };
 
   const isQuestionHeaderOnly = (text: string) =>
-    /^(?:Q(?:uestion)?\s*)\d+[a-z]?\s*$/i.test(text);
+    /^(?:Q(?:uestion)?\s*)?\d+[a-z]?\s*[:.)-]?\s*$/i.test(text);
 
   const looksLikeMcqAhead = (index: number) => {
     let markers = 0;
