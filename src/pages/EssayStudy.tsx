@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Loader2, ChevronDown, ChevronUp, FileText, BookOpen } from "lucide-react";
