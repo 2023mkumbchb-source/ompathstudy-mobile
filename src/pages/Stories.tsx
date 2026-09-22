@@ -89,11 +89,10 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05 }}
-      whileHover={{ y: -3 }}
     >
       <Link
         to={buildStoryPath(story)}
-        className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-md"
+        className="group flex h-full flex-col overflow-hidden border-y border-border bg-background transition-colors hover:bg-primary/5"
       >
         {/* Thumbnail */}
         <div className="relative h-44 overflow-hidden bg-muted">
@@ -185,7 +184,7 @@ export default function Stories() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-10 sm:px-6 sm:py-14">
+    <div className="mx-auto max-w-5xl px-5 py-9 sm:px-6 sm:py-12">
 
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
