@@ -177,7 +177,7 @@ export default function SupplementaryRevision() {
           <p className="mt-4 text-base leading-7 text-muted-foreground sm:text-lg">Seven examinable areas, correctly separated by year and taught in three passes: understand, retrieve, then perform under time.</p>
           <div className="mt-6 border-y border-border bg-background p-4">
             <div className="flex items-center justify-between text-sm font-semibold"><span>{done.length} of {plan.length} days completed</span><span>{progress}%</span></div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} /></div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-colors" style={{ width: `${progress}%` }} /></div>
           </div>
         </div>
       </section>
