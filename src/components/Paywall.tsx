@@ -164,14 +164,14 @@ export function Paywall({
 
   if (issued) {
     return (
-      <div className={`not-prose text-center ${bare ? "" : "my-8 rounded-2xl border border-primary/30 bg-primary/5 p-6"}`}>
+      <div className={`not-prose text-center ${bare ? "" : "my-8 border-y border-primary/30 bg-primary/5 p-6"}`}>
         <ShieldCheck className="mx-auto h-8 w-8 text-primary" />
         <p className="mt-3 font-serif text-lg font-bold text-foreground">Subscription active</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Valid until {new Date(issued.expires_at).toLocaleDateString()}. Answers and PDF handouts are unlocked.
         </p>
 
-        <div className="mx-auto mt-4 max-w-sm rounded-xl border border-border bg-card p-4 text-left">
+        <div className="mx-auto mt-4 max-w-sm border border-border bg-card p-4 text-left">
           <p className="mb-1.5 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
             <Pencil className="h-3 w-3" /> Your pass code — you can change it
           </p>
@@ -179,13 +179,13 @@ export function Paywall({
             <input
               value={customCode}
               onChange={(e) => setCustomCode(normalizePassCode(e.target.value))}
-              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm font-bold text-foreground outline-none focus:border-primary"
+              className="flex-1 border border-border bg-background px-3 py-2 font-mono text-sm font-bold text-foreground outline-none focus:border-primary"
             />
             <button
               type="button"
               onClick={applyCustomCode}
               disabled={renaming || !customCode.trim() || customCode.trim().toUpperCase() === issued.code}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 border bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
             >
               {renaming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               Save
@@ -208,7 +208,7 @@ export function Paywall({
   const busy = state === "sending" || state === "waiting";
 
   return (
-    <div className={`not-prose relative overflow-hidden ${bare ? "" : "my-8 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"}`}>
+    <div className={`not-prose relative overflow-hidden ${bare ? "" : "my-8 border-y border-border bg-card p-6 shadow-sm sm:p-8"}`}>
       <div className="mx-auto max-w-lg text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
           <Lock className="h-3 w-3" /> Subscribers only
@@ -251,7 +251,7 @@ export function Paywall({
                   key={p.id}
                   type="button"
                   onClick={() => setPlanId(p.id)}
-                  className={`rounded-xl border p-3 transition-colors ${planId === p.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                  className={`border p-3 transition-colors ${planId === p.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
                 >
                   <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{p.label}</p>
                   <p className="mt-1 font-serif text-lg font-bold text-foreground">KES {p.price}</p>
@@ -267,7 +267,7 @@ export function Paywall({
             </div>
 
             {!user && !authLoading && (
-              <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-4 text-left">
+              <div className="mt-4 border border-primary/25 bg-primary/5 p-4 text-left">
                 <p className="text-xs font-bold uppercase tracking-wide text-primary">Step 1 · Sign in</p>
                 <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
                   Sign in with your Gmail account first. We bring you straight back to this page to finish the M-Pesa payment,
@@ -311,7 +311,7 @@ export function Paywall({
             </div>
 
             {busy && (
-              <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-4 text-left">
+              <div className="mt-4 border border-primary/25 bg-primary/5 p-4 text-left">
                 <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-primary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Payment in progress
                 </p>
@@ -366,7 +366,7 @@ export function Paywall({
 /** Small banner used when the admin has set the site price to zero. */
 export function FreeAccessBanner({ count, label = "questions" }: { count: number; label?: string }) {
   return (
-    <div className="not-prose mb-5 flex items-center gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3">
+    <div className="not-prose mb-5 flex items-center gap-3 border border-primary/25 bg-primary/5 px-4 py-3">
       <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
       <p className="text-[13px] font-semibold leading-snug text-foreground">
         This page is free to view — every {label.replace(/s$/, "")} and the full answer key are unlocked.
