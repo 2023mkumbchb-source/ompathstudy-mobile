@@ -3,24 +3,17 @@ import { Link } from "react-router-dom";
 import { Loader2, BookOpen, Search, X, PenLine, Clock, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { buildStoryPath, stripRichText, updateMetaTags, SITE_URL } from "@/lib/seo";
-import { hasStoryContent } from "@/lib/content-policy";
+import { buildStoryPath, updateMetaTags, SITE_URL } from "@/lib/seo";
 import { getStoriesOffline, saveStoriesOffline } from "@/lib/offlineStore";
 
 interface Story {
   id: string;
   title: string;
-  content: string;
+  meta_description?: string | null;
   category: string;
   published: boolean;
   created_at: string;
   cover_image_url?: string | null;
-}
-
-function readTime(content: string): string {
-  const words = stripRichText(content || "").split(/\s+/).filter(Boolean).length;
-  const mins = Math.max(1, Math.round(words / 200));
-  return `${mins} min read`;
 }
 
 function formatDate(iso: string): string {
@@ -30,7 +23,7 @@ function formatDate(iso: string): string {
 /* ─── Featured (first) story card ─── */
 function FeaturedCard({ story }: { story: Story }) {
   const thumb = story.cover_image_url || null;
-  const preview = stripRichText(story.content || "").replace(/^\d+\.?\s*/g, "").slice(0, 220);
+  const preview = story.meta_description || "A medical story from the OmpathStudy community.";
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -69,7 +62,7 @@ function FeaturedCard({ story }: { story: Story }) {
               )}
               <span className="text-xs text-muted-foreground">{formatDate(story.created_at)}</span>
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" /> {readTime(story.content)}
+                <Clock className="h-3 w-3" /> Medical story
               </span>
             </div>
             <h2 className="mb-3 font-serif text-2xl font-bold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-3xl">
@@ -159,7 +152,7 @@ export default function Stories() {
 
   useEffect(() => {
     void getStoriesOffline().then((cached) => {
-      if (cached.length) setStories((cached as unknown as Story[]).filter(hasStoryContent));
+      if (cached.length) setStories((cached as unknown as Story[]));
     });
     supabase
       .from("stories")
