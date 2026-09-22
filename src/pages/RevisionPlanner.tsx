@@ -219,7 +219,7 @@ export default function RevisionPlanner() {
         <LockKeyhole className="mx-auto h-8 w-8 text-primary" />
         <h1 className="mt-3 font-serif text-3xl font-bold">Revision Planner</h1>
         <p className="mt-2 text-muted-foreground">Sign in to create and save a personal examination plan.</p>
-        <Link to="/login" className="mt-5 inline-block rounded-lg bg-primary px-5 py-2.5 font-bold text-primary-foreground">
+        <Link to="/login" className="mt-5 inline-block border bg-primary px-5 py-2.5 font-bold text-primary-foreground">
           Sign in
         </Link>
       </main>
@@ -241,16 +241,16 @@ export default function RevisionPlanner() {
 
       {planLoading ? (
         <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
-          <Skeleton className="h-96 w-full rounded-2xl" />
+          <Skeleton className="h-96 w-full border-y" />
           <div className="space-y-2">
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-16 w-full rounded-xl" />
+            <Skeleton className="h-16 w-full border" />
+            <Skeleton className="h-16 w-full border" />
+            <Skeleton className="h-16 w-full border" />
           </div>
         </div>
       ) : activePlan ? (
         <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
-          <div className="h-fit rounded-2xl border border-border bg-card p-5">
+          <div className="h-fit border-y border-border bg-card p-5">
             <CalendarDays className="h-6 w-6 text-primary" aria-hidden="true" />
             <h1 className="mt-3 font-serif text-2xl font-bold">{activePlan.title}</h1>
             <dl className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -305,7 +305,7 @@ export default function RevisionPlanner() {
                     type="button"
                     onClick={() => toggle(i)}
                     aria-pressed={i.status === "completed"}
-                    className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
+                    className={`flex w-full items-center gap-3 border p-4 text-left transition-colors ${
                       i.status === "completed" ? "border-primary/20 bg-primary/5" : "border-border bg-card hover:border-primary/30"
                     }`}
                   >
@@ -326,7 +326,7 @@ export default function RevisionPlanner() {
                   </button>
                 ))
               ) : (
-                <p className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">
+                <p className="border border-dashed border-border p-10 text-center text-muted-foreground">
                   This plan has no scheduled sessions yet.
                 </p>
               )}
@@ -335,7 +335,7 @@ export default function RevisionPlanner() {
         </div>
       ) : (
         <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
-          <form onSubmit={generate} className="h-fit rounded-2xl border border-border bg-card p-5">
+          <form onSubmit={generate} className="h-fit border-y border-border bg-card p-5">
             <CalendarDays className="h-6 w-6 text-primary" aria-hidden="true" />
             <h1 className="mt-3 font-serif text-2xl font-bold">Build your plan</h1>
 
@@ -344,7 +344,7 @@ export default function RevisionPlanner() {
               id="rp-year"
               value={year}
               onChange={(e) => { setYear(+e.target.value); setSelected([]); }}
-              className="mt-1 w-full min-h-[44px] rounded-lg border border-border bg-background p-2.5"
+              className="mt-1 w-full min-h-[44px] border border-border bg-background p-2.5"
             >
               {[1, 2, 3, 4, 5, 6].map((y) => <option key={y} value={y}>Year {y}</option>)}
             </select>
@@ -353,12 +353,12 @@ export default function RevisionPlanner() {
               <legend className="block text-xs font-bold">Units</legend>
               <div className="mt-2 max-h-56 space-y-1 overflow-auto">
                 {units.length === 0 && (
-                  <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                  <p className="border border-dashed border-border p-3 text-xs text-muted-foreground">
                     No units published for Year {year} yet.
                   </p>
                 )}
                 {units.map((u) => (
-                  <label key={u.id} className="flex items-center gap-2 rounded-lg p-2 text-sm hover:bg-muted">
+                  <label key={u.id} className="flex items-center gap-2 border p-2 text-sm hover:bg-muted">
                     <input
                       type="checkbox"
                       checked={selected.includes(u.id)}
@@ -378,7 +378,7 @@ export default function RevisionPlanner() {
               min={localDateStr(new Date(Date.now() + 86400000))}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 w-full min-h-[44px] rounded-lg border border-border bg-background p-2.5"
+              className="mt-1 w-full min-h-[44px] border border-border bg-background p-2.5"
             />
 
             <label htmlFor="rp-minutes" className="mt-4 block text-xs font-bold">Minutes per day</label>
@@ -389,7 +389,7 @@ export default function RevisionPlanner() {
               max="480"
               value={minutes}
               onChange={(e) => setMinutes(+e.target.value)}
-              className="mt-1 w-full min-h-[44px] rounded-lg border border-border bg-background p-2.5"
+              className="mt-1 w-full min-h-[44px] border border-border bg-background p-2.5"
             />
 
             <fieldset className="mt-4">
@@ -404,7 +404,7 @@ export default function RevisionPlanner() {
                       type="button"
                       onClick={() => toggleRestDay(day)}
                       aria-pressed={active}
-                      className={`min-h-[36px] min-w-[44px] rounded-lg border px-2 text-xs font-semibold transition-colors ${
+                      className={`min-h-[36px] min-w-[44px] border px-2 text-xs font-semibold transition-colors ${
                         active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"
                       }`}
                     >
@@ -423,7 +423,7 @@ export default function RevisionPlanner() {
           <section>
             <h2 className="font-serif text-2xl font-bold">Your schedule</h2>
             <p className="mt-1 text-sm text-muted-foreground">A balanced sequence of reading and question practice.</p>
-            <p className="mt-5 rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">
+            <p className="mt-5 border border-dashed border-border p-10 text-center text-muted-foreground">
               Choose units and an exam date to generate your schedule.
             </p>
           </section>
