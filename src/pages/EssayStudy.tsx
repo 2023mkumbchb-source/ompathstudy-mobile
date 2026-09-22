@@ -158,7 +158,7 @@ export default function EssayStudy() {
                   {openSaq.has(i) && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                       <div className="px-4 pb-4 pl-12">
-                        <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-3">
+                        <div className="border border-green-500/20 bg-green-500/5 p-3">
                           <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{q.answer}</p>
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export default function EssayStudy() {
                   {openLaq.has(i) && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                       <div className="px-4 pb-4 pl-12">
-                        <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
+                        <div className="border border-blue-500/20 bg-blue-500/5 p-3">
                           <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{q.answer}</p>
                         </div>
                       </div>
