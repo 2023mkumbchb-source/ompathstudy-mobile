@@ -14,19 +14,9 @@ const client = createClient(SUPABASE_URL, SUPABASE_KEY);
 async function main() {
   console.log("Fetching published content from Supabase for offline seed bundle...");
 
-  // 1. Fetch summaries
-  const { data: summaries, error: sumErr } = await client
-    .from("articles")
-    .select("id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind, content_type, semester_number")
-    .eq("published", true)
-    .eq("is_raw", false)
-    .is("deleted_at", null)
-    .order("updated_at", { ascending: false });
-
-  if (sumErr) throw sumErr;
-  console.log(`Fetched ${summaries?.length || 0} article summaries.`);
-
-  // 2. Fetch all full articles
+  // Fetch full articles once. Their metadata also supplies the
+  // lightweight summary catalogue, so we avoid downloading the same metadata
+  // twice from Supabase during an intentional seed refresh.
   const { data: articles, error: artErr } = await client
     .from("articles")
     .select("id, title, content, original_notes, category, created_at, updated_at, published, is_raw, slug, meta_title, meta_description, og_image_url, tags, featured_image, reading_time_minutes, content_kind, content_type, semester_number")
@@ -63,7 +53,10 @@ async function main() {
   const bundle = {
     generated_at: new Date().toISOString(),
     version: 1,
-    summaries: summaries || [],
+    summaries: (articles || []).map(({ id, title, category, created_at, updated_at, published, slug, meta_description, og_image_url, tags, featured_image, content_kind, content_type, semester_number }) => ({
+      id, title, category, created_at, updated_at, published, slug, meta_description,
+      og_image_url, tags, featured_image, content_kind, content_type, semester_number,
+    })),
     articles: articles || [],
     mcq_sets: mcqSets || [],
     flashcard_sets: flashcards || [],
