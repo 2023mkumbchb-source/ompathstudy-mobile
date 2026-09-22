@@ -479,12 +479,12 @@ export default function Blog() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-7">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-muted" />
+          <div className="h-9 w-48 animate-pulse rounded-md bg-muted" />
           <div className="mt-2 h-4 w-72 animate-pulse rounded bg-muted" />
         </div>
-        <div className="mb-5 h-12 animate-pulse rounded-xl bg-muted" />
+        <div className="mb-5 h-12 animate-pulse rounded-md bg-muted" />
         <div className="mb-5 flex gap-1">
-          {[1,2,3,4,5].map(i => <div key={i} className="h-8 w-16 animate-pulse rounded-lg bg-muted" />)}
+          {[1,2,3,4,5].map(i => <div key={i} className="h-8 w-16 animate-pulse rounded-md bg-muted" />)}
         </div>
         <div className="space-y-3">
           {[1,2,3,4,5,6].map(i => (
@@ -510,7 +510,7 @@ export default function Blog() {
             <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Browse</p>
             <button
               onClick={() => { setYear("All"); setUnit(null); }}
-              className={`mb-3 block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition-all duration-200 ${selectedYear === "All" ? "bg-primary/10 text-primary shadow-sm" : "text-foreground hover:bg-muted hover:shadow-sm"}`}
+              className={`mb-3 block w-full rounded-md px-3 py-2 text-left text-sm font-semibold transition-colors duration-200 ${selectedYear === "All" ? "bg-primary/10 text-primary shadow-sm" : "text-foreground hover:bg-muted hover:shadow-sm"}`}
             >
               All Years
             </button>
@@ -523,7 +523,7 @@ export default function Blog() {
                 <div key={y} className="mb-2">
                   <button
                     onClick={() => setYear(isOpen ? "All" : y)}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-semibold transition-all duration-200 ${isOpen ? "bg-primary/10 text-primary shadow-sm" : "text-foreground hover:bg-muted hover:shadow-sm"}`}
+                    className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold transition-colors duration-200 ${isOpen ? "bg-primary/10 text-primary shadow-sm" : "text-foreground hover:bg-muted hover:shadow-sm"}`}
                   >
                     <span className="flex items-center gap-2">
                       <span className="text-base">{theme?.icon}</span>
@@ -635,7 +635,7 @@ export default function Blog() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.3 }}
-          className={`relative mt-5 flex max-w-2xl items-center overflow-hidden border bg-background shadow-sm transition-all duration-300 ${searchFocused ? "border-primary ring-2 ring-primary/15 shadow-md" : "border-border"}`}
+          className={`relative mt-5 flex max-w-2xl items-center overflow-hidden border bg-background shadow-sm transition-colors duration-300 ${searchFocused ? "border-primary ring-2 ring-primary/15 shadow-sm" : "border-border"}`}
         >
           <Search className="ml-3 h-4 w-4 shrink-0 text-muted-foreground" />
           <input
@@ -687,14 +687,14 @@ export default function Blog() {
                 whileHover={cardHover}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setYear(y)}
-                className="group relative overflow-hidden border border-border bg-card text-left transition-all duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]"
+                className="group relative overflow-hidden border border-border bg-card text-left transition-colors duration-300 hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]"
               >
                 {/* Gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative p-5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-3xl">{theme.icon}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-primary group-hover:opacity-0" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-colors duration-300 group-hover:translate-x-0.5 group-hover:text-primary group-hover:opacity-0" />
                   </div>
                   <span className="mt-3 block font-serif text-xl font-bold text-foreground sm:text-2xl group-hover:text-foreground">{y}</span>
                   <p className="mt-1 text-xs text-muted-foreground group-hover:text-foreground/80">{yearTotals[y] ?? 0} notes ready to review</p>
@@ -737,7 +737,7 @@ export default function Blog() {
                 <Link
                   to={buildBlogPath(ra)}
                   state={{ from: fromPath }}
-                  className="group flex items-center gap-3 rounded-lg px-2 py-2 transition-all duration-200 hover:bg-muted/40"
+                  className="group flex items-center gap-3 rounded-md px-2 py-2 transition-colors duration-200 hover:bg-muted/40"
                 >
                   <BookOpen className="h-3.5 w-3.5 shrink-0 text-primary" />
                   <span className="truncate text-sm font-medium text-foreground transition-colors group-hover:text-primary">{ra.title}</span>
@@ -758,7 +758,7 @@ export default function Blog() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.3 }}
             onClick={() => setYear(year)}
-            className={`shrink-0 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+            className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors duration-200 ${
               selectedYear === year
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -789,7 +789,7 @@ export default function Blog() {
                 whileHover={cardHover}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSemester(opt.value)}
-                className="border-y border-border bg-card p-5 text-left transition-all duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]"
+                className="border-y border-border bg-card p-5 text-left transition-colors duration-300 hover:border-primary/40 hover:shadow-[var(--shadow-card-hover)]"
               >
                 <span className="font-serif text-lg font-bold text-foreground sm:text-xl">{opt.label}</span>
                 <p className="mt-1 text-xs text-muted-foreground">{year3SemesterCounts[opt.value] ?? 0} notes</p>
@@ -812,7 +812,7 @@ export default function Blog() {
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setSemester(null)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-200 ${
                 !selectedSemester
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -824,7 +824,7 @@ export default function Blog() {
               <button
                 key={opt.value}
                 onClick={() => setSemester(selectedSemester === opt.value ? null : opt.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-200 ${
                   selectedSemester === opt.value
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -867,7 +867,7 @@ export default function Blog() {
           <div className="mb-6 flex flex-wrap gap-1.5">
             <button
               onClick={() => setUnit(null)}
-              className="border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
+              className="border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground"
             >
               ← All units
             </button>
@@ -877,7 +877,7 @@ export default function Blog() {
                 <button
                   key={u.category}
                   onClick={() => setUnit(active ? null : u.category)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors duration-200 ${
                     active
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -940,14 +940,14 @@ export default function Blog() {
             <button
               onClick={() => setViewMode("list")}
               aria-label="List view"
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all duration-200 ${view === "list" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${view === "list" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             >
               <List className="h-3.5 w-3.5" /> List
             </button>
             <button
               onClick={() => setViewMode("grid")}
               aria-label="Grid view"
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-all duration-200 ${view === "grid" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${view === "grid" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Grid
             </button>
@@ -969,7 +969,7 @@ export default function Blog() {
           {(search || selectedUnit || kindFilter !== "all") && (
             <button
               onClick={() => { setSearch(""); setUnit(null); setKindFilter("all"); }}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:opacity-90 hover:bg-muted/40"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition-colors duration-200 hover:opacity-90 hover:bg-muted/40"
             >
               Reset filters <ArrowRight className="h-3.5 w-3.5" />
             </button>
@@ -1048,7 +1048,7 @@ export default function Blog() {
         {filtered.length > visibleCount && (
             <button
               onClick={() => setVisibleCount(prev => prev + LOAD_MORE_STEP)}
-              className="mx-auto mt-4 flex items-center gap-2 border border-border bg-card px-6 py-2.5 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-muted hover:shadow-sm"
+              className="mx-auto mt-4 flex items-center gap-2 border border-border bg-card px-6 py-2.5 text-sm font-semibold text-foreground transition-colors duration-200 hover:bg-muted hover:shadow-sm"
             >
               Load more ({filtered.length - visibleCount} remaining)
               <ChevronDown className="h-4 w-4" />
