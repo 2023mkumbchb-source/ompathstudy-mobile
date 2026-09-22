@@ -1031,6 +1031,17 @@ export async function getPublishedFlashcardSets(): Promise<FlashcardSet[]> {
   }
 }
 
+export async function getPublishedFlashcardSetSummaries(): Promise<Pick<FlashcardSet, "id" | "title" | "created_at" | "updated_at" | "published" | "category" | "meta_title" | "meta_description" | "og_image_url" | "slug">[]> {
+  const { data, error } = await supabase
+    .from("flashcard_sets")
+    .select("id,title,created_at,updated_at,published,category,meta_title,meta_description,og_image_url,slug")
+    .eq("published", true)
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (data || []) as any;
+}
+
 export async function getFlashcardSetById(id: string): Promise<FlashcardSet | null> {
   if (isOfflineMode()) {
     const offline = await getFlashcardSetOfflineById(id);
