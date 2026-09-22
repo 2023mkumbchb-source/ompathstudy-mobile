@@ -337,7 +337,7 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-md"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-sm"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="rounded-full bg-destructive/10 p-2">
@@ -378,7 +378,7 @@ export default function ExamMode({
             initial={{ scale: 0.92 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.92 }}
-            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-md"
+            className="w-full max-w-sm border-y border-border bg-card p-6 shadow-sm"
           >
             <h3 className="font-serif text-base font-bold text-foreground mb-2">Submit Exam?</h3>
             {unanswered > 0 && (
@@ -627,7 +627,7 @@ export default function ExamMode({
         <div className="mx-auto max-w-2xl mt-1.5">
           <div className="h-1 w-full rounded-full bg-secondary">
             <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-colors duration-500"
               style={{ width: `${(answered / total) * 100}%` }}
             />
           </div>
