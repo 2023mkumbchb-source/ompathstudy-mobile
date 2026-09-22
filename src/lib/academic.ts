@@ -99,7 +99,7 @@ export async function getUnitsForYear(yearNumber: number): Promise<Unit[]> {
     if (!year) return [];
     const { data } = await supabase
       .from("units")
-      .select("*")
+      .select("id,academic_year_id,semester_id,name,slug,short_name,course_code,description,learning_objectives,exam_information,legacy_category,display_order,published,icon,color")
       .eq("academic_year_id", year.id)
       .order("display_order")
       .order("name");
@@ -119,7 +119,7 @@ export function unitPath(yearNumber: number, slug: string) {
 export async function getTopicsForUnit(unitId: string): Promise<SyllabusTopic[]> {
   const { data } = await supabase
     .from("syllabus_topics")
-    .select("*")
+    .select("id,unit_id,parent_topic_id,title,description,learning_objectives,display_order,importance")
     .eq("unit_id", unitId)
     .order("display_order");
   return (data as SyllabusTopic[]) || [];
