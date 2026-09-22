@@ -1,18 +1,14 @@
-name: Sync Shared Code from Website
-
+name: Sync Shared Logic from Website
 on:
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * *"
-
 permissions:
   contents: write
   pull-requests: write
-
 concurrency:
   group: sync-website-shared
   cancel-in-progress: true
-
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -21,7 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Checkout website repository
         uses: actions/checkout@v4
         with:
@@ -29,40 +24,43 @@ jobs:
           ref: main
           path: .website-source
           fetch-depth: 1
-
-      - name: Apply allowlisted shared files
+      - name: Validate and copy only allowlisted shared modules
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r file; do
-            [ -z "$file" ] && continue
-            mkdir -p "$(dirname "$file")"
-            cp ".website-source/$file" "$file"
-          done < <(node -e 'const m = require("./sync/website-shared.json"); for (const f of m.files) console.log(f);')
-
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const manifest = JSON.parse(fs.readFileSync("sync/website-shared.json", "utf8"));
+          for (const file of manifest.files) {
+            if (!file.startsWith("src/lib/")) throw new Error("Refusing to sync non-library path: " + file);
+            const source = path.join(".website-source", file);
+            if (!fs.existsSync(source)) throw new Error("Missing source file: " + file);
+            fs.mkdirSync(path.dirname(file), { recursive: true });
+            fs.copyFileSync(source, file);
+          }
+          NODE
       - name: Check for changes
         id: changes
         shell: bash
         run: |
-          if git diff --quiet -- src/lib/academic.ts src/pages/Essays.tsx; then
+          if git diff --quiet -- src/lib/academic.ts; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-
       - name: Create sync branch and commit
         if: ${{ steps.changes.outputs.changed == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
-          branch="sync/website-shared-${GITHUB_RUN_ID}"
+          branch="sync/shared-logic-${GITHUB_RUN_ID}"
           git switch -c "$branch"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/lib/academic.ts src/pages/Essays.tsx
-          git commit -m "Sync shared code from website"
+          git add src/lib/academic.ts
+          git commit -m "Sync shared logic from website"
           git push --set-upstream origin "$branch"
-
       - name: Open sync pull request
         if: ${{ steps.changes.outputs.changed == 'true' }}
         env:
@@ -71,6 +69,6 @@ jobs:
         run: |
           gh pr create \
             --base main \
-            --head "sync/website-shared-${GITHUB_RUN_ID}" \
-            --title "Sync shared code from website" \
-            --body "Automated sync from 2023mkumbchb-source/story-weave-box@main. Only the allowlisted shared files in sync/website-shared.json are copied. Mobile-specific files are intentionally excluded."
+            --head "sync/shared-logic-${GITHUB_RUN_ID}" \
+            --title "Sync shared logic from website" \
+            --body "Automated shared-logic sync. Layout, styling, responsive design, component structure, navigation and mobile-only code are excluded."
