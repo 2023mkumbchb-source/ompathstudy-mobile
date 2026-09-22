@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { GraduationCap, Calendar, Layers, ChevronDown, RotateCcw } from "lucide-react";
-import { getPublishedFlashcardSets, getCategoryDisplayName, getYearFromCategory, buildFlashcardPath, type FlashcardSet } from "@/lib/store";
+import { getPublishedFlashcardSetSummaries, getCategoryDisplayName, getYearFromCategory, buildFlashcardPath, type FlashcardSet } from "@/lib/store";
 import { getVisitedFlashcardIds } from "@/lib/progress-store";
 import { updateMetaTags } from "@/lib/seo";
 import CategoryTabs from "@/components/CategoryTabs";
@@ -25,7 +25,7 @@ export default function Flashcards() {
   const selectedYear = searchParams.get("year") || "All";
 
   useEffect(() => {
-    getPublishedFlashcardSets().then(setSets).finally(() => setLoading(false));
+    getPublishedFlashcardSetSummaries().then(setSets as any).finally(() => setLoading(false));
     setVisitedIds(getVisitedFlashcardIds());
   }, []);
 
@@ -140,7 +140,7 @@ export default function Flashcards() {
                     {s.title}
                   </h3>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> {s.cards.length} cards</span>
+                    <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> Interactive set</span>
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(s.created_at).toLocaleDateString()}</span>
                   </div>
                 </Link>
