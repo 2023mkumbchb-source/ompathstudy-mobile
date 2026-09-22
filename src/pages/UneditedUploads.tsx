@@ -249,15 +249,15 @@ export default function UneditedUploads() {
             <Button variant="outline" asChild><a href={buildBlogPath(selected)} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" />Open blog</a></Button>
           </div>
         </div>
-        <div className="mb-5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div className="mb-5 border border-amber-500/30 bg-amber-500/10 p-4">
           <h1 className="font-serif text-xl font-bold text-foreground">{selected.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{urls.length} source images · {selected.category} · Temporary editing workspace</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           <section>
             <div className="mb-3 flex items-center justify-between"><h2 className="font-bold">Original pages</h2><span className="text-xs text-muted-foreground">All selected automatically</span></div>
-            <div className="max-h-[75vh] space-y-3 overflow-y-auto rounded-xl border border-border bg-muted/20 p-3">
-              {urls.map((url, index) => <figure key={url} className="overflow-hidden rounded-lg border border-border bg-card"><a href={url} target="_blank" rel="noreferrer" title="Open full-size image"><img src={url} alt={`Page ${index + 1}`} loading="lazy" className="w-full cursor-zoom-in" /></a><figcaption className="px-3 py-2 text-xs font-semibold text-muted-foreground">Page {index + 1} of {urls.length}</figcaption></figure>)}
+            <div className="max-h-[75vh] space-y-3 overflow-y-auto border border-border bg-muted/20 p-3">
+              {urls.map((url, index) => <figure key={url} className="overflow-hidden border border-border bg-card"><a href={url} target="_blank" rel="noreferrer" title="Open full-size image"><img src={url} alt={`Page ${index + 1}`} loading="lazy" className="w-full cursor-zoom-in" /></a><figcaption className="px-3 py-2 text-xs font-semibold text-muted-foreground">Page {index + 1} of {urls.length}</figcaption></figure>)}
               {!urls.length && <div className="p-8 text-center text-sm text-muted-foreground"><p>No source images were detected in this article.</p><p className="mt-2">Refresh once; if this remains empty, that paper still needs its scans attached.</p></div>}
             </div>
           </section>
@@ -282,14 +282,14 @@ export default function UneditedUploads() {
       </div>
       <div className="mb-5 grid gap-3 sm:grid-cols-[1fr_auto]">
         <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search title or category" className="pl-9" /></div>
-        <div className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold">{filtered.length} with scans{withoutImages ? ` · ${withoutImages} without scans hidden` : ""}</div>
+        <div className="border border-border bg-card px-4 py-2 text-sm font-semibold">{filtered.length} with scans{withoutImages ? ` · ${withoutImages} without scans hidden` : ""}</div>
       </div>
       <div className="space-y-3">
         {filtered.map(article => {
           const pages = imageUrls(article).length;
-          return <article key={article.id} className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div className="min-w-0"><h2 className="font-semibold text-foreground">{article.title}</h2><p className="mt-1 text-xs text-muted-foreground">{article.category} · {pages} page image{pages === 1 ? "" : "s"} · {article.published ? "Public" : "Draft"}</p></div><div className="flex shrink-0 flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => void copyPrompt(article)}><FileText className="mr-1.5 h-3.5 w-3.5" />Prompt</Button><Button size="sm" variant="outline" disabled={!!busy} onClick={() => void downloadPdf(article)}><Download className="mr-1.5 h-3.5 w-3.5" />Pages PDF</Button><Button size="sm" onClick={() => openEditor(article)}><Image className="mr-1.5 h-3.5 w-3.5" />Open & edit</Button></div></div></article>;
+          return <article key={article.id} className="border border-border bg-card p-4 transition-colors hover:border-primary/40"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div className="min-w-0"><h2 className="font-semibold text-foreground">{article.title}</h2><p className="mt-1 text-xs text-muted-foreground">{article.category} · {pages} page image{pages === 1 ? "" : "s"} · {article.published ? "Public" : "Draft"}</p></div><div className="flex shrink-0 flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => void copyPrompt(article)}><FileText className="mr-1.5 h-3.5 w-3.5" />Prompt</Button><Button size="sm" variant="outline" disabled={!!busy} onClick={() => void downloadPdf(article)}><Download className="mr-1.5 h-3.5 w-3.5" />Pages PDF</Button><Button size="sm" onClick={() => openEditor(article)}><Image className="mr-1.5 h-3.5 w-3.5" />Open & edit</Button></div></div></article>;
         })}
-        {!filtered.length && <div className="rounded-xl border border-dashed border-border p-12 text-center text-muted-foreground">No unedited uploads match this search.</div>}
+        {!filtered.length && <div className="border border-dashed border-border p-12 text-center text-muted-foreground">No unedited uploads match this search.</div>}
       </div>
     </main>
   );
