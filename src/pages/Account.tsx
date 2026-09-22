@@ -218,7 +218,7 @@ export default function Account() {
             <ShieldCheck className="h-4 w-4" /> Sign in with Google or email
           </Link>
 
-          <section className="mt-6 rounded-2xl border border-dashed border-border bg-card/60 p-5">
+          <section className="mt-6 border-y border-dashed border-border bg-card/60 p-5">
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> Why sign in?
             </p>
@@ -233,7 +233,7 @@ export default function Account() {
       )}
 
       {user && (
-        <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <section className="mt-6 border-y border-border bg-card p-5">
           <div className="flex items-center justify-between gap-2">
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               <GraduationCap className="h-3.5 w-3.5 text-primary" /> Study profile
@@ -323,7 +323,7 @@ export default function Account() {
       )}
 
       {user && (
-        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+        <section className="mt-4 border-y border-border bg-card p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground"><Bell className="h-3.5 w-3.5 text-primary" /> Email Notifications</p>
@@ -337,12 +337,12 @@ export default function Account() {
       )}
 
       {/* Mobile App Notifications Card */}
-      <Link to="/updates" className="mt-4 flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-5 transition hover:bg-primary/10">
+      <Link to="/updates" className="mt-4 flex items-center justify-between border-y border-primary/20 bg-primary/5 p-5 transition hover:bg-primary/10">
         <div><p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-primary"><RefreshCw className="h-4 w-4" /> App Update Center</p><p className="mt-1 text-sm text-muted-foreground">Check, install and restart without downloading another APK.</p></div>
         <ChevronRight className="h-5 w-5 text-primary" />
       </Link>
 
-      <section className="mt-4 rounded-2xl border border-border bg-card p-5 space-y-4">
+      <section className="mt-4 border-y border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -362,7 +362,7 @@ export default function Account() {
         </div>
 
         {permStatus !== "granted" && (
-          <div className="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
+          <div className="flex items-center justify-between border border-amber-500/20 bg-amber-500/10 p-3 text-xs">
             <span className="text-amber-600 dark:text-amber-400 font-medium">
               Android permission needed for background exam alerts
             </span>
@@ -442,7 +442,7 @@ export default function Account() {
       </section>
 
       {isAdmin && (
-        <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+        <section className="mt-4 border-y border-border bg-card p-5">
           <p className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <LayoutDashboard className="h-3.5 w-3.5 text-primary" /> Admin
           </p>
@@ -485,7 +485,7 @@ export default function Account() {
         <div className="flex min-h-[30vh] items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
       ) : info?.found ? (
         <>
-          <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+          <section className="mt-6 border-y border-border bg-card p-5">
             <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 text-primary" /> Subscription
             </p>
@@ -498,7 +498,7 @@ export default function Account() {
             </p>
           </section>
 
-          <section className="mt-4 rounded-2xl border border-border bg-card p-5">
+          <section className="mt-4 border-y border-border bg-card p-5">
             <p className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               <Pencil className="h-3.5 w-3.5" /> Your pass code
             </p>
@@ -524,7 +524,7 @@ export default function Account() {
 
         </>
       ) : (
-        <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <section className="mt-6 border-y border-border bg-card p-5">
           <p className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <KeyRound className="h-3.5 w-3.5" /> No subscription found on this account
           </p>
