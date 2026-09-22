@@ -1,3 +1,4 @@
+import "@/styles/workspace.css";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft, Search } from "lucide-react";
