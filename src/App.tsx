@@ -72,7 +72,16 @@ const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const Updates = lazy(() => import("./pages/Updates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
 
 const RouteLoader = () => (
   <div className="flex min-h-[60vh] items-center justify-center">
