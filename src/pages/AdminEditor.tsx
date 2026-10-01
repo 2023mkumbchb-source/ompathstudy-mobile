@@ -28,6 +28,7 @@ import { Helmet } from "react-helmet-async";
 import { saveDraft, getDrafts, syncDrafts, deleteDraft, type OfflineDraft } from "@/lib/offline-drafts";
 import PublishingSettingsPanel, { type PublishingExtras, computeReadingTime } from "@/components/PublishingSettings";
 import { uploadImageToR2 } from "@/lib/r2";
+import { ARTICLE_COLUMNS } from "@/lib/article-columns";
 
 type EditorMode = "articles" | "mcqs" | "stories";
 
@@ -564,7 +565,7 @@ export default function AdminEditor() {
     setLoadingContent(true);
     (async () => {
       try {
-        const { data } = await supabase.from("articles").select("*").eq("id", currentArticleSummary.id).single();
+        const { data } = await supabase.from("articles").select(ARTICLE_COLUMNS).eq("id", currentArticleSummary.id).single();
         if (!cancelled && data) setFullArticle(data as Article);
       } catch {}
       if (!cancelled) setLoadingContent(false);

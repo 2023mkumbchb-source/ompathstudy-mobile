@@ -17,6 +17,7 @@ import {
   getMcqSetsOffline,
 } from "./offlineStore";
 import { isOfflineMode } from "@/hooks/useNetworkStatus";
+import { ARTICLE_COLUMNS } from "./article-columns";
 
 export interface Article {
   id: string;
@@ -647,7 +648,7 @@ export function isPublicStudyArticle(article: Pick<Article, "title">): boolean {
 export async function getArticles(): Promise<Article[]> {
   const { data, error } = await supabase
     .from("articles")
-    .select("*")
+    .select(ARTICLE_COLUMNS)
     .is("deleted_at", null)
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -657,7 +658,7 @@ export async function getArticles(): Promise<Article[]> {
 export async function getPublishedArticles(): Promise<Article[]> {
   const { data, error } = await supabase
     .from("articles")
-    .select("*")
+    .select(ARTICLE_COLUMNS)
     .eq("published", true)
     .eq("is_raw", false)
     .is("deleted_at", null)

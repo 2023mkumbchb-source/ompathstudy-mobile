@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { buildBlogPath, type Article } from "@/lib/store";
+import { ARTICLE_COLUMNS } from "@/lib/article-columns";
 
 type QueueArticle = Article & { deleted_at?: string | null };
 
@@ -90,7 +91,7 @@ export default function UneditedUploads() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("articles").select("*").eq("is_raw", true).is("deleted_at", null).order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("articles").select(ARTICLE_COLUMNS).eq("is_raw", true).is("deleted_at", null).order("created_at", { ascending: false });
     if (error) toast({ title: "Could not load review queue", description: error.message, variant: "destructive" });
     setArticles((data || []) as QueueArticle[]);
     setLoading(false);

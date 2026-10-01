@@ -21,6 +21,7 @@ import NotificationAdmin from "@/components/NotificationAdmin";
 import { autoIndexUrls, SITE_URL, slugifyText } from "@/lib/seo";
 import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/hooks/useAuth";
+import { ARTICLE_COLUMNS } from "@/lib/article-columns";
 
 type Tab = "create" | "unedited" | "articles" | "flashcards" | "mcqs" | "stories" | "raw" | "exams" | "settings" | "institutions" | "upgrade" | "import" | "cleanup" | "seo" | "categories" | "editor" | "meta-manager" | "corrections" | "payments" | "notifications";
 type DirectType = "article" | "mcqs" | "flashcards";
@@ -1244,7 +1245,7 @@ function ArticlesList({
       if (data?.error) throw new Error(data.error);
 
       // Reload the editing article with new SEO values
-      const { data: updatedArt } = await supabase.from("articles").select("*").eq("id", editing.id).single();
+      const { data: updatedArt } = await supabase.from("articles").select(ARTICLE_COLUMNS).eq("id", editing.id).single();
       if (updatedArt) setEditing(updatedArt as Article);
       toast({ title: "AI SEO metadata generated!" });
     } catch (err: any) {

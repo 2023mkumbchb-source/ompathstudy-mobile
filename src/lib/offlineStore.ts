@@ -1,6 +1,7 @@
 import type { Article, FlashcardSet, McqSet, Story } from "./store";
 import { supabase } from "@/integrations/supabase/client";
 import { cacheAllArticleImages } from "./offlineImageStore";
+import { ARTICLE_COLUMNS } from "./article-columns";
 
 const DB_NAME = "ompath_offline_db";
 const DB_VERSION = 2;
@@ -535,7 +536,7 @@ export async function syncAllContentForOffline(
       const batchIds = cleanSummaries.slice(i, i + batchSize).map((a) => a.id);
       const { data: fullArticles, error: artErr } = await supabase
         .from("articles")
-        .select("*")
+        .select(ARTICLE_COLUMNS)
         .in("id", batchIds)
         .is("deleted_at", null);
 
@@ -749,7 +750,7 @@ export async function autoDeltaSync(): Promise<{ updated: number }> {
     // 1. Check for updated articles
     const { data: updatedArticles } = await supabase
       .from("articles")
-      .select("*")
+      .select(ARTICLE_COLUMNS)
       .gt("updated_at", since)
       .eq("published", true)
       .eq("is_raw", false)

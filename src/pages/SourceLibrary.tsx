@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { Article } from "@/lib/store";
+import { ARTICLE_COLUMNS } from "@/lib/article-columns";
 
 const scanUrls = (article: Article) => {
   const found = new Set<string>();
@@ -46,7 +47,7 @@ export default function SourceLibrary() {
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
-  useEffect(() => { supabase.from("articles").select("*").eq("published", true).eq("is_raw", true).is("deleted_at", null).order("updated_at", { ascending: false }).then(({ data }) => { setItems((data || []) as Article[]); setLoading(false); }); }, []);
+  useEffect(() => { supabase.from("articles").select(ARTICLE_COLUMNS).eq("published", true).eq("is_raw", true).is("deleted_at", null).order("updated_at", { ascending: false }).then(({ data }) => { setItems((data || []) as Article[]); setLoading(false); }); }, []);
   const visible = useMemo(() => items.filter(item => scanUrls(item).length && (!search || `${item.title} ${classify(item)}`.toLowerCase().includes(search.toLowerCase()))), [items, search]);
   const selected = slug ? items.find(item => item.slug === slug || item.id === slug) : undefined;
   useEffect(() => { if (selected) setDraft(selected.content || ""); }, [selected?.id]);
