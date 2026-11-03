@@ -92,6 +92,38 @@ export async function getAcademicYears(): Promise<AcademicYear[]> {
   });
 }
 
+export interface Semester {
+  id: string;
+  academic_year_id: string;
+  semester_number: number;
+  title: string;
+  description: string | null;
+}
+
+export async function getSemestersForYear(yearNumber: number): Promise<Semester[]> {
+  return cached(`semesters:${yearNumber}`, async () => {
+    const years = await getAcademicYears();
+    const year = years.find((y) => y.year_number === yearNumber);
+    if (!year) return [];
+    const { data } = await supabase
+      .from("semesters")
+      .select("id,academic_year_id,semester_number,title,description")
+      .eq("academic_year_id", year.id)
+      .order("semester_number");
+    return (data as Semester[]) || [];
+  });
+}
+
+export async function getUnitsForYearSemester(yearNumber: number, semesterNumber: number): Promise<Unit[]> {
+  const [units, semesters] = await Promise.all([
+    getUnitsForYear(yearNumber),
+    getSemestersForYear(yearNumber),
+  ]);
+  const semester = semesters.find((s) => s.semester_number === semesterNumber);
+  if (!semester) return [];
+  return units.filter((u) => u.semester_id === semester.id);
+}
+
 export async function getUnitsForYear(yearNumber: number): Promise<Unit[]> {
   return cached(`units:${yearNumber}`, async () => {
     const years = await getAcademicYears();
@@ -168,7 +200,7 @@ export function resourcePath(r: UnitResource): string {
   // MCQ sets power the timed exam flow directly (see ExamStart.tsx, which
   // resolves this same slug-or-id against the mcq_sets table) -- link there
   // instead of a fuzzy title search on the blog.
-  if (r.kind === "mcq") return `/exams/${r.slug || r.id}/start`;
+  if (r.kind === "mcq") return `/mcqs/${r.slug || r.id}`;
   if (r.kind === "flashcard") return `/flashcards/${r.slug || r.id}`;
   return `/blog/${r.slug || r.id}`;
 }
